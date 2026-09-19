@@ -3,16 +3,62 @@
 import { useState } from "react";
 import { mockExtractJobAd } from "../lib/mockExtraction";
 import { evaluateJob, Verdict } from "../lib/rules";
+import { ExtractedJobAd } from "../types/job";
+
+type AnalysisSource = "AI" | "LOCAL";
 
 export default function Home() {
   const [adText, setAdText] = useState("");
   const [verdict, setVerdict] = useState<Verdict | null>(null);
 
-  function handleAnalyse() {
-    const extracted = mockExtractJobAd(adText);
-    const result = evaluateJob(extracted);
+  const [isLoading, setIsLoading] = useState(false);
+  const [analysisSource, setAnalysisSource] = useState<AnalysisSource | null>(
+    null
+  );
 
-    setVerdict(result);
+  async function handleAnalyse() {
+    if (!adText.trim()) {
+      return;
+    }
+
+    setIsLoading(true);
+    setVerdict(null);
+    setAnalysisSource(null);
+
+    try {
+      const response = await fetch("/api/extract", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          adText,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`AI extraction failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const extracted: ExtractedJobAd = data.extraction;
+
+      const result = evaluateJob(extracted);
+
+      setVerdict(result);
+      setAnalysisSource("AI");
+    } catch (error) {
+      console.warn("AI extraction unavailable. Using local fallback.", error);
+
+      const extracted = mockExtractJobAd(adText);
+      const result = evaluateJob(extracted);
+
+      setVerdict(result);
+      setAnalysisSource("LOCAL");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   function renderHighlightedText() {
@@ -51,6 +97,7 @@ export default function Home() {
           onChange={(e) => {
             setAdText(e.target.value);
             setVerdict(null);
+            setAnalysisSource(null);
           }}
           placeholder="Paste job advertisement here..."
           className="min-h-64 w-full rounded-lg border border-gray-300 bg-white p-4 text-gray-900 placeholder:text-gray-400"
@@ -58,18 +105,36 @@ export default function Home() {
 
         <button
           onClick={handleAnalyse}
-          disabled={!adText.trim()}
+          disabled={!adText.trim() || isLoading}
           className="mt-4 rounded-lg bg-black px-5 py-3 text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Analyse Job
+          {isLoading ? "Analysing..." : "Analyse Job"}
         </button>
 
         {verdict && (
           <>
             <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 text-gray-900">
-              <h2 className="text-2xl font-bold">{verdict.status}</h2>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold">{verdict.status}</h2>
 
-              <p className="mt-2">{verdict.reason}</p>
+                  <p className="mt-2">{verdict.reason}</p>
+                </div>
+
+                {analysisSource && (
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      analysisSource === "AI"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-200 text-gray-700"
+                    }`}
+                  >
+                    {analysisSource === "AI"
+                      ? "AI extraction"
+                      : "Local fallback"}
+                  </span>
+                )}
+              </div>
 
               {verdict.ruleId && (
                 <p className="mt-4 text-sm text-gray-500">
