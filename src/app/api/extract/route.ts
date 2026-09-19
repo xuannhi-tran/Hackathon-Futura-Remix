@@ -1,5 +1,16 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
+import {
+  fallbackCitizenship,
+  fallbackResidency,
+  fallbackSecurityClearance,
+  fallbackTemporaryVisaAllowed,
+  fallbackLocation,
+  fallbackRegistration,
+  fallbackVisaPlanRequirement,
+  fallbackRoleField,
+} from "../../../lib/extractionFallbacks";
+
 type RawEvidenceField = {
   value: string;
   text: string;
@@ -102,41 +113,6 @@ function addEvidenceSpan(
 }
 
 // --------------------------------------------------
-// DETERMINISTIC FALLBACK — CITIZENSHIP
-// --------------------------------------------------
-
-function fallbackCitizenship(adText: string): EvidenceField | undefined {
-  const patterns = [
-    /\bBe an Australian citizen(?: at the time of application)?\b/i,
-
-    /\bAustralian Citizenship is mandatory\b/i,
-
-    /\bAustralian citizenship (?:is )?(?:required|mandatory|essential)\b/i,
-
-    /\bmust be an? Australian citizen\b/i,
-
-    /\bAustralian citizen(?:ship)? required\b/i,
-
-    /\bapplicants must be Australian citizens?\b/i,
-  ];
-
-  for (const pattern of patterns) {
-    const match = adText.match(pattern);
-
-    if (match && match.index !== undefined) {
-      return {
-        value: "Australian citizenship required",
-        text: match[0],
-        start: match.index,
-        end: match.index + match[0].length,
-      };
-    }
-  }
-
-  return undefined;
-}
-
-// --------------------------------------------------
 // WORK-RIGHTS EVIDENCE FILTER
 // --------------------------------------------------
 
@@ -190,149 +166,6 @@ function filterWorkRightsRequirement(
   }
 
   return field;
-}
-
-// --------------------------------------------------
-// DETERMINISTIC FALLBACK — LOCATION
-// --------------------------------------------------
-
-function fallbackLocation(adText: string): EvidenceField | undefined {
-  const labelledMatch = adText.match(/(?:^|\n)\s*Location:\s*([^\n\r]+)/i);
-
-  if (labelledMatch) {
-    const text = labelledMatch[1].trim();
-
-    const searchFrom = labelledMatch.index ?? 0;
-
-    const start = adText.indexOf(text, searchFrom);
-
-    if (start !== -1) {
-      return {
-        value: text,
-        text,
-        start,
-        end: start + text.length,
-      };
-    }
-  }
-
-  const cityMatch = adText.match(
-    /\b(?:Sydney|Melbourne|Brisbane|Perth|Adelaide|Canberra|Hobart|Darwin)\s+(?:NSW|VIC|QLD|WA|SA|ACT|TAS|NT)\b/i
-  );
-
-  if (!cityMatch || cityMatch.index === undefined) {
-    return undefined;
-  }
-
-  return {
-    value: cityMatch[0],
-    text: cityMatch[0],
-    start: cityMatch.index,
-    end: cityMatch.index + cityMatch[0].length,
-  };
-}
-
-// --------------------------------------------------
-// DETERMINISTIC FALLBACK — PROFESSIONAL REGISTRATION
-// --------------------------------------------------
-
-function fallbackRegistration(adText: string): EvidenceField | undefined {
-  const patterns = [
-    /\bCurrent Registered Nurse registration \(AHPRA\)\b/i,
-
-    /\bcurrent AHPRA registration\b/i,
-
-    /\bAHPRA registration\b/i,
-
-    /\bregistered with AHPRA\b/i,
-
-    /\beligible for admission in (?:Queensland|NSW|Victoria|WA|SA|TAS|ACT)\b/i,
-
-    /\bAustralian legal practising certificate\b/i,
-  ];
-
-  for (const pattern of patterns) {
-    const match = adText.match(pattern);
-
-    if (match && match.index !== undefined) {
-      return {
-        value: "Professional registration requirement",
-        text: match[0],
-        start: match.index,
-        end: match.index + match[0].length,
-      };
-    }
-  }
-
-  return undefined;
-}
-
-// --------------------------------------------------
-// DETERMINISTIC FALLBACK — TEMPORARY VISA ALLOWED
-// --------------------------------------------------
-
-function fallbackTemporaryVisaAllowed(
-  adText: string
-): EvidenceField | undefined {
-  const patterns = [
-    /\btemporary visa that allows you to live and work in Australia, you may be offered employment in line with the conditions of your visa\b/i,
-
-    /\bcitizen of another country with an appropriate visa that allows you to work in Australia\b/i,
-
-    /\btemporary visa\b[^\n\r.]{0,180}\bmay be offered employment\b[^\n\r.]*/i,
-  ];
-
-  for (const pattern of patterns) {
-    const match = adText.match(pattern);
-
-    if (match && match.index !== undefined) {
-      return {
-        value: "Temporary visa holders explicitly allowed",
-        text: match[0],
-        start: match.index,
-        end: match.index + match[0].length,
-      };
-    }
-  }
-
-  return undefined;
-}
-
-// --------------------------------------------------
-// DETERMINISTIC FALLBACK — ROLE FIELD
-// --------------------------------------------------
-
-function fallbackRoleField(adText: string): EvidenceField | undefined {
-  const firstLine = adText
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .find((line) => line.length > 0);
-
-  if (!firstLine) {
-    return undefined;
-  }
-
-  const looksLikeRole =
-    /\b(engineer|developer|analyst|scientist|designer|consultant|coordinator|manager|accountant|architect|specialist|administrator|technician)\b/i.test(
-      firstLine
-    );
-
-  if (!looksLikeRole) {
-    return undefined;
-  }
-
-  const start = adText.indexOf(firstLine);
-
-  if (start === -1) {
-    return undefined;
-  }
-
-  return {
-    value: firstLine,
-    text: firstLine,
-    start,
-    end: start + firstLine.length,
-  };
 }
 
 export async function POST(request: Request) {
@@ -681,6 +514,16 @@ ${adText}
       rawExtraction.citizenshipRequirement
     );
 
+    const aiResidency = addEvidenceSpan(
+      adText,
+      rawExtraction.residencyRequirement
+    );
+
+    const aiSecurityClearance = addEvidenceSpan(
+      adText,
+      rawExtraction.securityClearance
+    );
+
     const aiLocation = addEvidenceSpan(adText, rawExtraction.location);
 
     const aiRegistration = addEvidenceSpan(adText, rawExtraction.registration);
@@ -688,6 +531,11 @@ ${adText}
     const aiTemporaryVisaAllowed = addEvidenceSpan(
       adText,
       rawExtraction.temporaryVisaAllowed
+    );
+
+    const aiVisaPlanRequirement = addEvidenceSpan(
+      adText,
+      rawExtraction.visaPlanRequirement
     );
 
     const aiWorkRights = filterWorkRightsRequirement(
@@ -703,15 +551,10 @@ ${adText}
     const extraction = {
       citizenshipRequirement: aiCitizenship ?? fallbackCitizenship(adText),
 
-      residencyRequirement: addEvidenceSpan(
-        adText,
-        rawExtraction.residencyRequirement
-      ),
+      residencyRequirement: aiResidency ?? fallbackResidency(adText),
 
-      securityClearance: addEvidenceSpan(
-        adText,
-        rawExtraction.securityClearance
-      ),
+      securityClearance:
+        aiSecurityClearance ?? fallbackSecurityClearance(adText),
 
       sponsorship: addEvidenceSpan(adText, rawExtraction.sponsorship),
 
@@ -735,10 +578,8 @@ ${adText}
       temporaryVisaAllowed:
         aiTemporaryVisaAllowed ?? fallbackTemporaryVisaAllowed(adText),
 
-      visaPlanRequirement: addEvidenceSpan(
-        adText,
-        rawExtraction.visaPlanRequirement
-      ),
+      visaPlanRequirement:
+        aiVisaPlanRequirement ?? fallbackVisaPlanRequirement(adText),
 
       roleField: aiRoleField ?? fallbackRoleField(adText),
     };
