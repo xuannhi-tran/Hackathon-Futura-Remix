@@ -49,3 +49,7 @@ __pycache__/
 .Rhistory
 .RData
 .Rproj.user/
+
+# evaluation output (generated — do not commit)
+corpus_app_results.json
+corpus_app_results_35.json

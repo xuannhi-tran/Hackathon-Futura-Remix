@@ -13,31 +13,44 @@ const RUN_CORPUS = process.env.RUN_CORPUS_EVAL === "1";
 const API_URL =
   process.env.CORPUS_API_URL ?? "http://localhost:3000/api/extract";
 
-const ADS_DIR = path.join(process.cwd(), "job_description_txt");
+const ADS_DIR = path.join(process.cwd(), "job_description_txt", "dev_set");
 
 const GROUND_TRUTH: Record<string, "SKIP" | "TAILOR" | "APPLY"> = {
   "01_aps_data_stream.txt": "SKIP",
-  "02_aps_stem_stream.txt": "SKIP",
-  "03_aps_generalist_stream.txt": "SKIP",
-  "04_dfat_graduate_program.txt": "SKIP",
-  "05_nsw_health_senior_data_analyst.txt": "TAILOR",
-  "06_aps4_participant_support_officer.txt": "SKIP",
-
-  "10_rei_graduate_software_developer.txt": "SKIP",
-  "11_arturia_ai_graduate_software_engineer.txt": "SKIP",
-  "12_springtek_junior_software_engineer.txt": "SKIP",
-  "13_sg_fleet_software_engineering_internship.txt": "SKIP",
-  "14_lynxx_junior_backend_developer.txt": "SKIP",
-
-  "15_caringbah_family_practice_rn.txt": "TAILOR",
-  "16_healthscope_graduate_enrolled_nurse.txt": "TAILOR",
-  "17_cabrini_health_graduate_rn.txt": "TAILOR",
-  "18_innisfail_medical_centre_gp_nurse.txt": "TAILOR",
-
-  "19_proforce_graduate_role.txt": "SKIP",
-  "20_velocity_legal_graduate.txt": "APPLY",
-  "21_qld_law_firm_graduate.txt": "SKIP",
-  "23_service_stream_finance_graduate.txt": "SKIP",
+  "02_am_logistics_graduate.txt": "APPLY",
+  "03_aps_stem_stream.txt": "SKIP",
+  "04_acciona_hr_graduate.txt": "SKIP",
+  "05_aps_generalist_stream.txt": "SKIP",
+  "06_dfat_graduate_program.txt": "SKIP",
+  "07_gold_coast_data_analyst.txt": "SKIP",
+  "08_grant_thornton_rd_tax_graduate.txt": "APPLY",
+  "09_nsw_health_senior_data_analyst.txt": "TAILOR",
+  "10_aps4_participant_support_officer.txt": "SKIP",
+  "11_hne_registered_nurse_armidale.txt": "TAILOR",
+  "12_ey_entry_level_service_delivery_analyst.txt": "SKIP",
+  "13_pwc_junior_strategy_consultant.txt": "APPLY",
+  "14_boeing_software_engineering_graduate.txt": "SKIP",
+  "15_rei_graduate_software_developer.txt": "SKIP",
+  "16_arturia_ai_graduate_software_engineer.txt": "SKIP",
+  "17_star_scaffolds_admin_assistant.txt": "APPLY",
+  "18_sa_dtf_graduate_ict_cyber.txt": "TAILOR",
+  "19_springtek_junior_software_engineer.txt": "SKIP",
+  "20_mcgrathnicol_data_analytics_graduate.txt": "SKIP",
+  "21_sg_fleet_software_engineering_internship.txt": "SKIP",
+  "22_lynxx_junior_backend_developer.txt": "SKIP",
+  "23_vll_partners_graduate_accountant.txt": "TAILOR",
+  "24_caringbah_family_practice_rn.txt": "TAILOR",
+  "25_tiktok_data_business_analyst_graduate.txt": "APPLY",
+  "26_healthscope_graduate_enrolled_nurse.txt": "TAILOR",
+  "27_optiver_graduate_quantitative_researcher.txt": "TAILOR",
+  "28_cabrini_health_graduate_rn.txt": "TAILOR",
+  "29_innisfail_medical_centre_gp_nurse.txt": "TAILOR",
+  "30_proforce_graduate_role.txt": "SKIP",
+  "31_velocity_legal_graduate.txt": "APPLY",
+  "32_qld_law_firm_graduate.txt": "SKIP",
+  "33_service_stream_finance_graduate.txt": "SKIP",
+  "34_mmem_business_management_graduate.txt": "SKIP",
+  "35_urban_utilities_finance_graduate.txt": "TAILOR",
 };
 
 const student500: VisaProfile = {
@@ -140,8 +153,60 @@ function createConfusionMatrix() {
   };
 }
 
-describe.skipIf(!RUN_CORPUS)("19-ad corpus evaluation", () => {
-  it("evaluates the deployed app logic against Quan's hand-labelled corpus", async () => {
+function sanitizeAdTextForEvaluator(rawText: string): string {
+  const lines = rawText.split(/\r?\n/);
+  const sanitizedLines: string[] = [];
+
+  for (const line of lines) {
+    if (line.startsWith("**KEY SIGNAL")) {
+      // Truncate the rest of the file
+      break;
+    }
+
+    if (
+      line.startsWith("**NO explicit") ||
+      line.startsWith('**"9 day fortnight" is mentioned') ||
+      line.startsWith("**Secondary note:")
+    ) {
+      // Skip this single line only
+      continue;
+    }
+
+    sanitizedLines.push(line);
+  }
+
+  return sanitizedLines.join("\n").trim();
+}
+
+describe("sanitizeAdTextForEvaluator", () => {
+  it("leaves real JD text unchanged", () => {
+    const text = "This is a normal JD.\nIt requires full working rights.";
+    expect(sanitizeAdTextForEvaluator(text)).toBe(text);
+  });
+
+  it("removes trailing KEY SIGNALS block", () => {
+    const raw =
+      "Genuine JD text.\n\n**KEY SIGNALS:\n1. Full working rights required";
+    expect(sanitizeAdTextForEvaluator(raw)).toBe("Genuine JD text.");
+  });
+
+  it("removes NO explicit line followed by genuine JD content", () => {
+    const raw =
+      "Eligibility criteria:\n**NO explicit visa/citizenship requirement stated.**\nTertiary Qualification (EN or RN) with current AHPRA registration (required)";
+    const expected =
+      "Eligibility criteria:\nTertiary Qualification (EN or RN) with current AHPRA registration (required)";
+    expect(sanitizeAdTextForEvaluator(raw)).toBe(expected);
+  });
+
+  it("phrases inside analyst notes cannot become eligibility evidence", () => {
+    const raw = "Job Ad.\n**KEY SIGNALS: unrestricted working rights";
+    const sanitized = sanitizeAdTextForEvaluator(raw);
+    expect(sanitized.includes("unrestricted working rights")).toBe(false);
+  });
+});
+
+describe.skipIf(!RUN_CORPUS)("35-ad dev-set corpus evaluation", () => {
+  it("evaluates the deployed app logic against Quan's hand-labelled dev-set corpus", async () => {
     const results: CorpusResult[] = [];
 
     const filenames = Object.keys(GROUND_TRUTH);
@@ -149,7 +214,9 @@ describe.skipIf(!RUN_CORPUS)("19-ad corpus evaluation", () => {
     for (const filename of filenames) {
       const filePath = path.join(ADS_DIR, filename);
 
-      const adText = await readFile(filePath, "utf8");
+      const rawText = await readFile(filePath, "utf8");
+
+      const adText = sanitizeAdTextForEvaluator(rawText);
 
       const extraction = await extractViaApp(adText);
 
@@ -283,7 +350,7 @@ describe.skipIf(!RUN_CORPUS)("19-ad corpus evaluation", () => {
     };
 
     await writeFile(
-      path.join(process.cwd(), "corpus_app_results.json"),
+      path.join(process.cwd(), "corpus_app_results_35.json"),
 
       JSON.stringify(output, null, 2),
 
@@ -298,8 +365,8 @@ describe.skipIf(!RUN_CORPUS)("19-ad corpus evaluation", () => {
     // has some intentionally contextual
     // verdict semantics that differ from
     // Quan's Python reference engine.
-    expect(total).toBe(19);
+    expect(total).toBe(35);
 
     expect(results.every((result) => Boolean(result.predicted))).toBe(true);
-  }, 240_000);
+  }, 420_000);
 });
