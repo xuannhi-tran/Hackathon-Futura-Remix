@@ -1,0 +1,55 @@
+At ASX, we are the heart of Australia’s financial market. When you join ASX, you’re joining a company with a strong purpose. We run critical market infrastructure with 1 in 3 people employed within technology, and we now have opportunities for passionate graduates to join the ASX Technology team.
+
+At ASX you will learn about the complex and dynamic operations of the market, understand how data shapes our business and contribute to leading-edge innovation to help shape the future of Australia's financial markets.
+
+Rotation opportunities can include:
+
+**Data Platforms & Integration**- Gradates can help build and support the technology that enables ASX to move, manage and unlock the value of data across the organisation. Working across our AWS Data Platform and Integration Platforms teams, you’ll gain hands-on experience with cloud and data engineering technologies including AWS, Terraform, Python, Apache Spark and Kafka. You’ll contribute to building data products, automating platform capabilities and supporting secure, reliable data exchange through APIs, messaging and file-based integrations. This rotation provides practical exposure to modern engineering practices, cloud-native platforms, automation, security controls and the delivery of resilient enterprise technology solutions in a fast-paced environment.
+
+**Technology Delivery**- The Technology Delivery team is responsible for delivering large-scale technology solutions end-to-end, combining engineering, testing and release management with strong project delivery practices. Graduates will work across both technical areas (coding, testing, release management) and delivery roles, gaining hands-on experience with modern technologies in a fast-paced, high-impact environment.
+
+**Securities & Payments Technology**- Be part of supporting Australia’s critical market infrastructure within ASX’s Securities and Payments technology business line, with a focus on CHESS, while contributing to day‑to‑day service management and technical readiness for future releases, gaining practical experience across operations, incident management, technology delivery, and the governance and security controls that help keep critical financial systems safe, resilient and secure within ASX’s modern hybrid cloud environment.
+
+**Cyber Security**- ​ This rotation provides exposure to the teams responsible for protecting ASX’s people, systems and information. You will gain hands-on insight into cyber security operations, including security monitoring, incident response, vulnerability management, phishing simulations and security testing, while also learning how identity and access management, security governance and compliance controls help ensure secure access to critical systems. This is an excellent opportunity to develop your understanding of cyber security, technology risk and operational resilience within a complex and highly regulated environment.
+
+**What you will be doing:**
+
+- **Build data products and platforms:** Work with cloud and data engineering teams to help design, develop and enhance data products, integrations and platform capabilities using modern tools, automation and cloud technologies.
+- **Support major transformation initiatives:** Contribute to strategic programs such as CHESS Replacement by assisting with requirements gathering, data analysis, solution design, testing and delivery activities.
+- **Work with critical market infrastructure:** Gain exposure to the technology that supports Australia's clearing, settlement and payments systems, helping to maintain operational readiness, resilience and service excellence.
+- **Collaborate with diverse stakeholders:** Partner with engineers, architects, business analysts, project teams and subject matter experts to understand business needs and deliver technology solutions that create value.
+- **Apply modern engineering practices:** Learn how high-performing technology teams use automation, testing, CI/CD pipelines, Infrastructure as Code, monitoring and agile delivery practices to build reliable and scalable solutions.
+- **Develop data and analytical skills:** Analyse business and operational data, contribute to reporting and dashboards, and help transform data into meaningful insights that support decision-making.
+- **Strengthen cyber resilience:** Gain exposure to cyber security operations including security monitoring, incident response, threat intelligence, vulnerability management and identity and access management.
+- **Support delivery and operational excellence:** Contribute to planning, governance, service management, release readiness and continuous improvement activities that help keep ASX systems secure, stable and available.
+- **Learn from industry experts:** Work alongside experienced technology professionals who will provide coaching, mentoring and opportunities to build your technical expertise and professional network
+
+You'll also take part in an 8-week group project to solve a real business challenge, working alongside fellow graduates.
+
+**Your experience and qualifications:**
+
+- Excellent communication: you actively listen, and communicate with clarity, empathy and respect.
+- Curiosity: there is a lot to discover at ASX! You seek to learn, ask questions, and demonstrate a genuine interest in what we do.
+- Accountable: you are motivated to design solutions and drive them forward.  You take ownership of what you do. 
+- Adaptable: you are comfortable with working collaboratively with a diverse range of stakeholders with competing interests, requirements and priorities.
+- The right attitude: you are positive, proactive and keen to make a meaningful contribution to our culture. 
+- Proactive risk management: what we do matters, and how we do it matters to.
+
+All backgrounds with a strong quantitative & analytical focus will be considered including (but not limited to): 
+
+- Data science
+- Computer science
+- Engineering
+- Mathematics
+- Science and physics
+- Information security/cyber
+
+|   |
+| - |
+
+**Before applying for the program, please ensure you meet our eligibility requirements: **
+
+- Be an Australian or New Zealand Citizen, Australian Permanent Resident
+- Have completed an undergraduate or postgraduate degree in the last two years prior to the program start date of February 2027 (2025 or 2026)
+- Be available and eligible to commence the role in our Sydney head office in February 2027
+- Applications close 11.59PM AEST, Sunday 4 October 2026
