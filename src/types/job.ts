@@ -26,3 +26,21 @@ export type VisaProfile = {
   duringStudyTerm: boolean;
   monthsRemaining?: number;
 };
+
+export type Verdict = {
+  status: "APPLY" | "TAILOR" | "SKIP";
+  ruleId?: string;
+  reason: string;
+  evidence?: {
+    text: string;
+    start: number;
+    end: number;
+  };
+};
+
+export type SavedJob = {
+  id: string;
+  title: string;
+  adText: string;
+  verdict: Verdict;
+};

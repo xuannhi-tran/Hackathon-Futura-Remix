@@ -1,15 +1,9 @@
-import { ExtractedJobAd, EvidenceField, VisaProfile } from "../types/job";
-
-export type Verdict = {
-  status: "APPLY" | "TAILOR" | "SKIP";
-  ruleId?: string;
-  reason: string;
-  evidence?: {
-    text: string;
-    start: number;
-    end: number;
-  };
-};
+import {
+  ExtractedJobAd,
+  EvidenceField,
+  VisaProfile,
+  Verdict,
+} from "../types/job";
 
 function evidenceFrom(field: EvidenceField) {
   return {
