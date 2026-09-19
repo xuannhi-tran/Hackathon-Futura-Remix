@@ -80,7 +80,7 @@ describe("eligibility decoder", () => {
     expect(verdict.evidence?.text).toBe("Baseline security clearance");
   });
 
-  it("returns APPLY when no hard eligibility blocker is found", () => {
+  it("returns APPLY when no eligibility blocker is found", () => {
     const adText =
       "We are looking for a junior software engineer with JavaScript experience.";
 
@@ -98,7 +98,9 @@ describe("eligibility decoder", () => {
 
     expect(verdict.ruleId).toBeUndefined();
 
-    expect(verdict.reason).toBe("No eligibility blockers detected.");
+    expect(verdict.reason).toBe(
+      "No eligibility blockers detected for the selected profile."
+    );
   });
 
   it("extracts the correct evidence span for citizenship", () => {
@@ -148,13 +150,27 @@ describe("eligibility decoder", () => {
     expect(verdict.evidence?.text).toBe("AUSTRALIAN CITIZEN");
   });
 
+  // =======================================
+  // VISA PROFILES
+  // =======================================
+
   const student500 = {
     subclass: "500" as const,
     duringStudyTerm: true,
     monthsRemaining: 18,
   };
 
-  it("returns TAILOR for full working rights on subclass 500", () => {
+  const graduate485 = {
+    subclass: "485" as const,
+    duringStudyTerm: false,
+    monthsRemaining: 24,
+  };
+
+  // =======================================
+  // WORK RIGHTS — PROFILE AWARE
+  // =======================================
+
+  it("returns SKIP for full working rights on subclass 500 during study term", () => {
     const verdict = evaluateJob(
       {
         workRightsRequirement: {
@@ -167,10 +183,68 @@ describe("eligibility decoder", () => {
       student500
     );
 
+    expect(verdict.status).toBe("SKIP");
+
+    expect(verdict.ruleId).toBe("T1_FULL_WORK_RIGHTS_STUDENT_500");
+
+    expect(verdict.evidence?.text).toBe("full Australian working rights");
+  });
+
+  it("does not block subclass 485 solely for full working rights", () => {
+    const verdict = evaluateJob(
+      {
+        workRightsRequirement: {
+          value: "Full working rights required",
+          text: "full Australian working rights",
+          start: 21,
+          end: 51,
+        },
+      },
+      graduate485
+    );
+
+    expect(verdict.status).toBe("APPLY");
+
+    expect(verdict.ruleId).toBeUndefined();
+  });
+
+  it("returns TAILOR for generic legal work-right wording on subclass 500", () => {
+    const verdict = evaluateJob(
+      {
+        workRightsRequirement: {
+          value: "Legal work rights required",
+          text: "Applicants must be legally entitled to work in Australia",
+          start: 0,
+          end: 56,
+        },
+      },
+      student500
+    );
+
     expect(verdict.status).toBe("TAILOR");
 
-    expect(verdict.ruleId).toBe("T2_FULL_WORK_RIGHTS");
+    expect(verdict.ruleId).toBe("T2_WORK_RIGHTS_REVIEW");
   });
+
+  it("does not block subclass 485 solely for generic legal work-right wording", () => {
+    const verdict = evaluateJob(
+      {
+        workRightsRequirement: {
+          value: "Legal work rights required",
+          text: "Applicants must be legally entitled to work in Australia",
+          start: 0,
+          end: 56,
+        },
+      },
+      graduate485
+    );
+
+    expect(verdict.status).toBe("APPLY");
+  });
+
+  // =======================================
+  // TIER 2 — CONDITIONAL
+  // =======================================
 
   it("returns TAILOR when sponsorship is unavailable", () => {
     const verdict = evaluateJob(
@@ -190,7 +264,7 @@ describe("eligibility decoder", () => {
     expect(verdict.ruleId).toBe("T2_NO_SPONSORSHIP");
   });
 
-  it("returns TAILOR for permanent full-time employment", () => {
+  it("returns TAILOR for permanent full-time employment on subclass 500", () => {
     const verdict = evaluateJob(
       {
         employmentType: {
@@ -206,6 +280,22 @@ describe("eligibility decoder", () => {
     expect(verdict.status).toBe("TAILOR");
 
     expect(verdict.ruleId).toBe("T2_PERMANENT_FULL_TIME");
+  });
+
+  it("does not block subclass 485 solely for permanent full-time employment", () => {
+    const verdict = evaluateJob(
+      {
+        employmentType: {
+          value: "Permanent full-time",
+          text: "permanent full-time",
+          start: 10,
+          end: 29,
+        },
+      },
+      graduate485
+    );
+
+    expect(verdict.status).toBe("APPLY");
   });
 
   it("returns TAILOR for Australian experience requirement", () => {
@@ -226,7 +316,7 @@ describe("eligibility decoder", () => {
     expect(verdict.ruleId).toBe("T2_AUSTRALIAN_EXPERIENCE");
   });
 
-  it("returns TAILOR when weekly hours exceed prototype threshold", () => {
+  it("returns SKIP when advertised weekly hours exceed 48 hours per fortnight for subclass 500 during study term", () => {
     const verdict = evaluateJob(
       {
         hoursPerWeek: {
@@ -239,14 +329,123 @@ describe("eligibility decoder", () => {
       student500
     );
 
-    expect(verdict.status).toBe("TAILOR");
+    expect(verdict.status).toBe("SKIP");
 
-    expect(verdict.ruleId).toBe("T2_HOURS_DURING_TERM");
+    expect(verdict.ruleId).toBe("T1_STUDENT_500_STUDY_TERM_HOURS");
+
+    expect(verdict.evidence?.text).toBe("38 hours per week");
   });
 
-  // -----------------------
-  // TIER 3
-  // -----------------------
+  it("does not block subclass 485 based on weekly hours", () => {
+    const verdict = evaluateJob(
+      {
+        hoursPerWeek: {
+          value: "38 hours per week",
+          text: "38 hours per week",
+          start: 23,
+          end: 40,
+        },
+      },
+      graduate485
+    );
+
+    expect(verdict.status).toBe("APPLY");
+  });
+
+  // =======================================
+  // QUAN RULES INTEGRATION
+  // =======================================
+
+  it("returns TAILOR when temporary visa holders are explicitly allowed", () => {
+    const verdict = evaluateJob(
+      {
+        citizenshipRequirement: {
+          value: "Australian citizenship listed",
+          text: "Australian Citizen",
+          start: 0,
+          end: 18,
+        },
+
+        temporaryVisaAllowed: {
+          value: "Temporary visa holders allowed",
+          text: "citizen of another country with an appropriate visa",
+          start: 50,
+          end: 101,
+        },
+      },
+      student500
+    );
+
+    expect(verdict.status).toBe("TAILOR");
+
+    expect(verdict.ruleId).toBe("T2_TEMPORARY_VISA_ALLOWED");
+
+    expect(verdict.evidence?.text).toBe(
+      "citizen of another country with an appropriate visa"
+    );
+  });
+
+  it("returns TAILOR for professional registration requirement", () => {
+    const verdict = evaluateJob(
+      {
+        registration: {
+          value: "AHPRA registration required",
+          text: "current AHPRA registration",
+          start: 20,
+          end: 46,
+        },
+      },
+      student500
+    );
+
+    expect(verdict.status).toBe("TAILOR");
+
+    expect(verdict.ruleId).toBe("T2_PROFESSIONAL_REGISTRATION");
+
+    expect(verdict.evidence?.text).toBe("current AHPRA registration");
+  });
+
+  it("returns TAILOR for legal admission requirement", () => {
+    const verdict = evaluateJob(
+      {
+        registration: {
+          value: "Legal admission required",
+          text: "eligible for admission in Queensland",
+          start: 20,
+          end: 57,
+        },
+      },
+      graduate485
+    );
+
+    expect(verdict.status).toBe("TAILOR");
+
+    expect(verdict.ruleId).toBe("T2_PROFESSIONAL_REGISTRATION");
+  });
+
+  it("returns TAILOR when employer asks for future visa plans", () => {
+    const verdict = evaluateJob(
+      {
+        visaPlanRequirement: {
+          value: "Future visa plan required",
+          text: "proposed next visa plans",
+          start: 30,
+          end: 54,
+        },
+      },
+      student500
+    );
+
+    expect(verdict.status).toBe("TAILOR");
+
+    expect(verdict.ruleId).toBe("T2_VISA_PLAN_REQUIRED");
+
+    expect(verdict.evidence?.text).toBe("proposed next visa plans");
+  });
+
+  // =======================================
+  // TIER 3 — FIT SIGNALS
+  // =======================================
 
   const fitProfile = {
     targetField: "Software Engineering",
@@ -357,6 +556,7 @@ describe("eligibility decoder", () => {
         start: 20,
         end: 41,
       },
+
       roleField: {
         value: "Data Science",
         text: "Data Scientist",

@@ -17,10 +17,13 @@ export type ExtractedJobAd = {
   australianExperienceRequirement?: EvidenceField;
 
   registration?: EvidenceField;
+
+  // Quan rules integration
+  temporaryVisaAllowed?: EvidenceField;
+  visaPlanRequirement?: EvidenceField;
+
   yearsExperience?: EvidenceField;
   location?: EvidenceField;
-
-  // Tier 3
   roleField?: EvidenceField;
 };
 

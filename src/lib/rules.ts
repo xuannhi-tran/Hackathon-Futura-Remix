@@ -31,13 +31,49 @@ function extractHours(field?: EvidenceField) {
   return Number(match[0]);
 }
 
+function isExplicitFullWorkRightsRequirement(field?: EvidenceField): boolean {
+  if (!field) return false;
+
+  const text = `${field.text} ${field.value}`;
+
+  return containsAny(text, [
+    "full working rights",
+    "full australian working rights",
+    "full work rights",
+    "unrestricted working rights",
+    "unrestricted work rights",
+    "work without restriction",
+    "working without restriction",
+    "ability to work without restriction",
+  ]);
+}
+
 export function evaluateJob(
   job: ExtractedJobAd,
   profile?: VisaProfile
 ): Verdict {
-  // -----------------------
+  // =======================================
+  // EXPLICIT TEMPORARY VISA ACCEPTANCE
+  //
+  // This is checked before citizenship/PR because
+  // some advertisements list citizenship/PR wording
+  // alongside an explicit pathway for temporary visa
+  // holders.
+  // =======================================
+
+  if (job.temporaryVisaAllowed) {
+    return {
+      status: "TAILOR",
+      ruleId: "T2_TEMPORARY_VISA_ALLOWED",
+      reason:
+        "The advertisement explicitly indicates that temporary visa holders may be considered. Review the stated conditions against your visa profile.",
+      evidence: evidenceFrom(job.temporaryVisaAllowed),
+    };
+  }
+
+  // =======================================
   // TIER 1 — HARD BLOCKERS
-  // -----------------------
+  // =======================================
 
   if (job.citizenshipRequirement) {
     return {
@@ -66,28 +102,132 @@ export function evaluateJob(
     };
   }
 
-  // -----------------------
-  // TIER 2 — CONDITIONAL
-  // -----------------------
+  // =======================================
+  // WORK RIGHTS — PROFILE AWARE
+  // =======================================
 
-  if (job.workRightsRequirement && profile?.subclass === "500") {
+  const explicitFullWorkRights = isExplicitFullWorkRightsRequirement(
+    job.workRightsRequirement
+  );
+
+  // Student visa 500 + study term:
+  // explicit full/unrestricted working rights are
+  // incompatible with the selected profile.
+  if (
+    explicitFullWorkRights &&
+    profile?.subclass === "500" &&
+    profile.duringStudyTerm
+  ) {
+    return {
+      status: "SKIP",
+      ruleId: "T1_FULL_WORK_RIGHTS_STUDENT_500",
+      reason:
+        "This role requires full or unrestricted working rights. The selected subclass 500 profile is currently in study term and has work-hour restrictions.",
+      evidence: evidenceFrom(job.workRightsRequirement!),
+    };
+  }
+
+  // Important:
+  // - subclass 485 is NOT blocked merely because
+  //   the ad asks for full/unrestricted work rights.
+  // - subclass 500 outside study term is also not
+  //   automatically blocked by this phrase alone.
+  // - generic wording such as "legally entitled to work"
+  //   is not treated as a hard blocker by itself.
+
+  // =======================================
+  // HOURS — PROFILE AWARE
+  // =======================================
+
+  const weeklyHours = extractHours(job.hoursPerWeek);
+
+  if (
+    profile?.subclass === "500" &&
+    profile.duringStudyTerm &&
+    weeklyHours !== undefined
+  ) {
+    const fortnightlyHours = weeklyHours * 2;
+
+    if (fortnightlyHours > 48) {
+      return {
+        status: "SKIP",
+        ruleId: "T1_STUDENT_500_STUDY_TERM_HOURS",
+        reason:
+          "Based on the advertised weekly hours, this role would exceed the 48-hours-per-fortnight threshold used for the selected subclass 500 study-term profile. Review your actual visa conditions before applying.",
+        evidence: evidenceFrom(job.hoursPerWeek!),
+      };
+    }
+  }
+
+  // =======================================
+  // TIER 2 — CONDITIONAL
+  // =======================================
+
+  // Professional registration / admission:
+  // e.g. AHPRA, legal admission,
+  // practising certificate.
+  //
+  // We do not currently ask whether the user
+  // already holds the registration, so this remains
+  // TAILOR rather than SKIP.
+  if (job.registration) {
     return {
       status: "TAILOR",
-      ruleId: "T2_FULL_WORK_RIGHTS",
+      ruleId: "T2_PROFESSIONAL_REGISTRATION",
       reason:
-        "This role asks for full working rights. Check the role requirements against the work conditions of your selected visa profile.",
+        "The role requires professional registration or admission. Check whether you already hold or can obtain the required registration before applying.",
+      evidence: evidenceFrom(job.registration),
+    };
+  }
+
+  // Employer asks temporary/student visa holders
+  // to explain future visa plans.
+  if (job.visaPlanRequirement) {
+    return {
+      status: "TAILOR",
+      ruleId: "T2_VISA_PLAN_REQUIRED",
+      reason:
+        "The employer asks temporary visa holders to explain their visa plans. Treat this as a condition to address rather than a structural blocker.",
+      evidence: evidenceFrom(job.visaPlanRequirement),
+    };
+  }
+
+  // Generic work-right wording such as
+  // "legally entitled to work in Australia"
+  // is not enough to conclude SKIP.
+  //
+  // For subclass 500, surface it for review.
+  if (
+    job.workRightsRequirement &&
+    profile?.subclass === "500" &&
+    !explicitFullWorkRights
+  ) {
+    return {
+      status: "TAILOR",
+      ruleId: "T2_WORK_RIGHTS_REVIEW",
+      reason:
+        "The advertisement requires legal work rights in Australia but does not explicitly require unrestricted rights. Review the requirement against the conditions of your selected visa profile.",
       evidence: evidenceFrom(job.workRightsRequirement),
     };
   }
 
+  // No sponsorship does not automatically mean
+  // the candidate cannot work in the role.
+  //
+  // It remains a longer-term consideration.
   if (job.sponsorship) {
     const sponsorshipText = `${job.sponsorship.text} ${job.sponsorship.value}`;
 
     const noSponsorship = containsAny(sponsorshipText, [
       "no sponsorship",
+      "no visa sponsorship",
       "sponsorship not available",
       "cannot sponsor",
+      "cannot sponsor people",
+      "cannot sponsor visas",
       "unable to sponsor",
+      "not able to sponsor",
+      "not willing to sponsor",
       "will not sponsor",
     ]);
 
@@ -95,15 +235,22 @@ export function evaluateJob(
       return {
         status: "TAILOR",
         ruleId: "T2_NO_SPONSORSHIP",
+
         reason:
           profile?.subclass === "485"
-            ? "This employer does not offer sponsorship. Consider this requirement against your remaining visa runway."
+            ? "This employer does not offer sponsorship. You may still have current work rights, but consider this against your longer-term visa pathway."
             : "This employer does not offer sponsorship. Check whether the role aligns with your current and future work-rights situation.",
+
         evidence: evidenceFrom(job.sponsorship),
       };
     }
   }
 
+  // Permanent full-time employment is not a
+  // hard blocker by itself.
+  //
+  // For 500 holders especially, it is worth checking
+  // against study-term restrictions and visa runway.
   if (
     job.employmentType &&
     containsAny(job.employmentType.text, [
@@ -111,57 +258,54 @@ export function evaluateJob(
       "permanent full time",
     ])
   ) {
-    return {
-      status: "TAILOR",
-      ruleId: "T2_PERMANENT_FULL_TIME",
-      reason:
-        profile?.monthsRemaining !== undefined
-          ? `This is a permanent full-time role. Compare the role expectations with your remaining visa runway of approximately ${profile.monthsRemaining} months.`
-          : "This is a permanent full-time role. Check whether its duration and work conditions align with your visa profile.",
-      evidence: evidenceFrom(job.employmentType),
-    };
+    if (profile?.subclass === "500") {
+      return {
+        status: "TAILOR",
+        ruleId: "T2_PERMANENT_FULL_TIME",
+
+        reason:
+          profile.monthsRemaining !== undefined
+            ? `This is a permanent full-time role. Compare the role expectations with your subclass 500 conditions and your remaining visa runway of approximately ${profile.monthsRemaining} months.`
+            : "This is a permanent full-time role. Check whether its work pattern and duration align with your subclass 500 conditions.",
+
+        evidence: evidenceFrom(job.employmentType),
+      };
+    }
+
+    // For subclass 485, permanent full-time
+    // employment is not treated as a blocker
+    // by itself.
   }
 
+  // Australian/local experience is a softer
+  // application-fit requirement.
   if (job.australianExperienceRequirement) {
     return {
       status: "TAILOR",
       ruleId: "T2_AUSTRALIAN_EXPERIENCE",
+
       reason:
-        "The advertisement asks for Australian experience. This is treated as a fit signal to address in your application rather than a hard blocker.",
+        "The advertisement asks for Australian experience. This is treated as a condition to address in your application rather than a structural eligibility blocker.",
+
       evidence: evidenceFrom(job.australianExperienceRequirement),
     };
   }
 
-  const hours = extractHours(job.hoursPerWeek);
-
-  if (
-    profile?.subclass === "500" &&
-    profile.duringStudyTerm &&
-    hours !== undefined &&
-    hours > 24
-  ) {
-    return {
-      status: "TAILOR",
-      ruleId: "T2_HOURS_DURING_TERM",
-      reason:
-        "The advertised weekly hours exceed the threshold used by this prototype for a subclass 500 student during study term. Review your actual visa work conditions before applying.",
-      evidence: evidenceFrom(job.hoursPerWeek!),
-    };
-  }
-
-  // -----------------------
+  // =======================================
   // NO BLOCKER DETECTED
-  // -----------------------
+  // =======================================
 
   return {
     status: "APPLY",
-    reason: "No eligibility blockers detected.",
+    reason: "No eligibility blockers detected for the selected profile.",
   };
 }
 
 // =======================================
 // TIER 3 — FIT SIGNALS
-// These never change the eligibility verdict.
+//
+// These help prioritise applications.
+// They NEVER change the eligibility verdict.
 // =======================================
 
 function extractFirstNumber(field?: EvidenceField): number | undefined {
@@ -206,17 +350,25 @@ export function evaluateFitSignals(
     if (profile.yearsExperience >= requestedYears) {
       signals.push({
         id: "T3_EXPERIENCE_MATCH",
+
         status: "MATCH",
+
         label: "Experience fit",
+
         reason: `Your ${profile.yearsExperience} years of experience meets the advertised ${requestedYears}-year requirement.`,
+
         evidence: evidenceFrom(job.yearsExperience),
       });
     } else {
       signals.push({
         id: "T3_EXPERIENCE_STRETCH",
+
         status: "STRETCH",
+
         label: "Experience stretch",
+
         reason: `The advertisement asks for approximately ${requestedYears} years of experience, while your profile lists ${profile.yearsExperience}.`,
+
         evidence: evidenceFrom(job.yearsExperience),
       });
     }
