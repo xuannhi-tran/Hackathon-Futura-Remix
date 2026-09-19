@@ -21,7 +21,14 @@ import {
   fallbackVisaPlanRequirement,
   fallbackLocation,
   fallbackRegistration,
+  hasFullWorkRightsAlternative,
+  fallbackWorkRightsRequirement,
+  filterTemporaryVisaAllowed,
 } from "../extractionFallbacks";
+
+import { evaluateJob } from "../rules";
+
+import type { EvidenceField } from "../../types/job";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helper — verifies span integrity: text === adText.slice(start, end)
@@ -549,5 +556,533 @@ describe("fallbackRegistration (smoke — existing behaviour unchanged)", () => 
     assertValidSpan(adText, result);
 
     expect(result?.text).toBe("AHPRA registration");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// hasFullWorkRightsAlternative — unit tests
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("hasFullWorkRightsAlternative", () => {
+  // Helper: build a valid EvidenceField pointing at the first occurrence
+  // of `phrase` within `adText`, simulating what Gemini + addEvidenceSpan
+  // would return.
+  function makeField(adText: string, phrase: string): EvidenceField {
+    const start = adText.indexOf(phrase);
+
+    if (start === -1) {
+      throw new Error(`phrase "${phrase}" not found in adText`);
+    }
+
+    return { value: "test", text: phrase, start, end: start + phrase.length };
+  }
+
+  // ── positives ─────────────────────────────────────────────────────────────
+
+  it("returns true for Optiver-style citizen/PR-OR-full-rights clause", () => {
+    const adText =
+      "An Australian or New Zealand Citizen, Australian Permanent Resident " +
+      "or able to provide evidence of full working rights.";
+
+    const field = makeField(adText, "Australian or New Zealand Citizen");
+
+    expect(hasFullWorkRightsAlternative(adText, field)).toBe(true);
+  });
+
+  it("returns true for the Permanent Resident evidence in the same Optiver clause", () => {
+    const adText =
+      "An Australian or New Zealand Citizen, Australian Permanent Resident " +
+      "or able to provide evidence of full working rights.";
+
+    const field = makeField(adText, "Australian Permanent Resident");
+
+    expect(hasFullWorkRightsAlternative(adText, field)).toBe(true);
+  });
+
+  it("returns true for Urban Utilities-style citizen-OR-unrestricted-rights clause", () => {
+    const adText =
+      "Be an Australian or New Zealand Citizen or have unrestricted working rights";
+
+    const field = makeField(adText, "Australian or New Zealand Citizen");
+
+    expect(hasFullWorkRightsAlternative(adText, field)).toBe(true);
+  });
+
+  it("returns true for a plain 'citizen or full working rights' clause", () => {
+    const adText =
+      "You must be an Australian citizen or have full working rights in Australia.";
+
+    // fallbackCitizenship would match this phrase
+    const field = makeField(adText, "must be an Australian citizen");
+
+    expect(hasFullWorkRightsAlternative(adText, field)).toBe(true);
+  });
+
+  it("returns true for 'citizen / full working rights' (slash separator)", () => {
+    const adText =
+      "Applicants must be an Australian citizen / hold full working rights.";
+
+    const field = makeField(adText, "must be an Australian citizen");
+
+    expect(hasFullWorkRightsAlternative(adText, field)).toBe(true);
+  });
+
+  // ── negatives ─────────────────────────────────────────────────────────────
+
+  it("returns false for citizen-or-PR-only clause (no work-rights alternative)", () => {
+    const adText =
+      "Applicants must be Australian citizens or permanent residents.";
+
+    const field = makeField(adText, "Australian citizens");
+
+    expect(hasFullWorkRightsAlternative(adText, field)).toBe(false);
+  });
+
+  it("returns false for a plain citizenship-only requirement", () => {
+    const adText = "Applicants must be Australian citizens.";
+
+    const field = makeField(adText, "Australian citizens");
+
+    expect(hasFullWorkRightsAlternative(adText, field)).toBe(false);
+  });
+
+  it("returns false when work rights appear in a DIFFERENT sentence to citizenship", () => {
+    // Period separates the two clauses → extractContainingClause stops at the period.
+    const adText =
+      "Applicants must be Australian citizens. " +
+      "Applicants must have full working rights.";
+
+    const field = makeField(adText, "Australian citizens");
+
+    expect(hasFullWorkRightsAlternative(adText, field)).toBe(false);
+  });
+
+  it("returns false when work rights appear on a DIFFERENT line to citizenship", () => {
+    const adText =
+      "Applicants must be Australian citizens.\nFull working rights required.";
+
+    const field = makeField(adText, "Australian citizens");
+
+    expect(hasFullWorkRightsAlternative(adText, field)).toBe(false);
+  });
+
+  it("returns false for generic legal right-to-work wording (not full/unrestricted)", () => {
+    const adText =
+      "Applicants must be Australian citizens or have the right to work in Australia.";
+
+    const field = makeField(adText, "Australian citizens");
+
+    // "right to work" is NOT a full/unrestricted phrase → no suppression.
+    expect(hasFullWorkRightsAlternative(adText, field)).toBe(false);
+  });
+
+  it("returns false for undefined field", () => {
+    expect(hasFullWorkRightsAlternative("any text", undefined)).toBe(false);
+  });
+
+  // ── new false-positive guard tests (tightened implementation) ───────────────
+
+  it("returns false for 'Australian or New Zealand citizen with full working rights' — 'or' is inside the evidence, not between branches", () => {
+    // The "or" separates Australian vs New Zealand, not citizenship vs work rights.
+    // The between-text is " with ", which contains no OR-alternative separator.
+    const adText =
+      "Australian or New Zealand citizen with full working rights.";
+
+    const field = makeField(adText, "Australian or New Zealand citizen");
+
+    expect(hasFullWorkRightsAlternative(adText, field)).toBe(false);
+  });
+
+  it("returns false for 'Australian/New Zealand citizen with unrestricted working rights' — slash is inside the evidence", () => {
+    // The "/" separates Australian vs New Zealand within the evidence phrase.
+    // The between-text is " with ", which contains no OR-alternative separator.
+    const adText =
+      "Australian/New Zealand citizen with unrestricted working rights.";
+
+    const field = makeField(adText, "Australian/New Zealand citizen");
+
+    expect(hasFullWorkRightsAlternative(adText, field)).toBe(false);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// filterTemporaryVisaAllowed — unit tests
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("filterTemporaryVisaAllowed", () => {
+  function makeField(text: string): EvidenceField {
+    return { value: "test", text, start: 0, end: text.length };
+  }
+
+  // ── positives ─────────────────────────────────────────────────────────────
+
+  it("keeps positive temporary visa consideration language", () => {
+    expect(filterTemporaryVisaAllowed(makeField("temporary visa holders may apply"))).toBeDefined();
+    expect(filterTemporaryVisaAllowed(makeField("temporary visa holders may be considered"))).toBeDefined();
+    expect(filterTemporaryVisaAllowed(makeField("temporary visa holders may be offered employment"))).toBeDefined();
+  });
+
+  it("keeps appropriate visa allowing work language", () => {
+    expect(filterTemporaryVisaAllowed(makeField("hold an appropriate visa that allows you to work in Australia"))).toBeDefined();
+    expect(filterTemporaryVisaAllowed(makeField("citizen of another country with an appropriate visa that allows work in Australia"))).toBeDefined();
+  });
+
+  it("keeps positive sponsorship language", () => {
+    expect(filterTemporaryVisaAllowed(makeField("we can offer sponsorship for the right candidate"))).toBeDefined();
+    expect(filterTemporaryVisaAllowed(makeField("sponsorship is available"))).toBeDefined();
+    expect(filterTemporaryVisaAllowed(makeField("we will sponsor"))).toBeDefined();
+  });
+
+  // ── negatives (now expanded) ───────────────────────────────────────────────
+
+  it("rejects negative sponsorship wording", () => {
+    expect(filterTemporaryVisaAllowed(makeField("Visa sponsorship is not available."))).toBeUndefined();
+    expect(filterTemporaryVisaAllowed(makeField("We cannot sponsor visas."))).toBeUndefined();
+    expect(filterTemporaryVisaAllowed(makeField("No visa sponsorship offered."))).toBeUndefined();
+    expect(filterTemporaryVisaAllowed(makeField("Sponsorship unavailable."))).toBeUndefined();
+  });
+
+  it("rejects screening / requirement wording containing 'visa'", () => {
+    expect(filterTemporaryVisaAllowed(makeField("Visa required"))).toBeUndefined();
+    expect(filterTemporaryVisaAllowed(makeField("What visa do you currently hold?"))).toBeUndefined();
+    // Simply containing 'visa' without a positive pattern is rejected
+    expect(filterTemporaryVisaAllowed(makeField("You must have a valid visa to apply."))).toBeUndefined();
+  });
+
+  it("rejects generic diversity wording", () => {
+    expect(filterTemporaryVisaAllowed(makeField("We welcome people of all nationalities and backgrounds."))).toBeUndefined();
+    expect(filterTemporaryVisaAllowed(makeField("We encourage applications from diverse cultures and inclusion."))).toBeUndefined();
+  });
+
+  it("returns undefined for undefined input", () => {
+    expect(filterTemporaryVisaAllowed(undefined)).toBeUndefined();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// fallbackWorkRightsRequirement — unit tests
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("fallbackWorkRightsRequirement", () => {
+  it("matches 'full working rights' and returns a valid span", () => {
+    const adText =
+      "An Australian or New Zealand Citizen or able to provide evidence of full working rights.";
+
+    const result = fallbackWorkRightsRequirement(adText);
+
+    assertValidSpan(adText, result);
+
+    expect(result?.text).toBe("full working rights");
+
+    expect(result?.value).toBe("Full working rights required");
+  });
+
+  it("matches 'unrestricted working rights' and returns a valid span", () => {
+    const adText =
+      "Be an Australian or New Zealand Citizen or have unrestricted working rights";
+
+    const result = fallbackWorkRightsRequirement(adText);
+
+    assertValidSpan(adText, result);
+
+    expect(result?.text).toBe("unrestricted working rights");
+  });
+
+  it("matches 'full Australian working rights' (most specific first)", () => {
+    const adText = "Applicants must have full Australian working rights.";
+
+    const result = fallbackWorkRightsRequirement(adText);
+
+    assertValidSpan(adText, result);
+
+    expect(result?.text).toBe("full Australian working rights");
+  });
+
+  it("matches 'work without restriction'", () => {
+    const adText = "Candidates must be able to work without restriction.";
+
+    const result = fallbackWorkRightsRequirement(adText);
+
+    assertValidSpan(adText, result);
+
+    expect(result?.text).toBe("work without restriction");
+  });
+
+  // ── negatives ─────────────────────────────────────────────────────────────
+
+  it("does NOT match generic 'right to work in Australia'", () => {
+    expect(
+      fallbackWorkRightsRequirement(
+        "You must have the right to work in Australia."
+      )
+    ).toBeUndefined();
+  });
+
+  it("does NOT match 'legally entitled to work'", () => {
+    expect(
+      fallbackWorkRightsRequirement(
+        "Applicants must be legally entitled to work in Australia."
+      )
+    ).toBeUndefined();
+  });
+
+  it("does NOT match a screening question", () => {
+    expect(
+      fallbackWorkRightsRequirement(
+        "Which statement best describes your right to work in Australia?"
+      )
+    ).toBeUndefined();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OR-clause suppression — end-to-end pipeline tests
+//
+// These tests simulate what route.ts does (without Gemini) by constructing
+// the resolved citizenship/residency evidence manually (as Gemini would
+// return it), applying the suppression check, and then asserting both the
+// extraction shape AND the evaluateJob verdict.
+//
+// Cases 1–6 from the specification.
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("OR-clause suppression — end-to-end (Cases 1–6)", () => {
+  const student500 = {
+    subclass: "500" as const,
+    duringStudyTerm: true,
+    monthsRemaining: 18,
+  };
+
+  const graduate485 = {
+    subclass: "485" as const,
+    duringStudyTerm: false,
+    monthsRemaining: 24,
+  };
+
+  // Simulate the route.ts logic for a single ad text,
+  // injecting the Gemini-extracted citizenship phrase directly.
+  function simulateExtraction(
+    adText: string,
+    geminiCitizenshipText: string,
+    geminiResidencyText?: string
+  ) {
+    // Build evidence fields as addEvidenceSpan would return them.
+    const buildField = (text: string): EvidenceField | undefined => {
+      const start = adText.indexOf(text);
+      if (start === -1) return undefined;
+      return { value: "extracted", text, start, end: start + text.length };
+    };
+
+    const resolvedCitizenship = buildField(geminiCitizenshipText);
+    const resolvedResidency = geminiResidencyText
+      ? buildField(geminiResidencyText)
+      : undefined;
+
+    const citizenshipSuppressed = hasFullWorkRightsAlternative(
+      adText,
+      resolvedCitizenship
+    );
+    const residencySuppressed = hasFullWorkRightsAlternative(
+      adText,
+      resolvedResidency
+    );
+
+    const resolvedWorkRights = fallbackWorkRightsRequirement(adText);
+
+    return {
+      citizenshipRequirement: citizenshipSuppressed
+        ? undefined
+        : resolvedCitizenship,
+      residencyRequirement: residencySuppressed ? undefined : resolvedResidency,
+      workRightsRequirement: resolvedWorkRights,
+    };
+  }
+
+  // ── Case 1: Optiver shape ──────────────────────────────────────────────────
+
+  it("Case 1a — Optiver: citizenship suppressed, residency suppressed, work-right present", () => {
+    const adText =
+      "An Australian or New Zealand Citizen, Australian Permanent Resident " +
+      "or able to provide evidence of full working rights.";
+
+    const extraction = simulateExtraction(
+      adText,
+      "Australian or New Zealand Citizen",
+      "Australian Permanent Resident"
+    );
+
+    // Extraction layer must suppress both blockers.
+    expect(extraction.citizenshipRequirement).toBeUndefined();
+    expect(extraction.residencyRequirement).toBeUndefined();
+
+    // Work-right evidence must be present and have a valid span.
+    expect(extraction.workRightsRequirement).toBeDefined();
+    expect(
+      adText.slice(
+        extraction.workRightsRequirement!.start,
+        extraction.workRightsRequirement!.end
+      )
+    ).toBe(extraction.workRightsRequirement!.text);
+  });
+
+  it("Case 1b — Optiver + subclass 500 during study term → SKIP via T1_FULL_WORK_RIGHTS_STUDENT_500", () => {
+    const adText =
+      "An Australian or New Zealand Citizen, Australian Permanent Resident " +
+      "or able to provide evidence of full working rights.";
+
+    const extraction = simulateExtraction(
+      adText,
+      "Australian or New Zealand Citizen",
+      "Australian Permanent Resident"
+    );
+
+    const verdict = evaluateJob(extraction, student500);
+
+    expect(verdict.status).toBe("SKIP");
+    expect(verdict.ruleId).toBe("T1_FULL_WORK_RIGHTS_STUDENT_500");
+  });
+
+  // ── Case 2: Urban Utilities shape ─────────────────────────────────────────
+
+  it("Case 2a — Urban Utilities: citizenship suppressed, work-right present", () => {
+    const adText =
+      "Be an Australian or New Zealand Citizen or have unrestricted working rights";
+
+    const extraction = simulateExtraction(
+      adText,
+      "Australian or New Zealand Citizen"
+    );
+
+    expect(extraction.citizenshipRequirement).toBeUndefined();
+    expect(extraction.workRightsRequirement).toBeDefined();
+    expect(extraction.workRightsRequirement!.text).toBe(
+      "unrestricted working rights"
+    );
+  });
+
+  it("Case 2c — Urban Utilities: suppression works even when AI evidence encompasses the entire clause", () => {
+    const adText =
+      "Be an Australian or New Zealand Citizen or have unrestricted working rights";
+
+    // Simulate AI returning the ENTIRE clause as the citizenship evidence.
+    const extraction = simulateExtraction(adText, adText);
+
+    expect(extraction.citizenshipRequirement).toBeUndefined();
+    expect(extraction.workRightsRequirement).toBeDefined();
+
+    const verdict = evaluateJob(extraction, student500);
+
+    expect(verdict.status).toBe("SKIP");
+    expect(verdict.ruleId).toBe("T1_FULL_WORK_RIGHTS_STUDENT_500");
+    expect(extraction.workRightsRequirement!.text).toBe(
+      "unrestricted working rights"
+    );
+  });
+
+  it("Case 2b — Urban Utilities + subclass 500 during study term → SKIP via T1_FULL_WORK_RIGHTS_STUDENT_500", () => {
+    const adText =
+      "Be an Australian or New Zealand Citizen or have unrestricted working rights";
+
+    const extraction = simulateExtraction(
+      adText,
+      "Australian or New Zealand Citizen"
+    );
+
+    const verdict = evaluateJob(extraction, student500);
+
+    expect(verdict.status).toBe("SKIP");
+    expect(verdict.ruleId).toBe("T1_FULL_WORK_RIGHTS_STUDENT_500");
+  });
+
+  // ── Case 3: citizen-or-PR-only must NOT be weakened ───────────────────────
+
+  it("Case 3 — 'Australian citizens or permanent residents' still blocks as T1_CITIZENSHIP", () => {
+    const adText =
+      "Applicants must be Australian citizens or permanent residents.";
+
+    // Simulate fallbackCitizenship match
+    const extraction = simulateExtraction(adText, "Australian citizens");
+
+    // Citizenship must NOT be suppressed — no work-rights alternative in clause.
+    expect(extraction.citizenshipRequirement).toBeDefined();
+
+    const verdict = evaluateJob(extraction, student500);
+
+    expect(verdict.status).toBe("SKIP");
+    expect(verdict.ruleId).toBe("T1_CITIZENSHIP");
+  });
+
+  // ── Case 4: plain citizenship must NOT be weakened ────────────────────────
+
+  it("Case 4 — plain 'Australian citizens' still blocks as T1_CITIZENSHIP", () => {
+    const extraction = simulateExtraction(
+      "Applicants must be Australian citizens.",
+      "Australian citizens"
+    );
+
+    expect(extraction.citizenshipRequirement).toBeDefined();
+
+    const verdict = evaluateJob(extraction, student500);
+
+    expect(verdict.status).toBe("SKIP");
+    expect(verdict.ruleId).toBe("T1_CITIZENSHIP");
+  });
+
+  // ── Case 5: plain full working rights → correct rule ─────────────────────
+
+  it("Case 5 — plain 'full working rights' produces SKIP via T1_FULL_WORK_RIGHTS_STUDENT_500", () => {
+    const adText = "Applicants must have full working rights in Australia.";
+
+    // No citizenship evidence → no suppression needed.
+    const workField = fallbackWorkRightsRequirement(adText);
+
+    expect(workField).toBeDefined();
+
+    const verdict = evaluateJob(
+      { workRightsRequirement: workField },
+      student500
+    );
+
+    expect(verdict.status).toBe("SKIP");
+    expect(verdict.ruleId).toBe("T1_FULL_WORK_RIGHTS_STUDENT_500");
+  });
+
+  // ── Case 6: subclass 485 is NOT blocked by the OR clause ─────────────────
+
+  it("Case 6 — Optiver OR-clause with subclass 485 → APPLY (work rights not a 485 blocker)", () => {
+    const adText =
+      "An Australian or New Zealand Citizen, Australian Permanent Resident " +
+      "or able to provide evidence of full working rights.";
+
+    const extraction = simulateExtraction(
+      adText,
+      "Australian or New Zealand Citizen",
+      "Australian Permanent Resident"
+    );
+
+    // Citizenship and residency must be suppressed for 485 too.
+    expect(extraction.citizenshipRequirement).toBeUndefined();
+    expect(extraction.residencyRequirement).toBeUndefined();
+
+    const verdict = evaluateJob(extraction, graduate485);
+
+    // 485 is NOT blocked by full working rights alone → APPLY.
+    expect(verdict.status).toBe("APPLY");
+  });
+
+  it("Case 6b — Urban Utilities OR-clause with subclass 485 → APPLY", () => {
+    const adText =
+      "Be an Australian or New Zealand Citizen or have unrestricted working rights";
+
+    const extraction = simulateExtraction(
+      adText,
+      "Australian or New Zealand Citizen"
+    );
+
+    expect(extraction.citizenshipRequirement).toBeUndefined();
+
+    const verdict = evaluateJob(extraction, graduate485);
+
+    expect(verdict.status).toBe("APPLY");
   });
 });

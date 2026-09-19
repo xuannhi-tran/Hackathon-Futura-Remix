@@ -9,6 +9,9 @@ import {
   fallbackRegistration,
   fallbackVisaPlanRequirement,
   fallbackRoleField,
+  hasFullWorkRightsAlternative,
+  fallbackWorkRightsRequirement,
+  filterTemporaryVisaAllowed,
 } from "../../../lib/extractionFallbacks";
 
 type RawEvidenceField = {
@@ -528,9 +531,8 @@ ${adText}
 
     const aiRegistration = addEvidenceSpan(adText, rawExtraction.registration);
 
-    const aiTemporaryVisaAllowed = addEvidenceSpan(
-      adText,
-      rawExtraction.temporaryVisaAllowed
+    const aiTemporaryVisaAllowed = filterTemporaryVisaAllowed(
+      addEvidenceSpan(adText, rawExtraction.temporaryVisaAllowed)
     );
 
     const aiVisaPlanRequirement = addEvidenceSpan(
@@ -545,13 +547,46 @@ ${adText}
     const aiRoleField = addEvidenceSpan(adText, rawExtraction.roleField);
 
     // ------------------------------------------
+    // OR-clause work-rights suppression.
+    //
+    // When a clause such as:
+    //   "Australian citizen, Permanent Resident OR full working rights"
+    // explicitly offers full/unrestricted working rights as an alternative,
+    // citizenship and permanent residency are NOT exclusive hard blockers.
+    // Suppress them so the work-right field drives the profile-aware verdict.
+    // ------------------------------------------
+
+    // Resolve citizenship and residency (AI span first, fallback second).
+    const resolvedCitizenship = aiCitizenship ?? fallbackCitizenship(adText);
+    const resolvedResidency = aiResidency ?? fallbackResidency(adText);
+
+    // Detect whether the containing clause offers full/unrestricted rights
+    // as an explicit OR-alternative to citizenship / permanent residency.
+    const citizenshipSuppressed = hasFullWorkRightsAlternative(
+      adText,
+      resolvedCitizenship
+    );
+    const residencySuppressed = hasFullWorkRightsAlternative(
+      adText,
+      resolvedResidency
+    );
+
+    // Ensure work-right evidence is present when citizenship/residency are
+    // suppressed — the fallback picks up explicit full/unrestricted phrases
+    // that Gemini may have missed.
+    const resolvedWorkRights =
+      aiWorkRights ?? fallbackWorkRightsRequirement(adText);
+
+    // ------------------------------------------
     // Final structured extraction
     // ------------------------------------------
 
     const extraction = {
-      citizenshipRequirement: aiCitizenship ?? fallbackCitizenship(adText),
+      citizenshipRequirement: citizenshipSuppressed
+        ? undefined
+        : resolvedCitizenship,
 
-      residencyRequirement: aiResidency ?? fallbackResidency(adText),
+      residencyRequirement: residencySuppressed ? undefined : resolvedResidency,
 
       securityClearance:
         aiSecurityClearance ?? fallbackSecurityClearance(adText),
@@ -568,7 +603,7 @@ ${adText}
 
       location: aiLocation ?? fallbackLocation(adText),
 
-      workRightsRequirement: aiWorkRights,
+      workRightsRequirement: resolvedWorkRights,
 
       australianExperienceRequirement: addEvidenceSpan(
         adText,
