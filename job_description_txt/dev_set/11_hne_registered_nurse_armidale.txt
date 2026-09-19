@@ -1,0 +1,69 @@
+Title: Registered Nurse - Various Opportunities - Incentives Offered
+Employer: Hunter New England Local Health District
+Source: LinkedIn
+Location: Armidale, New South Wales, Australia
+Employment type: Various Permanent, Temporary & Casual Opportunities Available (posted as "Contract" on LinkedIn)
+Posted: 2 weeks ago
+Application volume: 26 people clicked apply
+
+Remuneration: $81,748.17 - $114,771.98 p.a. + Superannuation + Salary Packaging + Rural Health Incentives
+Position Classification: Registered Nurse
+Hours Per Week: Up to 38hrs per week
+Requisition ID: REQ690719
+
+Description:
+Ready for Your Next Nursing Adventure?
+
+Applications will be reviewed on an ongoing basis with Microsoft Teams interviews scheduled on Wednesday & Thursday afternoons.
+
+All overseas candidates seeking sponsorship MUST have obtained registration with AHPRA and a positive skills assessment via ANMAC with the relevant specialty/code prior to applying.
+
+Your ANMAC Assessment MUST be uploaded as part of your application, only applications with these documents provided will be considered.
+
+Find the Opportunity that Works for You!
+
+Whether you're seeking full-time, part-time or casual employment, Armidale Hospital offers a range of opportunities to suit your lifestyle, experience and career goals.
+
+Join a supportive and welcoming team where you'll work alongside experienced colleagues, build your confidence and be encouraged to develop your skills. With a variety of clinical areas to choose from, you can broaden your experience, take on new challenges and grow your nursing career in a rewarding rural environment.
+
+Explore Our Clinical Areas:
+- Close Observation Unit
+- Emergency Department
+- General Medical Unit
+- Surgical Ward
+- Theatre and Day Surgery Unit
+
+New To Emergency Nursing? (Sponsorship is NOT available for Transition entry)
+Our transition to Emergency Nursing Pathway is designed for Registered Nurses with acute care experience who are ready to take the next step into a career in Emergency Nursing.
+
+Choose Rural and Be Supported
+Through The Welcome Experience healthcare professionals and their families can access complimentary support to help make the transition easier, including assistance with housing, childcare and schooling, local services and community connections, and employment opportunities for partners.
+
+Benefits:
+- Affordable housing – 51% less than the NSW median
+- A supportive and collaborative workplace culture
+- Paid Parental Leave and up to 6 weeks annual leave (for eligible employees)
+- Ongoing education and professional development opportunities
+- Salary packaging options to increase your take-home pay
+- Discounted gym options through Fitness Passport
+- Up to $10,000 in the first 12 months PLUS up to $5,000 each year thereafter in fortnightly payments under the Rural Health Workforce Incentive Scheme (based on a minimum 18-month commitment)
+
+Eligibility criteria:
+To be eligible for employment in this position you must be an Australian Citizen, or permanent resident of Australia, or a New Zealand citizen with a current New Zealand Passport, or hold an appropriate visa that allows you to live and work in Australia. Employment of a temporary visa holder will only be offered in line with the conditions and expiry date of your visa.
+
+All overseas candidates seeking sponsorship MUST have obtained registration with AHPRA and a positive skills assessment via ANMAC with the relevant specialty/code prior to applying.
+
+Additional information:
+This is a Category A position. Recommended applicants will be reviewed for compliance with NSW Health policy directive PD2024_015: Occupational Assessment, Screening and Vaccination against Specified Infectious Diseases for Category A positions prior to offer.
+
+An eligibility list will be created for future permanent full or part time and temporary full or part-time vacancies. Job share / part-time arrangements will be considered. Casual opportunities may be available for recommended applicants.
+
+**KEY SIGNALS (this ad layers FOUR distinct Tier 2 patterns — good stress-test case):
+
+1. EXPLICIT HOURS: "Hours Per Week: Up to 38hrs per week" — stated directly in the structured header, not buried in prose. Under the standard student-visa 48hrs/fortnight (24hrs/wk) cap comparison point, so relevant to the hours-mention pattern.
+
+2. TEMPORARY_VISA_ALLOWED conditional (nuanced): "you must be an Australian Citizen, or permanent resident of Australia, or a New Zealand citizen... or hold an appropriate visa that allows you to live and work in Australia. Employment of a temporary visa holder will only be offered in line with the conditions and expiry date of your visa." — explicitly allows temp visa holders, but ties employment duration/offer to visa expiry (i.e., the job may only be offered as a fixed-term matching visa validity). This should downgrade from Skip to Tailor per the rules engine's special-case branch, but the "tied to visa expiry" clause is an important nuance/caveat worth surfacing to the student, not just a clean pass.
+
+3. SPONSORSHIP-CONDITIONAL (not a blocker, but a gate): "All overseas candidates seeking sponsorship MUST have obtained registration with AHPRA and a positive skills assessment via ANMAC... prior to applying." — this is a prerequisite-for-sponsorship-eligibility clause, appears TWICE in the ad (once near the top, once in the eligibility section). Distinct from a blanket sponsorship blocker — it describes conditions under which sponsorship IS available, for candidates who meet a professional-registration bar.
+
+4. SPONSORSHIP HARD EXCLUSION for one specific sub-pathway only: "New To Emergency Nursing? (Sponsorship is NOT available for Transition entry)" — this is a genuine hard blocker, but scoped ONLY to the "Transition to Emergency Nursing Pathway," not the general Registered Nurse roles advertised elsewhere in the same ad. Good test of whether the extraction pipeline can correctly scope a blocker to a sub-section rather than applying it ad-wide (the current eligibility_extract_section heuristic that grabs from the first "eligibility" marker to end-of-text could easily over-apply this blocker to the whole ad, which would be a false Skip).**

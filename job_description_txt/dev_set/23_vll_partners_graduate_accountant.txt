@@ -1,0 +1,39 @@
+Title: Graduate Accountant - North Sydney
+Employer: VLL Partners
+Source: https://au.seek.com/job/94634281
+Location: North Sydney, Sydney NSW
+Category: Business Services & Corporate Advisory (Accounting)
+Employment type: Full time
+Salary: From $55,000 + Super
+Posted: 4 days ago
+Application volume: Medium
+
+Description:
+Graduate Accountant — North Sydney
+
+VLL Partners is a boutique chartered accounting firm in North Sydney. We look after many client groups — companies, trusts, sole traders, partnerships and SMSFs — handling their tax, accounting, ASIC compliance and tax advisory services.
+
+This role is designed as a genuine first role in public practice, and you'll be sitting close enough to the Directors to learn the reasoning behind the work, not just the process.
+
+What you'll actually be doing:
+- Preparing individual, company, trust, partnership & SMSF tax returns
+- Preparing financial statements and supporting workpapers
+- Preparing BAS and IAS
+- Bookkeeping and reconciliations in various accounting software
+- ASIC corporate secretarial work including Annual Company Statements
+
+What we're looking for:
+- A completed accounting degree, or finishing in the next few months, with the units required for entry to the CA program
+- Ambition to grow as an accountant and move into more senior roles with greater responsibilities
+- Solid Excel skills preferred
+- Clear, plain written and spoken English
+- Someone with attention to detail
+- Valid Australian work rights
+
+No prior experience needed. If you've done a tax internship or worked in a bookkeeping role, say so, but it's not a requirement.
+
+**KEY SIGNALS:
+1. "Valid Australian work rights" — a general work-rights requirement (similar tier to ACCIONA #03 and Gold Coast #04's "full working rights" framing), but worded even more minimally/genericly — good variant phrasing for testing whether the extraction regex catches "work rights" language across different wordings ("full working rights in Australia," "valid Australian work rights," "hold an appropriate visa that allows you to live and work in Australia").
+2. Lower salary band ($55,000 + Super) — notably lower than other graduate roles in the corpus (Gold Coast Data Analyst was $86,611; DTF ASO3 was $74,095) — useful salary-range variety, and boutique/small-firm employer scale (contrast to Big 4/McGrathNicol/Boeing).
+3. Second SMSF/accounting/audit-adjacent role (pairs with Assurify #06) — but this one uses generic "valid work rights" phrasing rather than Assurify's explicit "citizen, PR or valid working visa" three-way enumeration, so it's a softer/less-specific version of a similar underlying requirement. Good test of whether the pipeline treats these as equivalent-strength signals or differently.
+4. "No prior experience needed" — explicit zero-experience framing, reinforcing graduate-level target audience.**

@@ -1,0 +1,36 @@
+Title: 2027 Data Analytics Graduate Program (Canberra)
+Employer: McGrathNicol
+Source: LinkedIn
+Location: Canberra, Australian Capital Territory, Australia, 2601
+Division: Advisory
+Department: Data Analytics
+Employment Type: Full Time Permanent
+Application Closing Date: 15 Oct 2026
+Posted: 2 days ago
+Application volume: 45 people clicked apply
+
+Description:
+McGrathNicol empowers you to make the greatest impact on your career, our performance and our clients' future.
+
+We are an independent professional services firm specialising in Cyber, Deals, Forensic, Performance, Restructuring, and Risk & Compliance. For more than 20 years, we have supported organisations to navigate critical moments, from growth and transformation through to financial stress and uncertainty, across the private, public and not-for-profit sectors. Guided by our values – Understanding, Commitment and Impact – we are client-focused, collaborative and committed to creating an environment where our people can do their best work and continue to grow their careers.
+
+Our Canberra office specialises in providing tailored Advisory services to help a diverse range of Australian Government clients, ranging from peak funding bodies across various Australian Government portfolios to some of Australia's largest Government departments. As a Data Analytics Graduate in Canberra, you will work closely with the National Data Analytics team on both Federal Government and private sector engagements. Our Data Analytics team bring together the disciplines of computer science, mathematics, statistics, econometrics, business intelligence and financial accounting with decades of combined cross-industry experience. We are seeking students with a passion and genuine interest in Data Analytics. A level of understanding or experience with Python, R, SQL, PowerBI and Alteryx is preferred but not essential.
+
+What We Offer You
+- As a Graduate, you will gain real world commercial experience and be challenged to implement pragmatic solutions on high profile engagements.
+- We offer a unique opportunity to work closely with senior staff and Partners, learning and gaining valuable insights from some of the best in the industry. You will also have a Buddy, Counselling Manager and Counselling Partner dedicated to supporting and investing in you from day one.
+- Our people are passionate, driven, inclusive and collaborative. Continuous development is engrained in our culture with robust development and reward frameworks to support performance and progression.
+- Our Graduate Development Program is expertly designed to provide you with the technical knowledge and professional skills you need to launch your career at McGrathNicol. Over the course of your first 12 months, you will build a deep understanding of the firm and develop strong relationships with your national graduate cohort through a mix of online and in-person sessions, including key intensive 'grad camp' events throughout the year.
+- We work, volunteer and celebrate as a team. Engage in the life of our firm through networking events, charity days, wellbeing initiatives and retreats.
+
+Who You Are:
+- an Australian Citizen at the time of submitting your application;
+- in your final year of (or recently graduated with) a STEM related Bachelor's or Master's degree, preferably with a data science/analytics, business analytics, mathematics, statistics or related major; and
+- available to commence full-time work in February 2027.
+
+Interested? If you're ready to make a lasting impact and grow your career, apply today to join our dynamic team at McGrathNicol.
+
+**KEY SIGNALS:
+1. Clean, unambiguous HARD BLOCKER: "an Australian Citizen at the time of submitting your application" — no PR carve-out, no temporary-visa carve-out. Third clean citizenship-mandatory example in the corpus (alongside EY #08 and Boeing #10), but in a THIRD distinct context: professional-services/advisory consulting firm whose citizenship requirement is implicitly driven by servicing Australian Government clients (not stated explicitly as "security clearance," but strongly implied by "Advisory services to help a diverse range of Australian Government clients... peak funding bodies... some of Australia's largest Government departments"). Useful contrast: EY and Boeing state the security-clearance rationale explicitly; McGrathNicol does NOT explicitly justify the citizenship requirement with a stated reason, it's simply listed as a "Who You Are" criterion. Good test of whether the extraction pipeline requires an explicit justification/rationale to flag the blocker, or correctly flags it from the bare eligibility statement alone.
+2. Fills DATA ANALYTICS graduate category — distinct from Gold Coast's Graduate Data Analyst (#04, local government, no citizenship requirement) — good direct comparison pair: same job function (data analytics), different sectors (professional services/government-advisory vs. local council), different visa outcomes (hard Skip vs. clean Apply given full working rights).
+3. "in your final year of (or recently graduated with)" — a graduating-soon-or-recent-grad framing, consistent with most other graduate ads in the corpus.**

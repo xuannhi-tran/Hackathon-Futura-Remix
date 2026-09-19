@@ -60,7 +60,7 @@ rules:
     signal_type: "HARD_BLOCKER"
     verdict: "Skip"
     patterns:
-      - '(?i)(?:security\s+)?clearance.*(?:required|mandatory|obtain|maintain)'
+      - '(?i)security\s+clearance.*(?:required|mandatory|obtain|maintain)'
       - '(?i)(?:Negative\s+Vetting|NV)\s+Level\s+\d+'
       - '(?i)Australian\s+Government\s+security\s+clearance'
     confidence: 0.95
@@ -134,8 +134,11 @@ rules:
       - '(?i)(?:if|currently)\s+(?:you\s+)?hold\s+(?:a\s+)?temporary\s+visa.*may\s+be\s+offered\s+employment'
       - '(?i)temporary\s+visa.*work\s+in\s+Australia.*may\s+be\s+offered'
       - '(?i)citizen\s+of\s+another\s+country\s+with\s+(?:an\s+)?appropriate\s+visa'
+      - '(?i)or\s+hold\s+(?:an\s+)?appropriate\s+visa\s+that\s+allows\s+you\s+to\s+(?:live\s+and\s+)?work\s+in\s+Australia'
+      - '(?i)or\s+(?:able\s+to\s+provide\s+evidence\s+of|have)\s+(?:full|unrestricted)\s+working\s+rights'
+      - '(?i)employment\s+of\s+a\s+temporary\s+visa\s+holder\s+will\s+(?:only\s+)?be\s+offered'
     confidence: 0.70
-    notes: "Employer explicitly allows temporary visa holders with appropriate working rights. Signals openness to 485 and some 500 holders. Verdict: Tailor (verify visa conditions)."
+    notes: "Employer explicitly allows temporary visa holders with appropriate working rights, OR lists 'full/unrestricted working rights' as a third alternative alongside citizen/PR (not a hard citizenship-only gate). Signals openness to 485 and some 500 holders. Verdict: Tailor (verify visa conditions)."
 
   - rule_id: "VISA_PLAN_REQUIRED_CONDITIONAL"
     category: "working_rights_conditional"
@@ -158,6 +161,8 @@ rules:
       - '(?i)(?:must\s+have|require|need)\s+(?:valid\s+)?visa\s+with\s+(?:full\s+)?work\s+rights'
       - '(?i)must\s+(?:be\s+)?legally\s+entitled\s+to\s+work'
       - '(?i)(?:must|need\s+to).*have\s+right\s+to\s+work\s+in\s+Australia'
+      - '(?i)valid\s+Australian\s+work\s+rights'
+      - '(?i)(?:must\s+)?hold\s+(?:a\s+)?visa\s+with\s+(?:acceptable|appropriate)\s+work\s+conditions'
     confidence: 0.60
     notes: "Vague phrasing that may include 500/485 holders (both grant working rights) or may require permanent residency. Conservative: Tailor (clarify with employer). Context-dependent. Only matches when explicitly required."
     example_ads:
@@ -168,16 +173,12 @@ rules:
     category: "no_blocker"
     signal_type: "NO_BLOCKER"
     verdict: "Apply"
-    # NOT a matchable rule — do not port `patterns` for this one.
-    # This is the FALLBACK verdict: apply it when NONE of the 11 rules
-    # above produced a HARD_BLOCKER or CONDITIONAL match. It previously
-    # carried a regex pattern, but extraction_pipeline.py never actually
-    # evaluates it — Apply is decided by absence of other matches (see
-    # the verdict logic in PROJECT_HANDOFF.md §5 / extraction_pipeline.py
-    # extract()). Kept here as documentation only.
+    patterns:
+      - '(?i)(?!.*(?:citizenship|visa|working\s+rights|clearance|must\s+have))^' # Negative lookahead: no blocker language
     confidence: 0.65
     notes: "No explicit visa/citizenship blocker mentioned in eligibility section. Safe to Apply (but verify with SEEK employer screening question)."
     example_ads:
       - "15_caringbah_family_practice_rn.txt"
       - "18_innisfail_medical_centre_gp_nurse.txt"
       - "20_velocity_legal_graduate.txt"
+      - "22_sharp_carter_graduate_consultant.txt"

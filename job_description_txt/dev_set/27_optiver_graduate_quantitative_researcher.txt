@@ -1,0 +1,67 @@
+Title: Expressions of Interest - Graduate Quantitative Researcher 2027
+Employer: Optiver
+Source: LinkedIn
+Location: Sydney, New South Wales, Australia
+Employment type: On-site (employment type field not separately stated — application is EOI-based, see notes)
+Posted: Reposted 1 week ago
+Application volume: Over 100 people clicked apply
+
+Description:
+As our Graduate Quantitative Researcher, you'll develop, refine and implement statistical models that directly impact and improve the global financial markets. As part of a team of expert researchers, you'll leverage our large historical datasets and the latest technologies to develop innovative solutions that drive Optiver's cutting-edge trading strategies, fully immersing in the world of market making.
+
+If you have a critical mindset, a passion for quantitative problems and mathematical precision, you are the ideal candidate for this role. Join us and be a part of a dynamic team where you can make a meaningful impact.
+
+Please note, our formal applications for Graduate opportunities are currently closed. We are seeking expressions of interest for our 2026 campaign and would love to hear from you! Please complete this application to join our 'Talent Community' so that we can keep you up to date with suitable upcoming vacancies.
+
+What You'll Do
+
+Your onboarding and training:
+Kickstart your training in the Optiver Academy, our four-week global training program in Amsterdam. Here you'll learn from our dedicated in-house education team and other industry experts through a series of lectures, coursework and collaborative project work.
+
+Following this, the comprehensive training program in Sydney will equip you with the knowledge needed to make an impact from the moment you join your research team. You'll learn the intricacies of option theory and apply your knowledge to real-world scenarios, developing models that contribute towards our trading success.
+
+After joining one of our research teams, you'll continue to optimise our innovative trading strategies, and gain a deeper insight into the different products and trading strategies within the team. Our education team will continue to provide training through a curated series of lectures over your first 12 months as a graduate researcher.
+
+Your Responsibilities:
+From your first day on the team, you'll have the autonomy and responsibility to make decisions that create an immediate impact. Key responsibilities may include:
+- Using statistical models and machine learning to develop innovative solutions that are foundational to Optiver's trading strategies
+- Leveraging big data technologies to analyse high-frequency trading strategies, market microstructure and financial instruments to identify trading opportunities.
+- Building stochastic models to determine the fair value of financial derivatives.
+- Combining quantitative analysis and high-performance implementation to ensure the efficiency and accuracy of pricing engines and libraries.
+- Seeking continuous improvement in everything you do.
+
+Find your niche in research
+We offer a range of opportunities in our research teams, including Delta 1, Options Pricing, and Performance Research.
+
+What You'll Get:
+- A performance-based bonus structure unmatched anywhere in the industry.
+- The opportunity to work alongside best-in-class professionals.
+- Training, mentorship and personal development opportunities.
+- Gym membership, plus weekly in-house chair massages.
+- Daily breakfast, lunch and an in-house barista.
+- Regular social events.
+
+Who You Are:
+- Final year university student or recent graduate.
+- An Australian or New Zealand Citizen, Australian Permanent Resident or able to provide evidence of full working rights.
+- Studying a quantitative or technically focused degree, such as Maths, Statistics, Physics, Electrical / Mechatronic / Software Engineering, Computer Science, Applied / Quantitative Finance or Econometrics.
+- Inquisitive and critical thinker, who enjoys creating innovative, new solutions.
+- Have a passion for quantitative problems and working in collaborative, dynamic environments.
+- Pragmatic and focused on outcomes, and can communicate technical concepts well.
+- Enjoy utilising technology, programming or maths in your daily life to solve problems.
+- Possess programming experience in any language (C, C++, Python, Basic, JAVA, etc.).
+
+Diversity statement
+Optiver is committed to diversity and inclusion, and it is hardwired through every stage of our hiring process. We encourage applications from candidates from any and all backgrounds.
+
+Questions? Check out our internship and graduate FAQs or get in touch with the team at: careers@optiver.com.au
+
+**KEY SIGNALS:
+
+1. APPLICATION-STATUS SIGNAL (new pattern, not seen elsewhere in the corpus): "our formal applications for Graduate opportunities are currently closed. We are seeking expressions of interest for our 2026 campaign... Please complete this application to join our 'Talent Community'." This is NOT a Tier 1/2 eligibility blocker at all — it's an application-process/timing nuance. A student could otherwise be fully eligible (citizen/PR/full working rights, right degree, final year) yet submitting this "application" doesn't actually enter them into an active hiring round — it just joins a waitlist/talent pool for a future, unspecified campaign. This is a genuinely different kind of "gap" than anything else in the corpus: not a hard/soft eligibility blocker, but a MISLEADING APPLICATION-URGENCY signal — a naive reading of the ad (especially skimming past the note) could lead a student to spend a full tailored application's worth of effort believing they're applying to a live vacancy, when they're actually just registering interest. Worth considering whether this deserves its own rule category distinct from Tier 1 (legal eligibility) and Tier 2 (conditional/informational) — call it something like "APPLICATION_STATUS_MISMATCH" or flag it under portfolio_allocator.py's effort-leak framing, since applying here wouldn't count as a "real" application in the same sense as the other 15 ads.
+
+2. VISA/CITIZENSHIP: "An Australian or New Zealand Citizen, Australian Permanent Resident or able to provide evidence of full working rights." — same TEMPORARY_VISA_ALLOWED-style three-way pattern as Assurify (#06), but phrased with "full working rights" as the catch-all third category rather than "valid working visa." Reinforces that this citizen/PR/full-working-rights three-way split is a common Australian graduate-hiring template across very different industries (SMSF audit boutique vs. elite quant trading firm).
+
+3. Prestige/high-compensation finance/quant employer — adds variety at the high end of compensation and selectivity (implicit given "performance-based bonus structure unmatched anywhere in the industry," elite quant hiring bar) compared to Star Scaffolds/VLL Partners at the lower end.
+
+4. Global training component (4-week Amsterdam onboarding) — an unusual logistics/relocation-for-training detail not seen in other ads, potentially relevant to a "can this student actually attend" screening dimension separate from visa status (e.g., can a student visa holder leave Australia for training and return without affecting visa conditions?).**

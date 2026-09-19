@@ -1,0 +1,55 @@
+Title: Junior Strategy Consultant | Senior Associate | Strategy&
+Employer: PwC Australia
+Source: LinkedIn
+Location: Sydney, New South Wales, Australia (Hybrid)
+Employment type: Full-time
+Posted: 2 weeks ago
+Application volume: Over 100 people clicked apply
+Requisition ID: 708250WD
+
+Description:
+The work you do today could help define what's possible tomorrow — building trust and shaping how Australia's most influential organisations compete, grow and create value in a world reshaped by AI, regulation and rising stakeholder expectations. As a Junior Strategy Consultant, you'll play a vital role in defining enterprise strategy, designing operating models and delivering transformation that bridges strategy and execution. You'll do this working with clients across financial services, mining, technology, energy and health.
+
+Australia's most influential organisations - across financial services, mining and other key sectors - are rethinking how they compete, grow and create value in a world being reshaped by AI, regulation and rising stakeholder expectations. Strategy& works with them on the questions that matter most - and we're looking for a Senior Associate ready to play a central role in that work.
+
+Strategy& is PwC's global strategy consulting business. In Australia, we define enterprise strategy, design operating models and deliver transformation. Our work bridges the gap between strategy and execution, backed by PwC's broader capabilities - giving you access to problems, clients and perspectives that few other roles can offer at this stage of your career.
+
+In this role, you will be at the analytical core of our engagements. You'll generate and test hypotheses, build frameworks, conduct research and synthesise complex information into insights that drive client decisions. You'll take ownership of your workstream - managing deliverables, reconciling ambiguous data and presenting findings with clarity and confidence. Our teams are lean and shift with each engagement, so you'll need to be adaptable, proactive and ready to operate with real autonomy. You'll also begin contributing to business development - supporting proposals, developing thought leadership and building the commercial instincts that accelerate your growth toward Manager.
+
+We're looking for sharp, curious thinkers who bring structure to unstructured problems and hold themselves to a high standard. You should be someone who communicates with precision, collaborates generously and takes initiative without waiting to be asked. Experience in financial services or mining will give you a head start, but we're equally interested in exceptional problem-solvers from any background who are hungry to build deep sector knowledge and develop fast.
+
+If you want to do meaningful strategy work early in your career - with real responsibility, direct client exposure and a team that invests in your development - this is where to start.
+
+Why PwC?
+At PwC Australia, your skills meet purpose. We tackle big challenges across industries like finance, technology, energy, and health.
+
+Join a global community of more than 370,000 people who value bold ideas, collaboration, and lasting change.
+
+What you'll do:
+- Support the development and implementation of strategic plans that are closely aligned with clients' overarching business objectives.
+- Conduct research and analysis to capture valuable market insights and trends.
+- Support client engagements by contributing to workshops and presentations that guide decision-making processes.
+- Contribute to the preparation of detailed deliverables, ensuring high-quality reports and presentations that effectively communicate findings.
+
+What we're looking for:
+- Proven analytical abilities, showcasing the skill to extract meaningful insights from complex data sets.
+- High proficiency in communication, both verbally and in writing, to effectively articulate ideas and influence stakeholders.
+- Strong problem-solving capabilities, with a knack for delivering innovative and creative solutions to challenges.
+- Demonstrated collaboration skills, contributing positively and effectively within diverse and dynamic teams.
+
+Don't meet every requirement? We encourage you to apply. We value all forms of experience that may be transferrable and relevant.
+
+What you'll gain:
+- The opportunity to work with leading organisations and cutting-edge technology.
+- Flexibility means trusting you to choose when, where, and how you work.
+- Clear paths for career progression supported by continuous learning and leadership development.
+- Generous leave entitlements including floating public holidays, birthday leave and ability to purchase additional leave on top of your four weeks.
+- A world-class parental leave policy offering up to 26 weeks of leave for caregivers.
+
+We're committed to treating all our job applicants fairly and with respect, irrespective of their actual or assumed background, disability, neurodivergence, or any other protected characteristic.
+
+No agencies please: We kindly request that recruitment agencies do not submit CVs in response to this advertisement. We are only accepting applications directly from individuals.
+
+**KEY SIGNALS:
+1. NO explicit visa/citizenship/work-rights requirement stated anywhere in the ad text. Second Big 4 example (PwC), and it contrasts directly with EY (#08)'s clean hard-blocker — useful pair for showing that not all Big 4 ads carry citizenship requirements (security-clearance-driven roles like EY's Service Delivery Analyst are the exception, not the rule, at these firms).
+2. SENIORITY AMBIGUITY worth flagging: the title is "Junior Strategy Consultant | Senior Associate" — dual-labelled, and the body text refers to "Senior Associate" throughout and to "accelerate your growth toward Manager," suggesting this sits above true graduate/entry-level despite the "Junior" in the title. Good edge case for testing whether the EXPERIENCE_MATCH signal in the Tier 3 fit scorer (portfolio_allocator.py) correctly treats this as NOT a fresh-graduate role — the graduate_keywords regex list ("graduate", "entry.level", "no experience required", "junior") would likely match on "Junior Strategy Consultant" in the title and score it as graduate-friendly, which may be a false positive given the actual seniority signalled in the body ("Senior Associate," "growth toward Manager," "at this stage of your career" implying some prior experience). Useful test case for a title/body mismatch.**

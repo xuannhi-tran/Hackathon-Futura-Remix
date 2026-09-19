@@ -47,19 +47,38 @@ class Tier1RulesEngine:
 
     def extract_eligibility_section(self, ad_text: str) -> str:
         """Extract the eligibility/criteria section from ad text (heuristic)."""
-        # Look for common section headers
+        # Look for common section headers. Ordered roughly by specificity —
+        # broadened beyond "eligibility/criteria/must have" after the dev-set
+        # run found ads that use headers like "What we're looking for:"
+        # instead, with no other "eligibility"-type keyword anywhere in the
+        # text — causing the old marker list to fall through to a stray,
+        # unrelated use of a bare word like "requirement" near the end of
+        # the ad and chop off the real eligibility content before it.
         eligibility_markers = [
             r'(?i)(?:eligibility|requirement|criteria|must have)',
             r'(?i)(?:to be eligible|who we are looking for)',
             r'(?i)(?:application requirements|what we need)',
+            r"(?i)(?:what we're looking for|who we're looking for)",
+            r'(?i)(?:who you are|who may apply|about you)',
         ]
+
+        # Minimum trailing length for a marker match to be trusted as a real
+        # section header rather than a coincidental word usage near the end
+        # of the ad (e.g. "...but it's not a requirement." in a closing
+        # sentence, which is not an eligibility-section header at all).
+        MIN_SECTION_LENGTH = 150
 
         # Find where eligibility content likely starts
         for marker in eligibility_markers:
             match = re.search(marker, ad_text)
             if match:
-                # Return text from marker to end (or next major section)
                 start = match.start()
+                if len(ad_text) - start < MIN_SECTION_LENGTH:
+                    # Suspiciously little text follows this match — likely a
+                    # false-positive keyword hit, not a real section header.
+                    # Skip it and let the next marker (or the final fallback
+                    # to full text) take over instead.
+                    continue
                 # Look for next section header (all caps line or "About" prefix)
                 next_section = re.search(r'\n[A-Z][A-Z\s]{5,}', ad_text[start+100:])
                 if next_section:
@@ -67,7 +86,7 @@ class Tier1RulesEngine:
                 else:
                     return ad_text[start:]
 
-        # Fallback: return whole text if no section found
+        # Fallback: return whole text if no (trustworthy) section found
         return ad_text
 
     def apply_rule(self, rule: Dict, text: str) -> List[Match]:

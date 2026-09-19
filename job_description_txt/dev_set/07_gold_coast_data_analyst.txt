@@ -1,0 +1,60 @@
+Title: Graduate Data Analyst
+Employer: City of Gold Coast
+Source: SEEK
+Location: Bundall, Gold Coast QLD
+Category: Business/Systems Analysts (Information & Communication Technology); Government - Local (Government & Defence)
+Employment type: Full time
+Salary: From $86,611 plus superannuation
+Posted: 4 days ago
+
+Description:
+Full Time Fixed Term | 9-day fortnight | 36 hours per week
+Salary: From $86,611 per annum plus superannuation
+
+Position Overview – Graduate Position Brief
+We know you are driven by growth and opportunity, eager to build your career and ready to make an impact. That's why we offer a full time, 12-month Graduate Academy designed to unlock your potential and equip you with the knowledge, skills and hands-on experience to excel in your chosen career.
+
+Working alongside industry leaders, you will contribute to a range of projects and initiatives that help shape and connect our City, with real world opportunities to learn, grow and progress. Through our tailored development program, valuable industry connections and the support of our Graduate Academy community, you will build the skills, networks and confidence to take your career further.
+
+Start your career at the City
+
+Starting February 2027, the Graduate Academy combines professional development with meaningful on-the-job experience, designed to support your transition from university into the workplace. As a graduate at the City, you will benefit from:
+- opportunities to contribute to projects and initiatives you won't find anywhere else.
+- guidance, coaching and support from experienced industry leaders, mentors and peers.
+- a connected Graduate Academy cohort, giving you a network of peers to learn and grow alongside.
+- work-based learning and a tailored program of personal, professional and career development.
+- a range of Graduate Academy experiences, including City tours, exclusive CEO talks and cohort events.
+- support on your pathway towards professional accreditation.
+
+What's on offer
+
+Join our Data Analytics team and turn data into insights that drive better decisions. As a Graduate Data Analyst, you will work with a variety of data sources to build reports, dashboards and analytical solutions that improve business performance and service delivery. You will gain hands-on experience across a range of meaningful projects while working alongside experienced data professionals who will support your growth and development.
+
+What we are looking for
+
+We are looking for graduates who are ready to learn, contribute and make a difference. You will:
+- be curious, motivated and keen to contribute to the future of the Gold Coast.
+- bring new ideas, perspectives and a continuous improvement mindset.
+- take ownership of your learning and professional development.
+- embrace new challenges and adapt as you build your experience.
+- analyse information, think critically and approach problems with curiosity.
+- communicate with confidence, build strong relationships and contribute to a positive team culture.
+- work collaboratively and value different perspectives, experiences and ideas.
+
+Eligibility criteria:
+
+To be considered for this opportunity you must hold a recognised bachelor's degree or postgraduate qualification from a tertiary institution, completed within the last two years or be completing prior to the commencement of the program in February 2027. Applicants must have full working rights in Australia for the duration of the program and be able to work full-time.
+
+The Data Analytics Graduate position is recommended for but not limited to graduates who have studied Bachelor of Data Analytics, Data Science or Computer Science and related fields.
+
+Application process:
+Submit your academic transcript / qualification, CV and cover letter. In your cover letter please outline information about your career objectives, work experience, education, volunteering and any extracurricular activities, specialist skills or interest areas you may have.
+
+Contact Email: careerpathways@goldcoast.qld.gov.au
+Closing Date: Monday 5 October 2026 / 10:30pm AEST
+
+The City of Gold Coast is an equal opportunity employer dedicated to promoting an inclusive and diverse workplace.
+
+**KEY SIGNALS:
+1. Explicit "full working rights in Australia for the duration of the program" — Tier 2 WORK_RIGHTS_EXPLICIT blocker signal (echoes ACCIONA framing).
+2. "36 hours per week" + "9-day fortnight" — this is UNDER the 24 hrs/wk (48 hrs/fortnight) student visa work-hours cap is NOT an issue here since it's a full-time permanent-track program requiring full working rights (i.e., the ad itself screens out student-visa holders working restricted hours) — good example of an ad where the hours signal and the work-rights signal reinforce each other rather than being independent gaps.**

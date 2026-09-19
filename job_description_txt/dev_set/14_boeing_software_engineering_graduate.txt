@@ -1,0 +1,68 @@
+Title: Software Engineering Graduate
+Employer: Boeing Defence Australia
+Source: LinkedIn
+Location: Williamtown, New South Wales, Australia (RAAF Base Williamtown) — also Adelaide and Brisbane
+Employment type: Full-time, Permanent
+Posted: 3 days ago
+Application volume: 39 people clicked apply
+Job Reference: BOE/1946958W
+Position Type: Permanent
+Category: Engineering / Technical
+
+Description:
+At Boeing, we innovate and collaborate to make the world a better place. We're committed to fostering an environment for every teammate that's welcoming, respectful and inclusive, with great opportunity for professional growth. Find your future with us.
+
+The Opportunity
+
+We are seeking talented Graduate Software Engineers to join the Boeing Defence Australia Graduate Program in January 2027. This program offers graduates a permanent full-time position, providing a solid career foundation from day one.
+
+Graduate opportunities are available in Adelaide, Brisbane and Williamtown across a range of engineering business units at Boeing which include:
+- E-7A Wedgetail - The centrepiece of Australia's national air defence capability, incorporating powerful airborne surveillance, communications and battle management capability.
+- MQ-28 Ghost Bat - Development and integration of mission systems for uncrewed teaming aircraft designed to be a force multiplier in support of advanced multi-mission air combat operations.
+- Sustainment Operations - Maintenance, repair, overhaul and upgrades of military aircraft including F/A-18F Super Hornets, CH-47F Chinooks and P-8A Poseidons, as well as training design and delivery.
+- Joint Systems - Design, development and sustainment of defence communications systems and networks.
+
+As a Graduate Software Engineer you will:
+- Contribute to the development of robust mission system software with a focus on cyber security, scalability and performance.
+- Contribute to the design, development, integration and test of integrated hardware and software systems.
+- Write code to solve complex problems.
+- Communicate and collaborate with a diverse, multi-disciplinary team, in a conscientious and inclusive way to successfully deliver innovative solutions to the Australian Defence Force.
+
+Your attitude, motivation, willingness to learn and ability to self-task under supervision will determine your success in our team!
+
+Education
+Applicants must hold a tertiary degree qualification in engineering, computer science or information technology (or have an anticipated graduation date before January 2027).
+
+Eligibility
+Applicants must be Australian Citizens to meet Defence security requirements.
+
+How To Apply
+Please submit your CV together with a cover letter and your university transcript to be considered.
+
+Our Graduate Program
+Our 24-month Graduate Program is designed to equip you with essential skills for a successful transition into full-time work, while also fostering your growth into an experienced professional. Throughout the program, you will engage in professional learning and development, as well as social and collaborative opportunities to expand your Boeing network.
+
+While the Graduate Program has defined learning objectives and a structured framework, your individual journey will be tailored in collaboration with your manager, shaped by business needs and your personal professional development goals. To enhance your exposure and learning, you will remain within one business unit for the entire duration of the program.
+
+About Us
+At Boeing, we connect, protect, explore, and inspire the world through aerospace innovation. As one of Australia's leading prime defence contractors, Boeing Defence Australia supports some of the largest and most complex programs for the customers including the Australian Defence Force.
+
+Benefits:
+- Competitive Salary & Bonuses: Enjoy a competitive salary along with yearly bonuses.
+- Flexible Work Schedule: Benefit from a hybrid work model, with options for an RDO and WFH 2 days a week.
+- Paid Leave Options: Access various paid leave entitlements to support your personal and family needs.
+- Financial Discounts: Take advantage of discounted health insurance premiums, travel, and retail shopping, along with a nationwide Fitness Passport.
+- Financial Benefits: Explore options for novated leasing and salary sacrifice for superannuation.
+- Career Development: Receive both informal and formal tailored mentorship.
+- Recognition Program: Participate in our recognition award program.
+
+Applications Close: Sunday 4 October 2027
+
+Equal Opportunity Employer:
+We are an equal opportunity employer. We do not accept unlawful discrimination in our recruitment or employment practices on any grounds.
+
+**KEY SIGNALS:
+1. Clean, unambiguous HARD BLOCKER: "Applicants must be Australian Citizens to meet Defence security requirements." No PR carve-out, no temporary-visa carve-out — structurally identical to EY (#08)'s clean citizenship-mandatory case, but in the defence/aerospace sector rather than professional services. Good second data point confirming the pattern "security clearance → citizenship mandatory, no exceptions" recurs across industries.
+2. Fills the SOFTWARE ENGINEERING / TECH graduate category cleanly (a gap we'd flagged) — genuine graduate-level software engineering role, degree in engineering/CS/IT required, no prior experience required.
+3. Permanent, full-time, hybrid (2 days WFH) — standard employment terms, no unusual hours framing.
+4. Note: "Applications Close: Sunday 4 October 2027" appears to be a likely typo in the original posting (should probably read 2026, given the program starts January 2027 and the ad was posted "3 days ago") — worth flagging as a data-quality quirk if this ad is used to test date/deadline extraction, since a naive parser would take the stated year at face value.**

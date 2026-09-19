@@ -1,0 +1,71 @@
+Title: 2027 Graduate Program - Finance
+Employer: Urban Utilities
+Source: SEEK
+Location: Fortitude Valley, Brisbane QLD (Hybrid)
+Category: Corporate Finance & Investment Banking (Banking & Financial Services)
+Employment type: Full time
+Posted: 12 days ago
+
+Description:
+APPLICATIONS ARE OPEN FOR URBANGRAD 2027
+
+Discover a career in water through our UrbanGrad Program. This is more than a program, it's a career pathway.
+
+At Urban Utilities, we deliver essential water and wastewater services that support the health, liveability and sustainability of communities across South East Queensland. Through the UrbanGrad Program, you'll help shape the future of an industry that every person and every community depends on.
+
+We're excited to open applications for the 2027 UrbanGrad Program, commencing in January 2027.
+
+About UrbanGrad
+UrbanGrad is more than a graduate program. It's the beginning of a long-term career at Urban Utilities.
+
+Our newly designed 12-month graduate program combines meaningful work, rotational experiences, dedicated mentoring and structured development, with an assured ongoing permanent role upon successful completion.
+
+From day one, you'll contribute to projects that make a genuine impact on our customers, communities and environment while developing the skills, confidence and networks to build a rewarding career in the water industry.
+
+Disciplines
+We welcome graduates with the following degrees and backgrounds: Finance, Commerce.
+
+What you will be doing as an UrbanGrad
+As a Finance UrbanGrad, you'll gain exposure to a range of corporate and strategic functions, including finance, financial planning, data and analytics, corporate governance, strategy, sustainability and regulation. Through your rotational experiences, you'll support enterprise-wide initiatives and work with stakeholders across the business to understand how financial and commercial decisions enable Urban Utilities to deliver essential services.
+
+You'll have opportunities to analyse data, develop insights, contribute to infrastructure investment decisions and support planning activities connected to our enterprise strategy.
+
+We're looking for people who are:
+- Influencers and innovators who display tenacity and are willing to challenge the status quo.
+- Sustainability-minded individuals who are committed to a greener future for our customers and communities.
+- Self-starters who bring their enthusiasm and growth mindset to achieve amazing outcomes.
+- Natural collaborators who enjoy building meaningful relationships and working with others.
+- Digitally savvy and skilled problem solvers who are curious to learn from others.
+
+Why join UrbanGrad?
+- Start your career with confidence with an assured ongoing role upon successful completion of a 12-month graduate program.
+- Leading remuneration of $97,000/year + Super. This will increase from July 1st 2027, per the Enterprise Agreement.
+- Join a Prosple Top 100 Graduate Employer, offering a flexible workplace, inclusive culture and a friendly, transparent recruitment experience.
+- Work on projects that matter, supporting financial planning, investment analysis and strategic decision-making.
+- Be supported to thrive. We're proud to be a WORK180 Endorsed Employer and accredited Australian Workplace Equality Index Employer.
+- Learn from the best. Benefit from a structured program including a dedicated program mentor, rotational experiences, and exposure to leaders and subject matter experts.
+- Be part of an organisation committed to meaningful impact, including strengthening our relationships with Aboriginal and Torres Strait Islander peoples.
+
+Eligibility criteria:
+To be eligible, you must:
+- Have completed, or be completing, a relevant degree within 24 months of the program commencement date of January 2027
+- Be an Australian or New Zealand Citizen or have unrestricted working rights
+- Have access to private transport to travel to our diverse operational locations.
+
+At UU, our strength comes from our people. We value different perspectives, backgrounds, experiences and ways of thinking. We welcome applications from people of all backgrounds, identities and life experiences.
+
+You do not need to meet every requirement to apply. If this role interests you and you feel you could contribute, we'd love to hear from you.
+
+Recruitment timelines:
+- September/October: applications are open from 7th September - 11th October
+- October: shortlisting and phone interviews with the Talent Team
+- November: in-person "Grad Day" at head office in Fortitude Valley
+- November: offers to join the UrbanGrad Program
+- January 2027: start with Urban Utilities
+
+**KEY SIGNALS:
+1. CITIZEN-OR-UNRESTRICTED-WORKING-RIGHTS pattern: "Be an Australian or New Zealand Citizen or have unrestricted working rights" — a two-way variant (citizen/NZ-citizen OR unrestricted working rights) rather than the three-way citizen/PR/valid-working-visa split seen in Assurify (#06) and Optiver (#16). "Unrestricted working rights" is yet another phrasing variant alongside "full working rights" (ACCIONA, Gold Coast, MMEM) and "valid Australian work rights" (VLL Partners) — good addition to the phrasing-diversity test set for the FULL_WORKING_RIGHTS_REQUIRED-type rule.
+2. "You do not need to meet every requirement to apply" — an explicit soft-encouragement statement (similar tone to PwC's "Don't meet every requirement? We encourage you to apply"). Worth noting this applies to the SKILLS/disciplines criteria in context, not the citizenship/working-rights line — good test of whether the pipeline scopes this softening language correctly (i.e., does NOT let it soften the hard eligibility requirement stated two paragraphs above).
+3. "Have access to private transport to travel to our diverse operational locations" — a non-visa logistics requirement (parallel to MMEM's driver's licence, #17) — another distractor/non-blocker eligibility criterion.
+4. High remuneration ($97,000/year + Super, explicitly framed as "Leading remuneration") — extends the corpus's salary range upward for a genuinely open (non-citizen-exclusive) role, contrasting with Optiver's high-comp quant role which also requires citizen/PR/full-working-rights — shows high pay doesn't correlate with tighter visa restrictions.
+5. Government-adjacent but NOT government: Urban Utilities is a statutory authority / water utility (South East Queensland) — sits between the fully public-sector ads (APS, DTF, Gold Coast council) and fully private ads, good category diversity.**
