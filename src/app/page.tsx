@@ -1,69 +1,103 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { mockExtractJobAd } from "../lib/mockExtraction";
+import { evaluateJob, Verdict } from "../lib/rules";
 
 export default function Home() {
+  const [adText, setAdText] = useState("");
+  const [verdict, setVerdict] = useState<Verdict | null>(null);
+
+  function handleAnalyse() {
+    const extracted = mockExtractJobAd(adText);
+    const result = evaluateJob(extracted);
+
+    setVerdict(result);
+  }
+
+  function renderHighlightedText() {
+    if (!verdict?.evidence) {
+      return adText;
+    }
+
+    const { start, end } = verdict.evidence;
+
+    return (
+      <>
+        {adText.slice(0, start)}
+
+        <mark className="rounded bg-yellow-200 px-1 text-gray-900">
+          {adText.slice(start, end)}
+        </mark>
+
+        {adText.slice(end)}
+      </>
+    );
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="min-h-screen bg-gray-50 p-8 text-gray-900">
+      <div className="mx-auto max-w-3xl">
+        <h1 className="mb-2 text-3xl font-bold text-gray-900">
+          Job Eligibility Decoder
+        </h1>
+
+        <p className="mb-6 text-gray-600">
+          Paste a job advertisement to check for eligibility blockers.
+        </p>
+
+        <textarea
+          value={adText}
+          onChange={(e) => {
+            setAdText(e.target.value);
+            setVerdict(null);
+          }}
+          placeholder="Paste job advertisement here..."
+          className="min-h-64 w-full rounded-lg border border-gray-300 bg-white p-4 text-gray-900 placeholder:text-gray-400"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        <button
+          onClick={handleAnalyse}
+          disabled={!adText.trim()}
+          className="mt-4 rounded-lg bg-black px-5 py-3 text-white disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Analyse Job
+        </button>
+
+        {verdict && (
+          <>
+            <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 text-gray-900">
+              <h2 className="text-2xl font-bold">{verdict.status}</h2>
+
+              <p className="mt-2">{verdict.reason}</p>
+
+              {verdict.ruleId && (
+                <p className="mt-4 text-sm text-gray-500">
+                  Rule: {verdict.ruleId}
+                </p>
+              )}
+
+              {verdict.evidence && (
+                <div className="mt-4 rounded bg-yellow-100 p-3">
+                  <p className="text-sm font-semibold">Triggering evidence</p>
+
+                  <p className="mt-1">&quot;{verdict.evidence.text}&quot;</p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 rounded-lg border border-gray-200 bg-white p-6 text-gray-900">
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+                Analysed Job Advertisement
+              </h3>
+
+              <div className="whitespace-pre-wrap leading-7">
+                {renderHighlightedText()}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </main>
   );
 }
