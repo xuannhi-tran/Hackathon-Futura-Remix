@@ -21,6 +21,8 @@ body {
 /* Reset browser default mark styling so evidence highlights
    are controlled entirely by Tailwind utility classes. */
 mark {
-  background: transparent;
+  background-color: #fde68a;
   color: inherit;
+  border-radius: 3px;
+  padding: 1px 2px;
 }
