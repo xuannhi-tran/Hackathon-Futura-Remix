@@ -9,12 +9,26 @@ type AnalysisSource = "AI" | "LOCAL";
 
 export default function Home() {
   const [adText, setAdText] = useState("");
+
   const [verdict, setVerdict] = useState<Verdict | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
+
   const [analysisSource, setAnalysisSource] = useState<AnalysisSource | null>(
     null
   );
+
+  // User visa profile
+  const [visaSubclass, setVisaSubclass] = useState<"500" | "485">("500");
+
+  const [duringStudyTerm, setDuringStudyTerm] = useState(true);
+
+  const [monthsRemaining, setMonthsRemaining] = useState(18);
+
+  function resetAnalysis() {
+    setVerdict(null);
+    setAnalysisSource(null);
+  }
 
   async function handleAnalyse() {
     if (!adText.trim()) {
@@ -25,12 +39,23 @@ export default function Home() {
     setVerdict(null);
     setAnalysisSource(null);
 
+    const visaProfile = {
+      subclass: visaSubclass,
+
+      // Study-term restrictions only make sense for subclass 500.
+      duringStudyTerm: visaSubclass === "500" ? duringStudyTerm : false,
+
+      monthsRemaining,
+    };
+
     try {
       const response = await fetch("/api/extract", {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
         },
+
         body: JSON.stringify({
           adText,
         }),
@@ -44,7 +69,7 @@ export default function Home() {
 
       const extracted: ExtractedJobAd = data.extraction;
 
-      const result = evaluateJob(extracted);
+      const result = evaluateJob(extracted, visaProfile);
 
       setVerdict(result);
       setAnalysisSource("AI");
@@ -52,7 +77,8 @@ export default function Home() {
       console.warn("AI extraction unavailable. Using local fallback.", error);
 
       const extracted = mockExtractJobAd(adText);
-      const result = evaluateJob(extracted);
+
+      const result = evaluateJob(extracted, visaProfile);
 
       setVerdict(result);
       setAnalysisSource("LOCAL");
@@ -92,12 +118,88 @@ export default function Home() {
           Paste a job advertisement to check for eligibility blockers.
         </p>
 
+        {/* Visa profile */}
+        <div className="mb-6 rounded-lg border border-gray-200 bg-white p-5">
+          <h2 className="mb-4 text-lg font-semibold">Your visa profile</h2>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Visa subclass */}
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Visa subclass
+              </label>
+
+              <select
+                value={visaSubclass}
+                onChange={(e) => {
+                  const value = e.target.value as "500" | "485";
+
+                  setVisaSubclass(value);
+
+                  if (value === "485") {
+                    setDuringStudyTerm(false);
+                  }
+
+                  resetAnalysis();
+                }}
+                className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-900"
+              >
+                <option value="500">Student visa (500)</option>
+
+                <option value="485">Graduate visa (485)</option>
+              </select>
+            </div>
+
+            {/* Study term */}
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Currently in study term?
+              </label>
+
+              <select
+                value={duringStudyTerm ? "yes" : "no"}
+                onChange={(e) => {
+                  setDuringStudyTerm(e.target.value === "yes");
+
+                  resetAnalysis();
+                }}
+                disabled={visaSubclass !== "500"}
+                className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-900 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+
+            {/* Months remaining */}
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Months remaining
+              </label>
+
+              <input
+                type="number"
+                min="0"
+                value={monthsRemaining}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+
+                  setMonthsRemaining(Number.isNaN(value) ? 0 : value);
+
+                  resetAnalysis();
+                }}
+                className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-900"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Job advertisement */}
         <textarea
           value={adText}
           onChange={(e) => {
             setAdText(e.target.value);
-            setVerdict(null);
-            setAnalysisSource(null);
+            resetAnalysis();
           }}
           placeholder="Paste job advertisement here..."
           className="min-h-64 w-full rounded-lg border border-gray-300 bg-white p-4 text-gray-900 placeholder:text-gray-400"
@@ -111,6 +213,7 @@ export default function Home() {
           {isLoading ? "Analysing..." : "Analyse Job"}
         </button>
 
+        {/* Result */}
         {verdict && (
           <>
             <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 text-gray-900">
@@ -146,11 +249,16 @@ export default function Home() {
                 <div className="mt-4 rounded bg-yellow-100 p-3">
                   <p className="text-sm font-semibold">Triggering evidence</p>
 
-                  <p className="mt-1">&quot;{verdict.evidence.text}&quot;</p>
+                  <p className="mt-1">
+                    &quot;
+                    {verdict.evidence.text}
+                    &quot;
+                  </p>
                 </div>
               )}
             </div>
 
+            {/* Highlighted source */}
             <div className="mt-6 rounded-lg border border-gray-200 bg-white p-6 text-gray-900">
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
                 Analysed Job Advertisement

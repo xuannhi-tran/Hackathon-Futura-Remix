@@ -24,6 +24,8 @@ type RawExtraction = {
   registration?: RawEvidenceField;
   yearsExperience?: RawEvidenceField;
   location?: RawEvidenceField;
+  workRightsRequirement?: RawEvidenceField;
+  australianExperienceRequirement?: RawEvidenceField;
 };
 
 const evidenceSchema = {
@@ -53,6 +55,8 @@ const extractionSchema = {
     registration: evidenceSchema,
     yearsExperience: evidenceSchema,
     location: evidenceSchema,
+    workRightsRequirement: evidenceSchema,
+    australianExperienceRequirement: evidenceSchema,
   },
 };
 
@@ -173,6 +177,18 @@ Examples:
 - "Sydney NSW"
 - "Melbourne VIC"
 
+workRightsRequirement
+Examples:
+- "full working rights"
+- "unrestricted working rights"
+- "full Australian working rights"
+
+australianExperienceRequirement
+Examples:
+- "Australian experience required"
+- "local experience essential"
+- "previous Australian work experience"
+
 JOB ADVERTISEMENT:
 
 ${adText}
@@ -232,6 +248,16 @@ ${adText}
       yearsExperience: addEvidenceSpan(adText, rawExtraction.yearsExperience),
 
       location: addEvidenceSpan(adText, rawExtraction.location),
+
+      workRightsRequirement: addEvidenceSpan(
+        adText,
+        rawExtraction.workRightsRequirement
+      ),
+
+      australianExperienceRequirement: addEvidenceSpan(
+        adText,
+        rawExtraction.australianExperienceRequirement
+      ),
     };
 
     return Response.json({

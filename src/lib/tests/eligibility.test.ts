@@ -72,7 +72,7 @@ describe("eligibility decoder", () => {
 
     expect(verdict.status).toBe("APPLY");
     expect(verdict.ruleId).toBeUndefined();
-    expect(verdict.reason).toBe("No hard eligibility blockers detected.");
+    expect(verdict.reason).toBe("No eligibility blockers detected.");
   });
 
   it("extracts the correct evidence span for citizenship", () => {
@@ -115,5 +115,96 @@ describe("eligibility decoder", () => {
     expect(verdict.status).toBe("SKIP");
     expect(verdict.ruleId).toBe("T1_CITIZENSHIP");
     expect(verdict.evidence?.text).toBe("AUSTRALIAN CITIZEN");
+  });
+
+  const student500 = {
+    subclass: "500" as const,
+    duringStudyTerm: true,
+    monthsRemaining: 18,
+  };
+
+  it("returns TAILOR for full working rights on subclass 500", () => {
+    const verdict = evaluateJob(
+      {
+        workRightsRequirement: {
+          value: "Full working rights required",
+          text: "full Australian working rights",
+          start: 21,
+          end: 51,
+        },
+      },
+      student500
+    );
+
+    expect(verdict.status).toBe("TAILOR");
+    expect(verdict.ruleId).toBe("T2_FULL_WORK_RIGHTS");
+  });
+
+  it("returns TAILOR when sponsorship is unavailable", () => {
+    const verdict = evaluateJob(
+      {
+        sponsorship: {
+          value: "No sponsorship available",
+          text: "sponsorship is not available",
+          start: 22,
+          end: 50,
+        },
+      },
+      student500
+    );
+
+    expect(verdict.status).toBe("TAILOR");
+    expect(verdict.ruleId).toBe("T2_NO_SPONSORSHIP");
+  });
+
+  it("returns TAILOR for permanent full-time employment", () => {
+    const verdict = evaluateJob(
+      {
+        employmentType: {
+          value: "Permanent full-time",
+          text: "permanent full-time",
+          start: 10,
+          end: 29,
+        },
+      },
+      student500
+    );
+
+    expect(verdict.status).toBe("TAILOR");
+    expect(verdict.ruleId).toBe("T2_PERMANENT_FULL_TIME");
+  });
+
+  it("returns TAILOR for Australian experience requirement", () => {
+    const verdict = evaluateJob(
+      {
+        australianExperienceRequirement: {
+          value: "Australian experience required",
+          text: "Australian work experience",
+          start: 9,
+          end: 35,
+        },
+      },
+      student500
+    );
+
+    expect(verdict.status).toBe("TAILOR");
+    expect(verdict.ruleId).toBe("T2_AUSTRALIAN_EXPERIENCE");
+  });
+
+  it("returns TAILOR when weekly hours exceed prototype threshold", () => {
+    const verdict = evaluateJob(
+      {
+        hoursPerWeek: {
+          value: "38 hours per week",
+          text: "38 hours per week",
+          start: 23,
+          end: 40,
+        },
+      },
+      student500
+    );
+
+    expect(verdict.status).toBe("TAILOR");
+    expect(verdict.ruleId).toBe("T2_HOURS_DURING_TERM");
   });
 });
