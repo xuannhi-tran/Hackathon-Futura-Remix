@@ -107,6 +107,8 @@ function addEvidenceSpan(
 
 function fallbackCitizenship(adText: string): EvidenceField | undefined {
   const patterns = [
+    /\bBe an Australian citizen(?: at the time of application)?\b/i,
+
     /\bAustralian Citizenship is mandatory\b/i,
 
     /\bAustralian citizenship (?:is )?(?:required|mandatory|essential)\b/i,
@@ -151,13 +153,9 @@ function filterWorkRightsRequirement(
   // not actual eligibility requirements.
   const screeningQuestionPatterns = [
     /which statement best describes your right to work in australia/i,
-
     /do you have (?:the )?right to work in australia/i,
-
     /what is your (?:current )?right to work(?: status)? in australia/i,
-
     /which of the following best describes your (?:current )?right to work/i,
-
     /are you legally entitled to work in australia\?/i,
   ];
 
@@ -165,9 +163,27 @@ function filterWorkRightsRequirement(
     pattern.test(text)
   );
 
+  // Sometimes Gemini puts an explicit citizenship requirement
+  // into workRightsRequirement instead of citizenshipRequirement.
+  const misclassifiedCitizenship =
+    /\baustralian citizen(?:ship)?\b/i.test(field.text) &&
+    (/\bmust\b/i.test(field.text) ||
+      /\brequired\b/i.test(field.text) ||
+      /\bmandatory\b/i.test(field.text) ||
+      /\bessential\b/i.test(field.text) ||
+      /^\s*be an australian citizen/i.test(field.text));
+
   if (isScreeningQuestion) {
     console.warn(
       `Discarding screening-question work-right evidence: "${field.text}"`
+    );
+
+    return undefined;
+  }
+
+  if (misclassifiedCitizenship) {
+    console.warn(
+      `Discarding misclassified citizenship evidence from work-right field: "${field.text}"`
     );
 
     return undefined;
