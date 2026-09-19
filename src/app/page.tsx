@@ -47,22 +47,22 @@ type SuggestedJobsResponse = {
 
 const signalStyles = {
   positive: {
-    icon: "\u2713",
+    icon: "✓",
     label: "Match",
     className: "text-green-800",
-    iconClassName: "bg-green-50 text-green-700",
+    iconClassName: "bg-green-100 text-green-700",
   },
   neutral: {
-    icon: "i",
-    label: "Information",
-    className: "text-gray-600",
-    iconClassName: "bg-gray-100 text-gray-600",
+    icon: "–",
+    label: "Not specified",
+    className: "text-gray-500",
+    iconClassName: "bg-gray-100 text-gray-500",
   },
   caution: {
     icon: "!",
-    label: "Caution",
+    label: "Mismatch",
     className: "text-amber-800",
-    iconClassName: "bg-amber-50 text-amber-700",
+    iconClassName: "bg-amber-100 text-amber-700",
   },
 };
 
@@ -105,6 +105,7 @@ function FitSummary({
       different: "More experience requested",
     },
   ];
+
   return (
     <ul className="divide-y divide-gray-100">
       {rows.map((row) => {
@@ -115,34 +116,49 @@ function FitSummary({
           ? "positive"
           : "caution";
         const style = signalStyles[tone];
+
+        // Status label for non-colour indicator
+        const statusLabel = !signal
+          ? "Not specified"
+          : signal.status === "MATCH"
+          ? row.match
+          : row.different;
+
         return (
           <li
             key={row.label}
             className="flex items-start gap-3 py-3 first:pt-0 last:pb-0"
           >
+            {/* Icon is decorative; status is conveyed in text below */}
             <span
               aria-hidden="true"
-              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${style.iconClassName}`}
+              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${style.iconClassName}`}
             >
               {style.icon}
             </span>
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-sm">
-                <span className="font-medium">{row.label}</span>
-                <span className={style.className}>
-                  {!signal
-                    ? "Not specified"
-                    : signal.status === "MATCH"
-                    ? row.match
-                    : row.different}
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                <span className="text-sm font-semibold text-gray-800">
+                  {row.label}
+                </span>
+                <span
+                  className={`text-xs font-medium ${style.className}`}
+                  aria-label={`${row.label}: ${statusLabel}`}
+                >
+                  {statusLabel}
                 </span>
               </div>
               {signal?.evidence && (
                 <p
-                  className="mt-1 truncate text-xs text-gray-600"
-                  title={`${signal.evidence.text} - ${row.preference}`}
+                  className="mt-0.5 truncate text-xs text-gray-500 leading-5"
+                  title={`${signal.evidence.text} · ${row.preference}`}
                 >
                   {signal.evidence.text} &middot; {row.preference}
+                </p>
+              )}
+              {!signal && (
+                <p className="mt-0.5 text-xs text-gray-400 leading-5">
+                  {row.preference}
                 </p>
               )}
             </div>
@@ -558,14 +574,7 @@ export default function Home() {
     const contextStart = Math.max(0, displayStart - 240);
     const contextEnd = Math.min(adText.length, displayEnd + 240);
 
-    // Semantic highlight colour based on verdict status
-    const markClass =
-      verdict.status === "APPLY"
-        ? "rounded px-0.5 bg-green-100 text-green-900 font-medium"
-        : verdict.status === "TAILOR"
-        ? "rounded px-0.5 bg-amber-100 text-amber-900 font-medium"
-        : "rounded px-0.5 bg-red-100 text-red-900 font-medium";
-
+    // Plain yellow text-marker highlight via inline style (immune to CSS resets).
     return (
       <>
         {contextStart > 0 && "..."}
@@ -574,7 +583,8 @@ export default function Home() {
         <mark
           id="ad-evidence"
           tabIndex={-1}
-          className={`${markClass} scroll-mt-6`}
+          className="px-0.5 scroll-mt-6"
+          style={{ backgroundColor: "#fde68a", color: "inherit" }}
         >
           {adText.slice(displayStart, displayEnd)}
         </mark>
@@ -585,99 +595,142 @@ export default function Home() {
     );
   }
 
-  // Verdict colour helpers
+  // Verdict colour helpers — soft semantic, not saturated
   const verdictColours = {
     APPLY: {
       badge: "bg-green-100 text-green-800 border border-green-200",
-      card: "border-green-200 bg-green-50",
+      card: "border-green-200 bg-green-50/60",
+      accentBar: "bg-green-500",
       heading: "text-green-800",
-      evidence: "bg-green-50 border border-green-200",
-      evidenceLabel: "text-green-700",
-      evidenceText: "text-green-900",
+      headingLabel: "APPLY",
+      labelBg: "bg-green-100 text-green-800 border border-green-200",
+      evidenceBorder: "border-gray-200",
     },
     TAILOR: {
       badge: "bg-amber-100 text-amber-800 border border-amber-200",
-      card: "border-amber-200 bg-amber-50",
+      card: "border-amber-200 bg-amber-50/60",
+      accentBar: "bg-amber-400",
       heading: "text-amber-800",
-      evidence: "bg-amber-50 border border-amber-200",
-      evidenceLabel: "text-amber-700",
-      evidenceText: "text-amber-900",
+      headingLabel: "TAILOR",
+      labelBg: "bg-amber-100 text-amber-800 border border-amber-200",
+      evidenceBorder: "border-gray-200",
     },
     SKIP: {
       badge: "bg-red-100 text-red-800 border border-red-200",
-      card: "border-red-200 bg-red-50",
+      card: "border-red-200 bg-red-50/60",
+      accentBar: "bg-red-400",
       heading: "text-red-800",
-      evidence: "bg-red-50 border border-red-200",
-      evidenceLabel: "text-red-700",
-      evidenceText: "text-red-900",
+      headingLabel: "SKIP",
+      labelBg: "bg-red-100 text-red-800 border border-red-200",
+      evidenceBorder: "border-gray-200",
     },
   } as const;
 
   const vc = verdict ? verdictColours[verdict.status] : null;
 
+  // Verdict description text
+  const verdictDescription =
+    verdict?.status === "APPLY"
+      ? "This role does not show any obvious eligibility blockers for your current profile."
+      : verdict?.status === "TAILOR"
+      ? "This role may still be worth applying for, but a condition needs your attention."
+      : "This role contains a requirement that appears to conflict with your current profile.";
+
+  const verdictNextStep =
+    verdict?.status === "APPLY"
+      ? "Review the full application requirements before applying."
+      : verdict?.status === "TAILOR"
+      ? "Check the condition above and whether you can meet it before applying or starting work."
+      : "Consider similar roles without this restriction, and verify the requirement with the employer if unclear.";
+
   return (
-    <main className="min-h-screen bg-gray-50 text-gray-900">
+    <main className="min-h-screen bg-[#f8fafc] text-gray-900">
+      {/* ── Header ── */}
       <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
-          <h1 className="text-2xl font-bold tracking-tight">
-            Job Eligibility Decoder
-          </h1>
-          <p className="mt-1 text-gray-600">
-            Understand the requirements. Find your next opportunity.
-          </p>
-          <p className="mt-2 text-xs text-gray-600">
-            Decision support only, not migration advice. Always check the
-            employer&apos;s requirements and your visa conditions.
+        <div className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+            <h1 className="text-xl font-bold tracking-tight text-gray-900">
+              Job Eligibility Decoder
+            </h1>
+            <p className="text-sm text-gray-500">
+              Understand the requirements. Find your next opportunity.
+            </p>
+          </div>
+          <p className="mt-1.5 text-xs text-gray-400">
+            Decision support only — not migration advice. Always verify your
+            visa conditions and the employer&apos;s requirements.
           </p>
         </div>
       </header>
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
-        <section className="mb-6 rounded-xl border border-gray-200 bg-white p-5 sm:p-6">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="font-semibold">Your profile</h2>
+
+      <div className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+        {/* ── Profile card ── */}
+        <section className="rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
+            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+              Your profile
+            </h2>
             <button
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50"
+              className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors"
               aria-expanded={editingProfile}
               aria-controls="profile-editor"
               onClick={() => setEditingProfile(!editingProfile)}
             >
-              {editingProfile ? "Use this profile" : "Edit profile"}
+              {editingProfile ? "Done editing" : "Edit profile"}
             </button>
           </div>
+
           {!editingProfile && (
-            <div className="mt-3 space-y-1 text-sm text-gray-600">
-              <p>
-                {visaSubclass === "500"
-                  ? "Student visa 500"
-                  : "Graduate visa 485"}{" "}
-                &middot;{" "}
-                {visaSubclass === "500"
-                  ? duringStudyTerm
-                    ? "Studying now"
-                    : "Outside study term"
-                  : "Study term not applicable"}{" "}
-                &middot; {monthsRemaining} months remaining
-              </p>
-              <p>
-                {targetField || "Field not set"} &middot;{" "}
-                {preferredLocation || "Anywhere in Australia"} &middot;{" "}
-                {yearsExperience} years experience
-              </p>
+            <div className="border-t border-gray-100 px-5 py-3 sm:px-6">
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
+                <span>
+                  {visaSubclass === "500"
+                    ? "Student visa 500"
+                    : "Graduate visa 485"}
+                </span>
+                <span aria-hidden="true" className="text-gray-300">
+                  |
+                </span>
+                <span>
+                  {visaSubclass === "500"
+                    ? duringStudyTerm
+                      ? "Studying now"
+                      : "Outside study term"
+                    : "Study term not applicable"}
+                </span>
+                <span aria-hidden="true" className="text-gray-300">
+                  |
+                </span>
+                <span>{monthsRemaining} months remaining</span>
+                <span aria-hidden="true" className="text-gray-300">
+                  |
+                </span>
+                <span>{targetField || "Field not set"}</span>
+                <span aria-hidden="true" className="text-gray-300">
+                  |
+                </span>
+                <span>{preferredLocation || "Anywhere in Australia"}</span>
+                <span aria-hidden="true" className="text-gray-300">
+                  |
+                </span>
+                <span>{yearsExperience} yrs experience</span>
+              </div>
             </div>
           )}
+
           <fieldset
             id="profile-editor"
             hidden={!editingProfile}
             disabled={isLoading}
-            className="mt-5 min-w-0"
+            className="border-t border-gray-100 px-5 py-5 sm:px-6 min-w-0"
           >
             <legend className="sr-only">Edit your profile</legend>
             {/* Two equal columns side-by-side on desktop, stacked on mobile */}
             <div className="flex flex-col gap-6 md:flex-row md:gap-0">
               {/* VISA column */}
               <div className="flex-1 md:pr-6">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
-                  Visa
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-400">
+                  Visa details
                 </p>
                 <div className="flex flex-col gap-4">
                   <div>
@@ -685,7 +738,7 @@ export default function Home() {
                       htmlFor="visaSubclass"
                       className="mb-1 block text-sm font-medium text-gray-700"
                     >
-                      Visa
+                      Visa subclass
                     </label>
                     <select
                       id="visaSubclass"
@@ -702,7 +755,7 @@ export default function Home() {
                         resetAnalysis();
                         resetJobSuggestions();
                       }}
-                      className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     >
                       <option value="500">Student visa (500)</option>
                       <option value="485">Graduate visa (485)</option>
@@ -725,7 +778,7 @@ export default function Home() {
                         resetJobSuggestions();
                       }}
                       disabled={visaSubclass !== "500"}
-                      className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
                     >
                       <option value="yes">Yes</option>
                       <option value="no">No</option>
@@ -737,7 +790,7 @@ export default function Home() {
                       htmlFor="monthsRemaining"
                       className="mb-1 block text-sm font-medium text-gray-700"
                     >
-                      Months remaining on your visa
+                      Months remaining on visa
                     </label>
                     <input
                       type="number"
@@ -750,7 +803,7 @@ export default function Home() {
                         resetAnalysis();
                         resetJobSuggestions();
                       }}
-                      className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
                 </div>
@@ -761,8 +814,8 @@ export default function Home() {
 
               {/* CAREER column */}
               <div className="flex-1 md:pl-6">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
-                  Career
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-400">
+                  Career goals
                 </p>
                 <div className="flex flex-col gap-4">
                   <div>
@@ -781,7 +834,7 @@ export default function Home() {
                         resetAnalysis();
                         resetJobSuggestions();
                       }}
-                      className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
 
@@ -801,7 +854,7 @@ export default function Home() {
                         resetAnalysis();
                         resetJobSuggestions();
                       }}
-                      className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
 
@@ -823,7 +876,7 @@ export default function Home() {
                         resetAnalysis();
                         resetJobSuggestions();
                       }}
-                      className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
                 </div>
@@ -831,22 +884,20 @@ export default function Home() {
             </div>
           </fieldset>
         </section>
-        <div
-          id="section-check"
-          tabIndex={-1}
-          className="mb-8 scroll-mt-6 rounded-xl"
-        >
-          <section className="mb-6 rounded-xl border border-gray-200 bg-white p-5 sm:p-6">
-            <h2 className="text-xl font-bold">
+
+        {/* ── Check a job ── */}
+        <div id="section-check" tabIndex={-1} className="scroll-mt-6">
+          <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <h2 className="text-lg font-bold text-gray-900">
               Is this job worth applying for?
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-1 text-sm text-gray-500 leading-relaxed">
               Paste a full job advertisement to check for requirements that may
               affect you.
             </p>
             <label
               htmlFor="job-ad"
-              className="mb-2 mt-5 block text-sm font-medium"
+              className="mb-1.5 mt-5 block text-sm font-medium text-gray-700"
             >
               Job advertisement
             </label>
@@ -858,89 +909,124 @@ export default function Home() {
                 setAdText(e.target.value);
                 resetAnalysis();
               }}
-              placeholder="Paste the full job advertisement here..."
-              className="min-h-48 w-full max-w-4xl rounded-lg border border-gray-300 p-4 text-sm leading-7 disabled:bg-gray-50"
+              placeholder="Paste the full job advertisement here…"
+              className="min-h-48 w-full max-w-4xl rounded-lg border border-gray-300 bg-white p-4 text-sm leading-7 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-50 disabled:text-gray-400"
             />
             <div className="mt-4 flex flex-wrap items-center gap-3">
+              {/* Primary CTA */}
               <button
                 onClick={handleAnalyse}
                 disabled={!adText.trim() || isLoading}
-                className="rounded-lg bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-40"
+                className="inline-flex min-h-10 items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                {isLoading ? "Checking requirements..." : "Analyse job"}
+                {isLoading ? "Checking…" : "Analyse job"}
               </button>
-              <span role="status" className="text-sm text-gray-600">
-                {isLoading ? "Checking the job ad against your profile." : ""}
+              <span role="status" className="text-sm text-gray-500">
+                {isLoading ? "Checking the job ad against your profile…" : ""}
               </span>
             </div>
           </section>
 
+          {/* ── Result ── */}
           {verdict && vc && (
-            <section aria-label="Your result" className="mb-6 space-y-4">
+            <section aria-label="Your result" className="mt-4 space-y-4">
+              {/* Verdict + Evidence two-column grid */}
               <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)]">
+                {/* Verdict card */}
                 <div
-                  className={`min-w-0 rounded-xl border p-5 sm:p-6 ${vc.card}`}
+                  className={`min-w-0 overflow-hidden rounded-xl border ${vc.card} shadow-sm`}
                 >
-                  <h2 className={`text-2xl font-bold ${vc.heading}`}>
-                    {verdict.status}
-                  </h2>
-                  <p className="mt-2 max-w-prose text-base font-medium">
-                    {verdict.status === "APPLY"
-                      ? "This role does not show any obvious eligibility blockers for your current profile."
-                      : verdict.status === "TAILOR"
-                      ? "This role may still be worth applying for, but a condition needs your attention."
-                      : "This role contains a requirement that appears to conflict with your current profile."}
-                  </p>
-                  <h3 className="mt-5 text-sm font-semibold">
-                    Why this result
-                  </h3>
-                  <p className="mt-1 max-w-prose break-words text-sm leading-6">
-                    {verdict.reason}
-                  </p>
-                  <h3 className="mt-5 text-sm font-semibold">Next step</h3>
-                  <p className="mt-1 max-w-prose text-sm">
-                    {verdict.status === "APPLY"
-                      ? "Review the full application requirements before applying."
-                      : verdict.status === "TAILOR"
-                      ? "Check the condition above and whether you can meet it before applying or starting work."
-                      : "Consider similar roles without this restriction, and verify the requirement with the employer if unclear."}
-                  </p>
-                  <div className="mt-5 flex flex-wrap items-center gap-3">
-                    {verdict.status === "SKIP" && (
-                      <a
-                        href="#section-suggested"
-                        className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-900 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700"
+                  {/* Coloured accent bar at top */}
+                  <div
+                    className={`h-1 w-full ${vc.accentBar}`}
+                    aria-hidden="true"
+                  />
+
+                  <div className="p-5 sm:p-6">
+                    {/* Verdict label + badge */}
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold tracking-wide uppercase ${vc.labelBg}`}
+                        aria-label={`Verdict: ${verdict.status}`}
                       >
-                        Find similar jobs
-                      </a>
+                        {verdict.status}
+                      </span>
+                    </div>
+
+                    {/* Summary sentence */}
+                    <p className="mt-3 text-base font-semibold leading-snug text-gray-900 max-w-prose">
+                      {verdictDescription}
+                    </p>
+
+                    {/* Why this result */}
+                    <div className="mt-4">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Why this result
+                      </h3>
+                      <p className="mt-1.5 max-w-prose break-words text-sm leading-6 text-gray-700">
+                        {verdict.reason}
+                      </p>
+                    </div>
+
+                    {/* Next step */}
+                    <div className="mt-4">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Next step
+                      </h3>
+                      <p className="mt-1.5 max-w-prose text-sm leading-6 text-gray-700">
+                        {verdictNextStep}
+                      </p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="mt-5 flex flex-wrap items-center gap-3">
+                      {verdict.status === "SKIP" && (
+                        <a
+                          href="#section-suggested"
+                          className="inline-flex min-h-10 items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 transition-colors"
+                        >
+                          Find similar jobs
+                        </a>
+                      )}
+                      {/* Save button — primary when no SKIP link, outline secondary otherwise */}
+                      <button
+                        onClick={addToPortfolio}
+                        disabled={Boolean(saveMessage)}
+                        className={`inline-flex min-h-10 items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors ${
+                          saveMessage
+                            ? "border-green-200 bg-green-50 text-green-800 cursor-default"
+                            : verdict.status === "SKIP"
+                            ? "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                            : "border-slate-900 bg-slate-900 text-white hover:bg-slate-700"
+                        }`}
+                      >
+                        {saveMessage ? "Saved ✓" : "Save to portfolio"}
+                      </button>
+                    </div>
+                    {saveMessage && (
+                      <p role="status" className="mt-2 text-xs text-gray-500">
+                        {saveMessage}
+                      </p>
                     )}
-                    <button
-                      onClick={addToPortfolio}
-                      disabled={Boolean(saveMessage)}
-                      className={`inline-flex min-h-11 items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-semibold ${
-                        saveMessage
-                          ? "border-green-300 bg-green-50 text-green-800"
-                          : verdict.status === "SKIP"
-                          ? "border-gray-400 bg-white text-gray-800 hover:bg-gray-50"
-                          : "border-slate-900 bg-slate-900 text-white hover:bg-slate-700"
-                      }`}
-                    >
-                      {saveMessage ? "Saved \u2713" : "Save to portfolio"}
-                    </button>
                   </div>
-                  <p role="status" className="mt-2 text-sm">
-                    {saveMessage}
-                  </p>
                 </div>
+
+                {/* Evidence card */}
                 <aside
                   aria-labelledby="evidence-heading"
-                  className="min-w-0 rounded-xl border border-gray-200 bg-white p-5 sm:p-6 lg:sticky lg:top-6"
+                  className="min-w-0 rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6 lg:sticky lg:top-6"
                 >
-                  <h3 id="evidence-heading" className="font-semibold">
+                  <h3
+                    id="evidence-heading"
+                    className="text-sm font-semibold text-gray-700"
+                  >
                     Evidence from the job ad
                   </h3>
+                  <p className="mt-0.5 text-xs text-gray-400">
+                    The highlighted clause drove this result.
+                  </p>
                   <div
-                    className="mt-3 max-h-96 overflow-y-auto whitespace-pre-wrap break-words text-sm leading-7 text-gray-700 [overflow-wrap:anywhere]"
+                    className="mt-3 max-h-96 overflow-y-auto whitespace-pre-wrap break-words rounded-lg bg-gray-50 p-4 text-sm leading-7 text-gray-700 [overflow-wrap:anywhere] border border-gray-100"
                     tabIndex={0}
                     role="region"
                     aria-label="Job ad evidence excerpt"
@@ -949,12 +1035,20 @@ export default function Home() {
                   </div>
                 </aside>
               </div>
+
+              {/* Fit with your goals */}
               {verdict.status === "SKIP" ? (
-                <details className="rounded-lg border border-gray-200 bg-white p-4">
-                  <summary className="cursor-pointer text-sm font-medium text-gray-600">
-                    See how this role fits your goals
+                <details className="group rounded-xl border border-gray-200 bg-white shadow-sm">
+                  <summary className="flex cursor-pointer items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-gray-700 sm:px-6">
+                    <span>Fit with your goals</span>
+                    <span
+                      aria-hidden="true"
+                      className="text-gray-400 transition-transform group-open:rotate-180 select-none"
+                    >
+                      ▾
+                    </span>
                   </summary>
-                  <div className="mt-3">
+                  <div className="border-t border-gray-100 px-5 py-4 sm:px-6">
                     <FitSummary
                       signals={fitSignals}
                       targetField={targetField}
@@ -964,97 +1058,152 @@ export default function Home() {
                   </div>
                 </details>
               ) : (
-                <section className="rounded-xl border border-gray-200 bg-white p-5">
-                  <h3 className="mb-3 font-semibold">Fit with your goals</h3>
-                  <FitSummary
-                    signals={fitSignals}
-                    targetField={targetField}
-                    preferredLocation={preferredLocation}
-                    yearsExperience={yearsExperience}
-                  />
-                </section>
+                <details
+                  className="group rounded-xl border border-gray-200 bg-white shadow-sm"
+                  open
+                >
+                  <summary className="flex cursor-pointer items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-gray-700 sm:px-6">
+                    <span>Fit with your goals</span>
+                    <span
+                      aria-hidden="true"
+                      className="text-gray-400 transition-transform group-open:rotate-180 select-none"
+                    >
+                      ▾
+                    </span>
+                  </summary>
+                  <div className="border-t border-gray-100 px-5 py-4 sm:px-6">
+                    <FitSummary
+                      signals={fitSignals}
+                      targetField={targetField}
+                      preferredLocation={preferredLocation}
+                      yearsExperience={yearsExperience}
+                    />
+                  </div>
+                </details>
               )}
 
+              {/* Tailor advice */}
               {verdict.status === "TAILOR" && (
-                <section className="rounded-xl border border-gray-200 bg-white p-5">
-                  <h3 className="mb-4 text-lg font-bold text-gray-900">
-                    How to approach this role
-                  </h3>
-                  {isTailorAdviceLoading ? (
-                    <p className="text-sm text-gray-600">
-                      Generating tailored advice...
+                <section className="rounded-xl border border-gray-200 bg-white shadow-sm">
+                  <div className="border-b border-gray-100 px-5 py-4 sm:px-6">
+                    <h3 className="text-base font-bold text-gray-900">
+                      How to approach this role
+                    </h3>
+                    <p className="mt-0.5 text-xs text-gray-400">
+                      AI-generated guidance based on the highlighted
+                      requirement.
                     </p>
-                  ) : tailorAdviceError || !tailorAdvice ? (
-                    <p className="text-sm text-amber-700 font-medium">
-                      AI guidance is unavailable right now. Review the
-                      highlighted requirement before applying.
-                    </p>
-                  ) : (
-                    <div className="space-y-5 text-sm text-gray-800">
-                      <p className="font-medium leading-relaxed">
-                        {tailorAdvice.summary}
+                  </div>
+
+                  <div className="px-5 py-5 sm:px-6">
+                    {isTailorAdviceLoading ? (
+                      <p className="text-sm text-gray-500">
+                        Generating tailored advice…
                       </p>
-                      {tailorAdvice.checks &&
-                        tailorAdvice.checks.length > 0 && (
-                          <div>
-                            <h4 className="font-semibold text-gray-900">
-                              What to check
-                            </h4>
-                            <ul className="mt-2 list-inside list-disc space-y-1.5 text-gray-700">
-                              {tailorAdvice.checks.map((c, i) => (
-                                <li key={i}>{c}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                    ) : tailorAdviceError || !tailorAdvice ? (
+                      <p className="text-sm font-medium text-amber-700">
+                        AI guidance is unavailable right now. Review the
+                        highlighted requirement before applying.
+                      </p>
+                    ) : (
+                      <div className="space-y-6 text-sm">
+                        {/* Summary */}
+                        <p className="text-sm font-medium leading-relaxed text-gray-800 max-w-prose">
+                          {tailorAdvice.summary}
+                        </p>
 
-                      {tailorAdvice.applicationTips &&
-                        tailorAdvice.applicationTips.length > 0 && (
-                          <div>
-                            <h4 className="font-semibold text-gray-900">
-                              Application tips
-                            </h4>
-                            <ul className="mt-2 list-inside list-disc space-y-1.5 text-gray-700">
-                              {tailorAdvice.applicationTips.map((c, i) => (
-                                <li key={i}>{c}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                        {tailorAdvice.checks &&
+                          tailorAdvice.checks.length > 0 && (
+                            <div>
+                              <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
+                                What to check
+                              </p>
+                              <ul className="space-y-2">
+                                {tailorAdvice.checks.map((c, i) => (
+                                  <li
+                                    key={i}
+                                    className="flex items-start gap-2.5 text-sm text-gray-700 leading-relaxed"
+                                  >
+                                    <span
+                                      aria-hidden="true"
+                                      className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700 text-xs font-bold"
+                                    >
+                                      ✓
+                                    </span>
+                                    {c}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
 
-                      {tailorAdvice.recruiterQuestions &&
-                        tailorAdvice.recruiterQuestions.length > 0 && (
-                          <div>
-                            <h4 className="font-semibold text-gray-900">
-                              Questions you could ask
-                            </h4>
-                            <ul className="mt-2 list-inside list-disc space-y-1.5 text-gray-700">
-                              {tailorAdvice.recruiterQuestions.map((c, i) => (
-                                <li key={i}>{c}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                    </div>
-                  )}
+                        {tailorAdvice.applicationTips &&
+                          tailorAdvice.applicationTips.length > 0 && (
+                            <div>
+                              <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
+                                Application tips
+                              </p>
+                              <ul className="space-y-2">
+                                {tailorAdvice.applicationTips.map((c, i) => (
+                                  <li
+                                    key={i}
+                                    className="flex items-start gap-2.5 text-sm text-gray-700 leading-relaxed"
+                                  >
+                                    <span
+                                      aria-hidden="true"
+                                      className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 text-xs font-bold"
+                                    >
+                                      →
+                                    </span>
+                                    {c}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                        {tailorAdvice.recruiterQuestions &&
+                          tailorAdvice.recruiterQuestions.length > 0 && (
+                            <div>
+                              <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
+                                Questions you could ask
+                              </p>
+                              <ul className="space-y-2">
+                                {tailorAdvice.recruiterQuestions.map((c, i) => (
+                                  <li
+                                    key={i}
+                                    className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed"
+                                  >
+                                    <span
+                                      aria-hidden="true"
+                                      className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500 text-xs font-bold"
+                                    >
+                                      ?
+                                    </span>
+                                    {c}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                      </div>
+                    )}
+                  </div>
                 </section>
               )}
             </section>
           )}
         </div>
 
-        <div
-          id="section-suggested"
-          tabIndex={-1}
-          className="mb-8 scroll-mt-6 rounded-xl"
-        >
-          <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        {/* ── Suggested jobs ── */}
+        <div id="section-suggested" tabIndex={-1} className="scroll-mt-6">
+          <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
                   Next applications
                 </p>
-                <h2 className="mt-1 text-xl font-bold text-gray-900">
+                <h2 className="mt-1 text-lg font-bold text-gray-900">
                   Suggested jobs
                 </h2>
                 <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
@@ -1062,20 +1211,21 @@ export default function Home() {
                 </p>
               </div>
 
+              {/* Primary CTA */}
               <button
                 onClick={handleFindJobs}
                 disabled={!targetField.trim() || isJobSearchLoading}
-                className="shrink-0 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+                className="shrink-0 inline-flex items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
               >
                 {isJobSearchLoading ? "Finding jobs…" : "Find matching jobs"}
               </button>
             </div>
 
-            <p className="mt-3 max-w-prose text-sm text-gray-500">
+            <p className="mt-3 max-w-prose text-xs text-gray-400">
               Profile matches are estimates from Adzuna summaries, not
               eligibility decisions.
             </p>
-            <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-600">
+            <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-600">
               <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1">
                 Field: {targetField || "Not set"}
               </span>
@@ -1085,15 +1235,16 @@ export default function Home() {
               </span>
             </div>
 
-            <p role="status" className="mt-4 text-sm text-gray-600">
-              {isJobSearchLoading ? "Finding roles for your profile..." : ""}
+            <p role="status" className="mt-3 text-sm text-gray-500">
+              {isJobSearchLoading ? "Finding roles for your profile…" : ""}
             </p>
+
             {jobSearchError && (
-              <div className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4">
-                <p className="text-sm font-medium text-red-800">
-                  Could not load suggested jobs.
+              <div className="mt-5 rounded-lg border border-red-100 bg-red-50 p-4">
+                <p className="text-sm font-semibold text-red-800">
+                  Could not load suggested jobs
                 </p>
-                <p className="mt-1 text-sm text-red-700">{jobSearchError}</p>
+                <p className="mt-0.5 text-sm text-red-600">{jobSearchError}</p>
               </div>
             )}
 
@@ -1117,7 +1268,7 @@ export default function Home() {
                     {suggestedJobs.length === 1 ? "" : "s"}
                   </p>
 
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-gray-400">
                     {suggestedJobCount > 0
                       ? `${suggestedJobCount.toLocaleString()} total Adzuna results`
                       : "Current Adzuna results"}
@@ -1131,10 +1282,10 @@ export default function Home() {
                     return (
                       <article
                         key={job.id}
-                        className="flex h-full min-w-0 break-words flex-col rounded-xl border border-gray-200 bg-white p-5 transition hover:border-gray-300 hover:shadow-sm"
+                        className="flex h-full min-w-0 break-words flex-col rounded-xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-sm hover:border-gray-300"
                       >
                         <div className="flex-1">
-                          <h3 className="mt-3 text-base font-semibold leading-6 text-gray-900">
+                          <h3 className="text-base font-semibold leading-snug text-gray-900">
                             {job.title}
                           </h3>
 
@@ -1142,35 +1293,36 @@ export default function Home() {
                             {job.company}
                           </p>
 
-                          <p className="mt-1 text-sm text-gray-500">
+                          <p className="mt-0.5 text-sm text-gray-400">
                             {job.location}
                           </p>
 
-                          <div className="flex flex-wrap items-center gap-2">
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
                             {job.category && (
-                              <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+                              <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
                                 {job.category}
                               </span>
                             )}
 
                             {job.contractTime && (
-                              <span className="rounded-full border border-gray-200 px-2.5 py-1 text-xs text-gray-600">
+                              <span className="rounded-full border border-gray-200 px-2.5 py-0.5 text-xs text-gray-500">
                                 {job.contractTime.replaceAll("_", " ")}
                               </span>
                             )}
 
                             {job.contractType && (
-                              <span className="rounded-full border border-gray-200 px-2.5 py-1 text-xs text-gray-600">
+                              <span className="rounded-full border border-gray-200 px-2.5 py-0.5 text-xs text-gray-500">
                                 {job.contractType.replaceAll("_", " ")}
                               </span>
                             )}
                           </div>
 
                           {!job.contractTime && !job.contractType && (
-                            <p className="mt-2 text-xs text-gray-600">
+                            <p className="mt-1.5 text-xs text-gray-400">
                               Contract information not listed
                             </p>
                           )}
+
                           {salary && (
                             <p className="mt-2 text-sm font-semibold text-gray-800">
                               {salary}
@@ -1178,13 +1330,11 @@ export default function Home() {
                           )}
 
                           <div className="mt-3 border-t border-gray-100 pt-3">
-                            <p className="text-sm text-gray-600">
-                              <span className="font-semibold text-gray-900">
+                            <p className="text-xs text-gray-500">
+                              <span className="font-semibold text-gray-700">
                                 Profile match
                               </span>{" "}
-                              <span className="text-sm text-gray-600">
-                                {job.recommendation.score}%
-                              </span>
+                              <span>{job.recommendation.score}%</span>
                             </p>
                             <ul
                               className="mt-2 space-y-1.5"
@@ -1201,7 +1351,7 @@ export default function Home() {
                                     >
                                       <span
                                         aria-hidden="true"
-                                        className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${style.iconClassName}`}
+                                        className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-xs font-bold ${style.iconClassName}`}
                                       >
                                         {style.icon}
                                       </span>
@@ -1218,24 +1368,25 @@ export default function Home() {
                           </div>
 
                           {job.description && (
-                            <p className="mt-3 max-w-prose text-sm leading-6 text-gray-600">
+                            <p className="mt-3 max-w-prose text-sm leading-6 text-gray-500">
                               {getDescriptionPreview(job.description)}
                             </p>
                           )}
                         </div>
 
                         <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4">
-                          <span className="text-xs text-gray-600">
+                          <span className="text-xs text-gray-400">
                             Jobs by Adzuna
                           </span>
 
+                          {/* Secondary CTA — outline */}
                           <a
                             href={job.redirectUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                           >
-                            View job
+                            View job ↗
                           </a>
                         </div>
                       </article>
@@ -1246,40 +1397,41 @@ export default function Home() {
             )}
           </section>
         </div>
-        <div
-          id="section-portfolio"
-          tabIndex={-1}
-          className="mb-8 scroll-mt-6 rounded-xl"
-        >
+
+        {/* ── Application Portfolio ── */}
+        <div id="section-portfolio" tabIndex={-1} className="scroll-mt-6">
           {savedJobs.length === 0 ? (
-            <section className="rounded-xl border border-gray-200 bg-white p-6">
-              <h2 className="text-xl font-bold">Application Portfolio</h2>
-              <p className="mt-3 text-sm text-gray-600">
+            <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="text-lg font-bold text-gray-900">
+                Application Portfolio
+              </h2>
+              <p className="mt-2 text-sm text-gray-500 leading-relaxed">
                 Save jobs after analysing them to compare where your application
                 effort is going.
               </p>
+              {/* Secondary CTA — outline */}
               <a
                 href="#section-check"
-                className="mt-5 inline-block rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
+                className="mt-4 inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Check a job
               </a>
             </section>
           ) : (
-            <section className="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="mb-6 flex items-baseline justify-between gap-4">
-                <h2 className="text-xl font-bold text-gray-900">
+            <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+              <div className="mb-5 flex items-baseline justify-between gap-4">
+                <h2 className="text-lg font-bold text-gray-900">
                   Application Portfolio
                 </h2>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-400">
                   {totalJobs} job{totalJobs === 1 ? "" : "s"} saved
                 </span>
               </div>
 
               {/* Summary counts */}
               <div className="grid gap-3 sm:grid-cols-4">
-                <div className="rounded-lg border border-gray-200 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
                     Total
                   </p>
                   <p className="mt-1 text-3xl font-bold text-gray-900">
@@ -1288,7 +1440,7 @@ export default function Home() {
                 </div>
 
                 <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-green-600">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-green-600">
                     Apply
                   </p>
                   <p className="mt-1 text-3xl font-bold text-green-800">
@@ -1297,7 +1449,7 @@ export default function Home() {
                 </div>
 
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-amber-600">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">
                     Tailor
                   </p>
                   <p className="mt-1 text-3xl font-bold text-amber-800">
@@ -1306,7 +1458,7 @@ export default function Home() {
                 </div>
 
                 <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-red-600">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-red-600">
                     Skip
                   </p>
                   <p className="mt-1 text-3xl font-bold text-red-800">
@@ -1316,25 +1468,25 @@ export default function Home() {
               </div>
 
               {/* Effort leak */}
-              <div className="mt-5 rounded-lg border border-gray-200 bg-gray-50 p-5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
                   Application effort
                 </p>
-                <p className="mt-1 text-4xl font-bold text-gray-900">
+                <p className="mt-1 text-3xl font-bold text-gray-900">
                   {effortLeak}%
                 </p>
-                <p className="mt-1.5 text-sm text-gray-600">
-                  {effortLeak}% of your saved roles contain requirements that
-                  may conflict with your profile.
+                <p className="mt-1 text-sm text-gray-500">
+                  of your saved roles contain requirements that may conflict
+                  with your profile.
                 </p>
               </div>
 
               {/* Recommendation */}
-              <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50 p-5">
+              <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
                   Where to focus next
                 </p>
-                <p className="mt-2 max-w-prose text-sm leading-6 text-blue-900">
+                <p className="mt-1.5 max-w-prose text-sm leading-6 text-blue-900">
                   {getRecommendation()}
                 </p>
               </div>
@@ -1345,42 +1497,41 @@ export default function Home() {
                   <h3 className="text-sm font-semibold text-gray-700">
                     Priority order
                   </h3>
-                  <p className="text-xs text-gray-600">
-                    APPLY first, then TAILOR, then SKIP
-                  </p>
+                  <p className="text-xs text-gray-400">Apply → Tailor → Skip</p>
                 </div>
 
                 <div className="space-y-2">
                   {rankedJobs.map((job) => (
                     <div
                       key={job.id}
-                      className="flex flex-col items-start justify-between gap-3 sm:flex-row rounded-lg border border-gray-100 p-4 hover:bg-gray-50"
+                      className="flex flex-col items-start justify-between gap-3 sm:flex-row rounded-lg border border-gray-100 bg-white p-4 hover:bg-gray-50 transition-colors"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-semibold text-gray-900">
                           {job.title}
                         </p>
-                        <p className="mt-0.5 text-xs text-gray-600">
+                        <p className="mt-0.5 text-xs text-gray-500 leading-5">
                           {job.verdict.reason}
                         </p>
                       </div>
 
                       <div className="flex shrink-0 items-center gap-2">
                         <span
-                          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                          className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide ${
                             job.verdict.status === "APPLY"
-                              ? "bg-green-100 text-green-800"
+                              ? "bg-green-50 border-green-200 text-green-800"
                               : job.verdict.status === "TAILOR"
-                              ? "bg-amber-100 text-amber-800"
-                              : "bg-red-100 text-red-800"
+                              ? "bg-amber-50 border-amber-200 text-amber-800"
+                              : "bg-red-50 border-red-200 text-red-800"
                           }`}
                         >
                           {job.verdict.status}
                         </span>
 
+                        {/* Secondary action */}
                         <button
                           onClick={() => removeFromPortfolio(job.id)}
-                          className="rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-100"
+                          className="rounded-md px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
                           aria-label="Remove job from portfolio"
                         >
                           Remove
@@ -1392,9 +1543,9 @@ export default function Home() {
               </div>
             </section>
           )}
-          <p className="mt-3 text-xs text-gray-600">
-            Your portfolio is kept for this session. Refreshing the page clears
-            saved jobs.
+          <p className="mt-3 text-xs text-gray-400">
+            Your portfolio is kept for this session only. Refreshing the page
+            clears saved jobs.
           </p>
         </div>
       </div>

@@ -13,37 +13,48 @@
 }
 
 body {
-  background: #f9fafb;
+  background: #f8fafc;
   color: #111827;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
+  line-height: 1.6;
 }
 
 /* Reset browser default mark styling so evidence highlights
-   are controlled entirely by Tailwind utility classes. */
+   are controlled by class or inline style on the element. */
 mark {
-  background-color: #fde68a;
+  background-color: inherit;
   color: inherit;
-  border-radius: 3px;
-  padding: 1px 2px;
+  border-radius: 0;
+  padding: 0;
 }
 
 /* Visible keyboard focus without adding motion to the main workflow. */
 :where(button, a, input, select, textarea, summary, mark):focus-visible {
-  outline: 2px solid #1d4ed8;
-  outline-offset: 3px;
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
-button:not(:disabled), summary { cursor: pointer; }
-button:disabled { cursor: not-allowed; }
+button:not(:disabled),
+summary {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
 
 /* Section shortcuts keep the full page available, including without JavaScript. */
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 [id^="section-"]:focus-visible {
-  outline: 2px solid #1d4ed8;
+  outline: 2px solid #2563eb;
   outline-offset: 4px;
 }
