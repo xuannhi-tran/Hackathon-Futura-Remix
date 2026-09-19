@@ -4,6 +4,7 @@ import { useState } from "react";
 import { mockExtractJobAd } from "../lib/mockExtraction";
 import { evaluateJob } from "../lib/rules";
 import { ExtractedJobAd, SavedJob, Verdict } from "../types/job";
+import { getDemoFixture } from "../lib/demoFixtures";
 
 type AnalysisSource = "AI" | "LOCAL";
 
@@ -56,6 +57,38 @@ export default function Home() {
       monthsRemaining,
     };
 
+    // ---------------------------------
+    // OFFLINE MODE
+    // ---------------------------------
+
+    if (!navigator.onLine) {
+      const fixture = getDemoFixture(adText);
+
+      if (fixture) {
+        const result = evaluateJob(fixture, visaProfile);
+
+        setVerdict(result);
+        setAnalysisSource("LOCAL");
+        setIsLoading(false);
+
+        return;
+      }
+
+      const extracted = mockExtractJobAd(adText);
+
+      const result = evaluateJob(extracted, visaProfile);
+
+      setVerdict(result);
+      setAnalysisSource("LOCAL");
+      setIsLoading(false);
+
+      return;
+    }
+
+    // ---------------------------------
+    // ONLINE AI MODE
+    // ---------------------------------
+
     try {
       const response = await fetch("/api/extract", {
         method: "POST",
@@ -82,8 +115,24 @@ export default function Home() {
       setVerdict(result);
       setAnalysisSource("AI");
     } catch (error) {
-      console.warn("AI extraction unavailable. Using local fallback.", error);
+      console.warn(
+        "AI extraction unavailable. Using cached/local fallback.",
+        error
+      );
 
+      // First try a known cached demo fixture.
+      const fixture = getDemoFixture(adText);
+
+      if (fixture) {
+        const result = evaluateJob(fixture, visaProfile);
+
+        setVerdict(result);
+        setAnalysisSource("LOCAL");
+
+        return;
+      }
+
+      // Last fallback: basic deterministic phrase extraction.
       const extracted = mockExtractJobAd(adText);
 
       const result = evaluateJob(extracted, visaProfile);
