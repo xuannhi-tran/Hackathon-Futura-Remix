@@ -1,0 +1,63 @@
+Title: Junior (Graduate) Back-End Developer — Junior DevOps/Software Engineer (Python Developer)
+Employer: Lynxx — Data Analytics & High Tech Systems Consultancy
+Source: https://www.seek.com.au/job (SEEK listing, posted 1 day ago)
+Location: Sydney NSW (hybrid — up to 50% remote)
+Employment type: Full-time
+Posted: 1 day ago
+Application volume: High
+
+Description:
+Lynxx is an advanced analytics, operations research & visualisation consultancy and high-tech systems supplier. Roots in public transport & logistics sector with growing practices in social sciences and financial services. Offices in Sydney and Melbourne; work globally with European office. Build awesome software products to assist clients manage and optimise industrial systems.
+
+Looking for a Junior Developer to join the DevOps & Data Engineering Team. Recently changed working arrangements — work from office or hybrid (up to 50% remote).
+
+You will:
+- Be a great collaborator, expecting to spend 50% of working time in office with colleagues
+- Be comfortable giving and getting feedback
+- Thrive in diversity (of people, styles, thinking)
+- Have excellent technical fluency in Python; better if understanding related web frameworks (Django) and APIs
+- Have excellent pedigree coding in data-heavy environment (degree or aptitude for 'why' not just 'what'; work with quantitative data scientists)
+- Have specific attention to detail — working on production systems running mission-critical real-world systems
+- Have great attitude towards getting work done; enjoy fun, dynamic environment
+- Not always think LLMs know everything — carefully curate code, take ownership of outputs
+- Be tenacious, persistent, resilient
+- Roll up sleeves; make own coffee, manage own calendar
+
+Eligibility criteria:
+**"We cannot sponsor people into Australia and we need people with the ability to work without restriction (i.e. eligible for PR if not obtained already)."**
+This is the opening line — company explicitly tests attention to detail by requiring careful reading of all content.
+
+Skills needed:
+- Excellent technical fluency in Python
+- Related web frameworks (Django) and APIs
+- Data-heavy coding environment experience
+- Quantitative/analytical thinking
+- Production systems understanding
+- Attention to detail
+- Tenacity and resilience
+- Willingness to learn
+
+Application process:
+- Attach CV (anonymous CVs welcome — email only, no personal identifiers for culture-blind review)
+- Do NOT send cover letter — instead, submit code repo link in cover letter section. If no public repo, explain how we can review previous work (e.g., send file). If no repo, "you probably don't love coding as much as we need you to"
+- **CRITICAL: Include the word "NetworkSim" in cover letter section** (proof you read to the end)
+- Process involves case studies, coffee chats, practical challenges (data, not DIY), period for mutual fit assessment
+
+What Lynxx offers:
+- Unique inspiring environment with career opportunities, dynamic, flexible team, competitive salary
+- Part of wider team including clients and international teams
+- Learning is mandatory; failing (occasionally) is expected
+- Fun, challenging work solving societal problems (smart infrastructure, cities focus)
+- International work experience options
+- Bi-annual company conference (previous: skiing in Austria)
+- Further specialist study opportunities at top universities
+- Progression plan and excellent development opportunities
+- Exposure to cutting-edge analytics, machine learning, AI
+- 18-month mentoring program
+- Flexible working arrangements
+- Diverse workplace (5+ first languages on team)
+- Especially welcomes applications from those bringing unique thinking styles
+
+Company culture:
+"We want you to thrive, so you must be yourself at work. Our only real rule is to 'do the right thing.'"
+Suits recent graduates; full-time preferred but some flexibility around client commitments.

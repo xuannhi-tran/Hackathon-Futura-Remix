@@ -1,0 +1,49 @@
+Title: Graduate Software Engineer — AI Product / Distributed Web Systems
+Employer: Arturia AI
+Source: https://au.seek.com/job/94483533
+Location: Macquarie Park, Sydney NSW
+Employment type: Full-time
+Posted: 10 days ago
+
+Description:
+Arturia AI are building a modern, AI-first software platform and looking for a small number of smart, ambitious graduate software engineers to join them.
+
+This is not a maintenance role and not a large corporate environment where you disappear into one narrow task. You'll work on real product problems, real users, real code that ships into production.
+
+You'll be part of a small team building a connected platform across multiple systems: backend services, APIs, AI workflows, retrieval pipelines, frontend product features. The work is broad, practical, and fast-moving. You'll learn quickly, think clearly, and take ownership.
+
+What you'll work on:
+- AI-assisted product workflows and LLM-based system behaviour
+- Backend services and internal APIs across multiple connected systems
+- External integrations and API composition
+- Retrieval, structured/unstructured data pipelines, and background processes
+- Frontend product development using React and modern web tooling
+- Product features that cut across system boundaries, not just isolated tickets
+
+Eligibility criteria:
+**Applicants must be legally entitled to work in Australia.**
+Location: Macquarie Park NSW, on-site only.
+
+Skills needed:
+Essential:
+- A recent graduate in Software Engineering, Computer Science, or related field.
+- Strong fundamentals in JavaScript or TypeScript.
+- Comfortable with SQL and at least one backend framework.
+- Able to think logically about how systems connect, not just one page or app.
+- Curious about AI tools, LLM workflows, and modern software development.
+- Comfortable using AI-assisted coding tools effectively as part of your workflow.
+- Strong problem-solving ability, clear communication, willingness to learn quickly.
+- Someone who wants exposure to real architecture, product thinking, full-stack delivery.
+
+Nice to have:
+- React and modern frontend tooling.
+- Node.js experience.
+- Postgres, Supabase, or similar database experience.
+- Projects involving APIs, multiple services, RAG, embeddings, AI workflows.
+- Side projects, GitHub repos, demos, technical write-ups.
+
+Application process: Send a note about yourself plus anything you've built that shows how you think — GitHub, demo, side project, write-up, portfolio. Care far more about evidence of thinking, learning, building than polished resumes.
+
+Employer screening questions:
+- Which statement best describes your right to work in Australia?
+- How many years' experience do you have as a software engineer?

@@ -1,0 +1,235 @@
+{
+  "test_run": {
+    "total_tests": 19,
+    "passed": 19,
+    "accuracy": 100.0
+  },
+  "confusion_matrix": {
+    "Skip": {
+      "Skip": 13,
+      "Tailor": 0,
+      "Apply": 0
+    },
+    "Tailor": {
+      "Skip": 0,
+      "Tailor": 5,
+      "Apply": 0
+    },
+    "Apply": {
+      "Skip": 0,
+      "Tailor": 0,
+      "Apply": 1
+    }
+  },
+  "results": [
+    {
+      "ad_filename": "01_aps_data_stream.txt",
+      "status": "OK",
+      "expected_verdict": "Skip",
+      "predicted_verdict": "Skip",
+      "confidence": 0.95,
+      "is_correct": true,
+      "evidence_summary": "security clearance if required | Australian Government security clearance | Australian citizen",
+      "num_matches": 3,
+      "top_rule": "CITIZENSHIP_OR_PR_BLOCKER"
+    },
+    {
+      "ad_filename": "04_dfat_graduate_program.txt",
+      "status": "OK",
+      "expected_verdict": "Skip",
+      "predicted_verdict": "Skip",
+      "confidence": 0.95,
+      "is_correct": true,
+      "evidence_summary": "Negative Vetting Level 2 | Australian Citizen",
+      "num_matches": 2,
+      "top_rule": "CITIZENSHIP_OR_PR_BLOCKER"
+    },
+    {
+      "ad_filename": "10_rei_graduate_software_developer.txt",
+      "status": "OK",
+      "expected_verdict": "Skip",
+      "predicted_verdict": "Skip",
+      "confidence": 0.95,
+      "is_correct": true,
+      "evidence_summary": "must be an Australian citizen | We are not able to sponsor | Australian citizen or permanent resident. We are not able to sponsor visas for",
+      "num_matches": 5,
+      "top_rule": "CITIZENSHIP_HARD_BLOCKER"
+    },
+    {
+      "ad_filename": "15_caringbah_family_practice_rn.txt",
+      "status": "OK",
+      "expected_verdict": "Tailor",
+      "predicted_verdict": "Tailor",
+      "confidence": 0.85,
+      "is_correct": true,
+      "evidence_summary": "Registered Nurse | registered nurse",
+      "num_matches": 2,
+      "top_rule": "AHPRA_REGISTRATION_BLOCKER"
+    },
+    {
+      "ad_filename": "20_velocity_legal_graduate.txt",
+      "status": "OK",
+      "expected_verdict": "Apply",
+      "predicted_verdict": "Apply",
+      "confidence": 0.65,
+      "is_correct": true,
+      "evidence_summary": "No eligibility blockers detected",
+      "num_matches": 0,
+      "top_rule": null
+    },
+    {
+      "ad_filename": "02_aps_stem_stream.txt",
+      "status": "OK",
+      "expected_verdict": "Skip",
+      "predicted_verdict": "Skip",
+      "confidence": 0.95,
+      "is_correct": true,
+      "evidence_summary": "security clearance, when required | Australian Government security clearance | Australian citizenship, agency/",
+      "num_matches": 5,
+      "top_rule": "CITIZENSHIP_OR_PR_BLOCKER"
+    },
+    {
+      "ad_filename": "03_aps_generalist_stream.txt",
+      "status": "OK",
+      "expected_verdict": "Skip",
+      "predicted_verdict": "Skip",
+      "confidence": 0.95,
+      "is_correct": true,
+      "evidence_summary": "security clearance when required | Australian Government security clearance | Australian citizen",
+      "num_matches": 3,
+      "top_rule": "CITIZENSHIP_OR_PR_BLOCKER"
+    },
+    {
+      "ad_filename": "05_nsw_health_senior_data_analyst.txt",
+      "status": "OK",
+      "expected_verdict": "Tailor",
+      "predicted_verdict": "Tailor",
+      "confidence": 0.7,
+      "is_correct": true,
+      "evidence_summary": "Australian Citizen, or | permanent resident of Australia, or | Australian Citizen",
+      "num_matches": 7,
+      "top_rule": "CITIZENSHIP_OR_PR_BLOCKER"
+    },
+    {
+      "ad_filename": "06_aps4_participant_support_officer.txt",
+      "status": "OK",
+      "expected_verdict": "Skip",
+      "predicted_verdict": "Skip",
+      "confidence": 0.95,
+      "is_correct": true,
+      "evidence_summary": "Australian Citizenship is mandatory | Australian Citizenship is mandatory | Australian Citizenship is mandator",
+      "num_matches": 4,
+      "top_rule": "CITIZENSHIP_HARD_BLOCKER"
+    },
+    {
+      "ad_filename": "11_arturia_ai_graduate_software_engineer.txt",
+      "status": "OK",
+      "expected_verdict": "Skip",
+      "predicted_verdict": "Skip",
+      "confidence": 0.75,
+      "is_correct": true,
+      "evidence_summary": "Applicants must be legally entitled to work | must be legally entitled to work",
+      "num_matches": 2,
+      "top_rule": "FULL_WORKING_RIGHTS_REQUIRED"
+    },
+    {
+      "ad_filename": "12_springtek_junior_software_engineer.txt",
+      "status": "OK",
+      "expected_verdict": "Skip",
+      "predicted_verdict": "Skip",
+      "confidence": 0.75,
+      "is_correct": true,
+      "evidence_summary": "full Australian working rights",
+      "num_matches": 1,
+      "top_rule": "FULL_WORKING_RIGHTS_REQUIRED"
+    },
+    {
+      "ad_filename": "13_sg_fleet_software_engineering_internship.txt",
+      "status": "OK",
+      "expected_verdict": "Skip",
+      "predicted_verdict": "Skip",
+      "confidence": 0.9,
+      "is_correct": true,
+      "evidence_summary": "Australian citizen, permanent resident, or New Zealand citizen with full wor | Australian citizen | Australian citizen, permanent resident, or New Zealand citizen",
+      "num_matches": 5,
+      "top_rule": "CITIZENSHIP_OR_PR_BLOCKER"
+    },
+    {
+      "ad_filename": "14_lynxx_junior_backend_developer.txt",
+      "status": "OK",
+      "expected_verdict": "Skip",
+      "predicted_verdict": "Skip",
+      "confidence": 0.95,
+      "is_correct": true,
+      "evidence_summary": "cannot sponsor people",
+      "num_matches": 1,
+      "top_rule": "NO_VISA_SPONSORSHIP"
+    },
+    {
+      "ad_filename": "16_healthscope_graduate_enrolled_nurse.txt",
+      "status": "OK",
+      "expected_verdict": "Tailor",
+      "predicted_verdict": "Tailor",
+      "confidence": 0.7,
+      "is_correct": true,
+      "evidence_summary": "temporary visa, a brief document outlining proposed next visa plan | temporary visa, brief document outlining proposed next visa plan | proposed next visa plans",
+      "num_matches": 4,
+      "top_rule": "VISA_PLAN_REQUIRED_CONDITIONAL"
+    },
+    {
+      "ad_filename": "17_cabrini_health_graduate_rn.txt",
+      "status": "OK",
+      "expected_verdict": "Tailor",
+      "predicted_verdict": "Tailor",
+      "confidence": 0.6,
+      "is_correct": true,
+      "evidence_summary": "must have a valid visa with full work rights",
+      "num_matches": 1,
+      "top_rule": "VAGUE_WORKING_RIGHTS_CONDITIONAL"
+    },
+    {
+      "ad_filename": "18_innisfail_medical_centre_gp_nurse.txt",
+      "status": "OK",
+      "expected_verdict": "Tailor",
+      "predicted_verdict": "Tailor",
+      "confidence": 0.85,
+      "is_correct": true,
+      "evidence_summary": "current AHPRA registration (required",
+      "num_matches": 1,
+      "top_rule": "AHPRA_REGISTRATION_BLOCKER"
+    },
+    {
+      "ad_filename": "19_proforce_graduate_role.txt",
+      "status": "OK",
+      "expected_verdict": "Skip",
+      "predicted_verdict": "Skip",
+      "confidence": 0.75,
+      "is_correct": true,
+      "evidence_summary": "full Australian working rights",
+      "num_matches": 1,
+      "top_rule": "FULL_WORKING_RIGHTS_REQUIRED"
+    },
+    {
+      "ad_filename": "21_qld_law_firm_graduate.txt",
+      "status": "OK",
+      "expected_verdict": "Skip",
+      "predicted_verdict": "Skip",
+      "confidence": 0.9,
+      "is_correct": true,
+      "evidence_summary": "be eligible for admission in Queensland | full Australian working rights",
+      "num_matches": 2,
+      "top_rule": "FULL_WORKING_RIGHTS_REQUIRED"
+    },
+    {
+      "ad_filename": "23_service_stream_finance_graduate.txt",
+      "status": "OK",
+      "expected_verdict": "Skip",
+      "predicted_verdict": "Skip",
+      "confidence": 0.85,
+      "is_correct": true,
+      "evidence_summary": "Australian/New Zealand citizen",
+      "num_matches": 1,
+      "top_rule": "NZ_CITIZENSHIP_CARVE_OUT"
+    }
+  ]
+}

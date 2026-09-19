@@ -1,0 +1,44 @@
+Title: Start your Tech Career - Junior Software Engineer - FinTech (9-month program + paid internship)
+Employer: Springtek Recruitment (for a global fintech company headquartered in Melbourne)
+Source: https://au.seek.com/job/94267103
+Location: Melbourne VIC
+Employment type: Full-time (9-month funded program + paid internship)
+Posted: 21 days ago
+Program start date: October 12, 2026
+
+Description:
+Springtek is recruiting motivated individuals for a fully-funded 9-month Software Engineering Program with Holberton School Australia, including hands-on training and a paid internship. You'll be placed on real projects within engineering teams that build and run a high-performance trading platform, where speed, reliability, and data are everything.
+
+The training is practical, team-based, and mirrors real industry environments. Ideal for career switchers from finance, banking, trading, customer service, or operations — your industry knowledge becomes an asset the moment you can code.
+
+What you'll learn:
+- Programming in C, Python, JavaScript, and SQL
+- Building and integrating APIs
+- System design, debugging, and agile workflows
+
+Successful applicants will receive:
+- Fully funded 9-month Software Engineering Program with Holberton School Australia
+- Paid internship
+- Hands-on, project-based curriculum designed around real-world applications, peer collaboration, industry-relevant technologies
+
+Eligibility criteria:
+**Must have full Australian working rights.**
+People ready to commit full-time and take on a steep learning curve.
+
+Skills needed:
+Career switchers or up-skillers with little or no background in tech welcome.
+A background in finance, banking, or markets is a bonus, not a requirement.
+No degrees or prior coding experience needed — just the motivation to make a change.
+
+Application process:
+1. Submit quick application via SEEK.
+2. Complete a short form (emailed).
+3. Complete a 3-step admissions process (focused on logic, motivation, fit).
+4. Shortlisted applicants interviewed in late September 2026.
+
+Key dates:
+- Applications: Open now
+- Program start: October 12, 2026
+
+Employer screening question:
+- Which statement best describes your right to work in Australia?

@@ -1,0 +1,48 @@
+Title: Graduate Software Developer — AI-Assisted Development (.NET / Azure)
+Employer: REI Master P/L (REI Cloud)
+Source: https://www.seek.com.au/graduate-software-developer-ai-assisted-development-.net-azure-jobs
+Location: Helensvale, Gold Coast QLD
+Employment type: Full-time
+Salary: $75,000 – $100,000 per year
+Posted: 4 days ago
+
+Description:
+REI Cloud is the property management and trust accounting platform built by the team behind REI Master — Australian-owned, 20+ years in the market, used by 1,200+ businesses (holiday letting operators, permanent rental agencies, management rights businesses, serviced apartment groups).
+
+This is a genuine ground-floor opportunity on a small team with no graduate program, no rotation, no shadowing. You'll be given real work in your first week, your code will go in front of real customers.
+
+You'll work alongside developers on:
+- Building and shipping features in line-of-business applications used daily by property managers
+- Working across the stack — C#/.NET services, React/Angular + TypeScript, Blazor front ends, Azure SQL
+- Building and running workloads on Microsoft Azure
+- Trust accounting, bookings, channel management, inspections — complex, high-stakes domain logic
+- Using Claude Code and AI pair-programming as core to how you work
+
+Eligibility criteria:
+The non-negotiables:
+- **Full, unrestricted working rights. You must be an Australian citizen or permanent resident. We are not able to sponsor visas for this role.**
+- On-site, every day. 100% in-office role at Helensvale office.
+- Already living within commuting distance of Helensvale, or relocating at your own arrangement before you start.
+- Clear written and verbal communication in English.
+
+Skills needed:
+Essential:
+- A recent graduate in computer science, software engineering, IT or similar — or completing your degree at the end of 2026.
+- Demonstrable fluency with AI-assisted development (Claude Code or comparable tooling).
+- Solid fundamentals in C# or similar object-oriented language, plus SQL.
+- Some exposure to modern front-end development (React, Angular, TypeScript, Blazor).
+- Judgement to know when the AI is wrong, and discipline to check.
+
+Nice to have:
+- Personal projects, GitHub profile, internships, hackathons, freelance work.
+- Exposure to Microsoft Azure.
+- Interest in property, accounting, or fintech.
+
+Application process: Apply through SEEK with CV and short cover note. Cover note must answer: (1) Tell us about something you built with AI coding tools — what was it, what did you ask the AI to do, where did it get things wrong, how did you work out that? (2) Tell us how you fit with the non-negotiable aspects. Shortlisted applicants invited for chat and practical exercise at office. Start date: Flexible/part-time for students graduating late 2026, otherwise immediate.
+
+Employer screening questions:
+- Which statement best describes your right to work in Australia?
+- Expected annual base salary?
+- Years' experience as software developer?
+- Notice required to give current employer?
+- Experience with Agentic AI?

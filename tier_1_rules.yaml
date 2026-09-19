@@ -1,0 +1,183 @@
+---
+# Tier 1 Hard Blocker Rules for Job Ad Eligibility Screening
+# Rules engine: deterministic regex matching with evidence span extraction
+# Target: flag ineligible ads for international students on 500/485 visas
+#
+# RULE STRUCTURE:
+# - rule_id: unique identifier
+# - category: blocker type (citizenship, clearance, sponsorship, registration, admission)
+# - signal_type: "HARD_BLOCKER" (verdict = Skip) or "CONDITIONAL" (verdict = Tailor)
+# - patterns: list of regex patterns to match
+# - confidence: 0.0-1.0 (how certain the match indicates a blocker)
+# - notes: context for how to interpret the match
+# - example_ads: which ads from corpus demonstrate this rule
+
+rules:
+  - rule_id: "CITIZENSHIP_HARD_BLOCKER"
+    category: "citizenship"
+    signal_type: "HARD_BLOCKER"
+    verdict: "Skip"
+    patterns:
+      - '(?i)\bAustralian\s+citizen(?:ship)?\b.*(?:at\s+time\s+of\s+application|required|mandatory)'
+      - '(?i)\bAustralian\s+citizen(?:ship)?\s+(?:is|are)\s+(?:mandatory|essential|required)'
+      - '(?i)(?:must|need\s+to)\s+be\s+an?\s+Australian\s+citizen'
+    confidence: 0.95
+    notes: "Explicit requirement for Australian citizenship. No pathway for 500/485 visa holders. Hard blocker."
+    example_ads:
+      - "01_aps_data_stream.txt"
+      - "02_aps_stem_stream.txt"
+      - "03_aps_generalist_stream.txt"
+      - "06_aps4_participant_support_officer.txt"
+
+  - rule_id: "CITIZENSHIP_OR_PR_BLOCKER"
+    category: "citizenship_or_pr"
+    signal_type: "HARD_BLOCKER"
+    verdict: "Skip"
+    patterns:
+      - '(?i)(?:Australian\s+citizen|permanent\s+resident).*(?:or|/)'
+      - '(?i)(?:Aussie|Australian)\s+(?:citizen|PR|permanent\s+resident)'
+      - '(?i)(?:citizenship|PR|permanent\s+residency)\s+(?:required|necessary|mandatory)'
+    confidence: 0.90
+    notes: "Requires Australian citizenship OR permanent residency. Blocks 500 visa holders (not yet PR). May allow 485 (post-study work visa with PR pathway). Conservative: Skip."
+    example_ads:
+      - "13_sg_fleet_software_engineering_internship.txt"
+      - "23_service_stream_finance_graduate.txt"
+
+  - rule_id: "NZ_CITIZENSHIP_CARVE_OUT"
+    category: "citizenship"
+    signal_type: "HARD_BLOCKER"
+    verdict: "Skip"
+    patterns:
+      - '(?i)Australian.*New\s+Zealand\s+citizen'
+      - '(?i)(?:Australian|New\s+Zealand)\s+citizen.*full\s+working\s+rights'
+    confidence: 0.85
+    notes: "Accepts Australian or New Zealand citizens. Blocks other international students. Edge case: NZ citizens explicitly welcome."
+    example_ads:
+      - "13_sg_fleet_software_engineering_internship.txt"
+
+  - rule_id: "SECURITY_CLEARANCE_REQUIRED"
+    category: "clearance"
+    signal_type: "HARD_BLOCKER"
+    verdict: "Skip"
+    patterns:
+      - '(?i)(?:security\s+)?clearance.*(?:required|mandatory|obtain|maintain)'
+      - '(?i)(?:Negative\s+Vetting|NV)\s+Level\s+\d+'
+      - '(?i)Australian\s+Government\s+security\s+clearance'
+    confidence: 0.95
+    notes: "Security clearance required (often a barrier for temporary visa holders). DFAT and APS roles frequently require this. Hard blocker."
+    example_ads:
+      - "02_aps_stem_stream.txt"
+      - "03_aps_generalist_stream.txt"
+      - "04_dfat_graduate_program.txt"
+
+  - rule_id: "NO_VISA_SPONSORSHIP"
+    category: "sponsorship"
+    signal_type: "HARD_BLOCKER"
+    verdict: "Skip"
+    patterns:
+      - '(?i)(?:cannot|do\s+not|unable\s+to)\s+sponsor\s+(?:visa|people)'
+      - '(?i)(?:no\s+visa\s+sponsorship|sponsorship\s+(?:not\s+)?available)'
+      - '(?i)we\s+(?:are\s+)?not\s+(?:able|willing)\s+to\s+sponsor'
+    confidence: 0.95
+    notes: "Employer explicitly states they do not sponsor visas. Hard blocker for temporary visa holders without existing working rights."
+    example_ads:
+      - "10_rei_graduate_software_developer.txt"
+      - "14_lynxx_junior_backend_developer.txt"
+
+  - rule_id: "FULL_WORKING_RIGHTS_REQUIRED"
+    category: "working_rights"
+    signal_type: "HARD_BLOCKER"
+    verdict: "Skip"
+    patterns:
+      - '(?i)full\s+(?:Australian\s+)?working\s+rights'
+      - '(?i)(?:must|need)\s+(?:have|hold).*full\s+working\s+rights'
+      - '(?i)unrestricted\s+working\s+rights'
+      - '(?i)(?:applicants\s+)?must\s+be\s+legally\s+entitled\s+to\s+work'
+    confidence: 0.75
+    notes: "Vague phrasing; may include 500/485 holders or may require permanent residency. Conservative: Skip. Requires context (see CONDITIONAL rules). 'Must be legally entitled' is restrictive."
+    example_ads:
+      - "12_springtek_junior_software_engineer.txt"
+      - "19_proforce_graduate_role.txt"
+
+  - rule_id: "AHPRA_REGISTRATION_BLOCKER"
+    category: "professional_registration"
+    signal_type: "CONDITIONAL"
+    verdict: "Tailor"
+    patterns:
+      - '(?i)(?:current|valid)\s+(?:AHPRA|nursing|registration).*(?:required|essential|necessary)'
+      - '(?i)AHPRA\s+registration\s+(?:is\s+)?essential'
+      - '(?i)registered\s+(?:nurse|health\s+practitioner)'
+    confidence: 0.85
+    notes: "Professional registration (AHPRA) required. International nurses can obtain AHPRA, but pathway takes time/cost. Verdict: Tailor (depends on AHPRA status)."
+    example_ads:
+      - "15_caringbah_family_practice_rn.txt"
+      - "18_innisfail_medical_centre_gp_nurse.txt"
+
+  - rule_id: "LEGAL_ADMISSION_BLOCKER"
+    category: "professional_registration"
+    signal_type: "HARD_BLOCKER"
+    verdict: "Skip"
+    patterns:
+      - '(?i)(?:must\s+be\s+eligible|be\s+eligible)\s+for\s+admission\s+in\s+(?:Queensland|NSW|Victoria|WA|SA|TAS|ACT)'
+      - '(?i)(?:must\s+be|be)\s+(?:admitted|an\s+admitted)\s+(?:Australian\s+)?lawyer'
+      - '(?i)must\s+hold.*Australian\s+legal\s+practising\s+certificate'
+    confidence: 0.90
+    notes: "Legal admission in Australia typically requires citizenship/PR. Temporary visa holders cannot be admitted until they have permanent residency. Hard blocker. Only matches when admission is explicitly REQUIRED, not optional."
+    example_ads:
+      - "21_qld_law_firm_graduate.txt"
+
+  - rule_id: "TEMPORARY_VISA_ALLOWED"
+    category: "working_rights_conditional"
+    signal_type: "CONDITIONAL"
+    verdict: "Tailor"
+    patterns:
+      - '(?i)(?:if|currently)\s+(?:you\s+)?hold\s+(?:a\s+)?temporary\s+visa.*may\s+be\s+offered\s+employment'
+      - '(?i)temporary\s+visa.*work\s+in\s+Australia.*may\s+be\s+offered'
+      - '(?i)citizen\s+of\s+another\s+country\s+with\s+(?:an\s+)?appropriate\s+visa'
+    confidence: 0.70
+    notes: "Employer explicitly allows temporary visa holders with appropriate working rights. Signals openness to 485 and some 500 holders. Verdict: Tailor (verify visa conditions)."
+
+  - rule_id: "VISA_PLAN_REQUIRED_CONDITIONAL"
+    category: "working_rights_conditional"
+    signal_type: "CONDITIONAL"
+    verdict: "Tailor"
+    patterns:
+      - '(?i)(?:if\s+on\s+)?(?:student|temporary)\s+visa.*(?:document|outline|explain).*visa\s+(?:plan|pathway)'
+      - '(?i)proposed\s+(?:next\s+)?visa\s+plans?'
+    confidence: 0.70
+    notes: "Employer asks temporary visa holders for their post-completion visa plans. Signals openness to temporary visa holders *with a pathway*. Verdict: Tailor (clarify visa plan with employer)."
+    example_ads:
+      - "16_healthscope_graduate_enrolled_nurse.txt"
+
+  - rule_id: "VAGUE_WORKING_RIGHTS_CONDITIONAL"
+    category: "working_rights_conditional"
+    signal_type: "CONDITIONAL"
+    verdict: "Tailor"
+    patterns:
+      - '(?i)must\s+have\s+(?:a\s+)?(?:valid\s+)?visa\s+with\s+(?:full\s+)?work\s+rights'
+      - '(?i)(?:must\s+have|require|need)\s+(?:valid\s+)?visa\s+with\s+(?:full\s+)?work\s+rights'
+      - '(?i)must\s+(?:be\s+)?legally\s+entitled\s+to\s+work'
+      - '(?i)(?:must|need\s+to).*have\s+right\s+to\s+work\s+in\s+Australia'
+    confidence: 0.60
+    notes: "Vague phrasing that may include 500/485 holders (both grant working rights) or may require permanent residency. Conservative: Tailor (clarify with employer). Context-dependent. Only matches when explicitly required."
+    example_ads:
+      - "11_arturia_ai_graduate_software_engineer.txt"
+      - "17_cabrini_health_graduate_rn.txt"
+
+  - rule_id: "NO_EXPLICIT_BLOCKER_OPEN"
+    category: "no_blocker"
+    signal_type: "NO_BLOCKER"
+    verdict: "Apply"
+    # NOT a matchable rule — do not port `patterns` for this one.
+    # This is the FALLBACK verdict: apply it when NONE of the 11 rules
+    # above produced a HARD_BLOCKER or CONDITIONAL match. It previously
+    # carried a regex pattern, but extraction_pipeline.py never actually
+    # evaluates it — Apply is decided by absence of other matches (see
+    # the verdict logic in PROJECT_HANDOFF.md §5 / extraction_pipeline.py
+    # extract()). Kept here as documentation only.
+    confidence: 0.65
+    notes: "No explicit visa/citizenship blocker mentioned in eligibility section. Safe to Apply (but verify with SEEK employer screening question)."
+    example_ads:
+      - "15_caringbah_family_practice_rn.txt"
+      - "18_innisfail_medical_centre_gp_nurse.txt"
+      - "20_velocity_legal_graduate.txt"
