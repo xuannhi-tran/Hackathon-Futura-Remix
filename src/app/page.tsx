@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { mockExtractJobAd } from "../lib/mockExtraction";
 import { getDemoFixture } from "../lib/demoFixtures";
@@ -9,7 +9,35 @@ import { evaluateJob, evaluateFitSignals } from "../lib/rules";
 
 import { ExtractedJobAd, SavedJob, Verdict, FitSignal } from "../types/job";
 
+import type { JobRecommendation } from "../lib/jobRecommendation";
+
 type AnalysisSource = "AI" | "LOCAL";
+
+type SuggestedJob = {
+  recommendation: JobRecommendation;
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  description: string;
+  redirectUrl: string;
+  created?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  contractType?: string;
+  contractTime?: string;
+  category?: string;
+};
+
+type SuggestedJobsResponse = {
+  query: {
+    what: string;
+    where: string | null;
+  };
+  count: number;
+  jobs: SuggestedJob[];
+  error?: string;
+};
 
 export default function Home() {
   const [adText, setAdText] = useState("");
@@ -46,10 +74,117 @@ export default function Home() {
 
   const [yearsExperience, setYearsExperience] = useState(0);
 
+  // -----------------------
+  // JOB SUGGESTIONS
+  // -----------------------
+
+  const [suggestedJobs, setSuggestedJobs] = useState<SuggestedJob[]>([]);
+
+  const [suggestedJobCount, setSuggestedJobCount] = useState(0);
+
+  const [isJobSearchLoading, setIsJobSearchLoading] = useState(false);
+
+  const [jobSearchError, setJobSearchError] = useState<string | null>(null);
+
+  const [hasSearchedJobs, setHasSearchedJobs] = useState(false);
+
   function resetAnalysis() {
     setVerdict(null);
     setFitSignals([]);
     setAnalysisSource(null);
+  }
+
+  const jobSearchVersion = useRef(0);
+
+  function resetJobSuggestions() {
+    jobSearchVersion.current += 1;
+    setIsJobSearchLoading(false);
+    setSuggestedJobs([]);
+    setSuggestedJobCount(0);
+    setJobSearchError(null);
+    setHasSearchedJobs(false);
+  }
+
+  function formatSalary(job: SuggestedJob) {
+    const formatter = new Intl.NumberFormat("en-AU", {
+      style: "currency",
+      currency: "AUD",
+      maximumFractionDigits: 0,
+    });
+
+    if (job.salaryMin !== undefined && job.salaryMax !== undefined) {
+      return `${formatter.format(job.salaryMin)} – ${formatter.format(
+        job.salaryMax
+      )}`;
+    }
+
+    if (job.salaryMin !== undefined) {
+      return `From ${formatter.format(job.salaryMin)}`;
+    }
+
+    if (job.salaryMax !== undefined) {
+      return `Up to ${formatter.format(job.salaryMax)}`;
+    }
+
+    return null;
+  }
+
+  function getDescriptionPreview(description: string) {
+    const cleaned = description.replace(/\s+/g, " ").trim();
+
+    if (cleaned.length <= 260) {
+      return cleaned;
+    }
+
+    return `${cleaned.slice(0, 257)}...`;
+  }
+
+  async function handleFindJobs() {
+    if (!targetField.trim()) {
+      return;
+    }
+
+    const requestVersion = ++jobSearchVersion.current;
+    setSuggestedJobs([]);
+    setIsJobSearchLoading(true);
+    setJobSearchError(null);
+    setHasSearchedJobs(true);
+
+    try {
+      const params = new URLSearchParams({
+        targetField: targetField.trim(),
+        preferredLocation: preferredLocation.trim(),
+        subclass: visaSubclass,
+        duringStudyTerm: String(duringStudyTerm),
+        monthsRemaining: String(monthsRemaining),
+        yearsExperience: String(yearsExperience),
+      });
+
+      const response = await fetch(`/api/jobs/suggest?${params.toString()}`);
+
+      const data = (await response.json()) as SuggestedJobsResponse;
+      if (requestVersion !== jobSearchVersion.current) return;
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Failed to retrieve suggested jobs.");
+      }
+
+      setSuggestedJobs((data.jobs ?? []).slice(0, 10));
+      setSuggestedJobCount(data.count ?? data.jobs?.length ?? 0);
+    } catch (error) {
+      if (requestVersion !== jobSearchVersion.current) return;
+      console.error("Job suggestion request failed:", error);
+
+      setSuggestedJobs([]);
+      setSuggestedJobCount(0);
+      setJobSearchError(
+        error instanceof Error
+          ? error.message
+          : "Failed to retrieve suggested jobs."
+      );
+    } finally {
+      if (requestVersion === jobSearchVersion.current) setIsJobSearchLoading(false);
+    }
   }
 
   // -----------------------
@@ -383,6 +518,7 @@ export default function Home() {
                       }
 
                       resetAnalysis();
+                      resetJobSuggestions();
                     }}
                     className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
                   >
@@ -400,6 +536,7 @@ export default function Home() {
                     onChange={(e) => {
                       setDuringStudyTerm(e.target.value === "yes");
                       resetAnalysis();
+                      resetJobSuggestions();
                     }}
                     disabled={visaSubclass !== "500"}
                     className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
@@ -421,6 +558,7 @@ export default function Home() {
                       const value = Number(e.target.value);
                       setMonthsRemaining(Number.isNaN(value) ? 0 : value);
                       resetAnalysis();
+                      resetJobSuggestions();
                     }}
                     className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
                   />
@@ -447,6 +585,7 @@ export default function Home() {
                     onChange={(e) => {
                       setTargetField(e.target.value);
                       resetAnalysis();
+                      resetJobSuggestions();
                     }}
                     className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
                   />
@@ -462,6 +601,7 @@ export default function Home() {
                     onChange={(e) => {
                       setPreferredLocation(e.target.value);
                       resetAnalysis();
+                      resetJobSuggestions();
                     }}
                     className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
                   />
@@ -479,6 +619,7 @@ export default function Home() {
                       const value = Number(e.target.value);
                       setYearsExperience(Number.isNaN(value) ? 0 : value);
                       resetAnalysis();
+                      resetJobSuggestions();
                     }}
                     className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
                   />
@@ -652,7 +793,7 @@ export default function Home() {
 
         {/* ── APPLICATION PORTFOLIO ────────────────────────────── */}
         {savedJobs.length > 0 && (
-          <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <section className="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="mb-6 flex items-baseline justify-between gap-4">
               <h2 className="text-xl font-bold text-gray-900">
                 Application Portfolio
@@ -778,6 +919,168 @@ export default function Home() {
             </div>
           </section>
         )}
+
+        {/* ── SUGGESTED JOBS ──────────────────────────────────── */}
+        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+                Next applications
+              </p>
+              <h2 className="mt-1 text-xl font-bold text-gray-900">
+                Suggested jobs
+              </h2>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
+                Find up to 10 current roles based on your target field and
+                preferred location.
+              </p>
+            </div>
+
+            <button
+              onClick={handleFindJobs}
+              disabled={!targetField.trim() || isJobSearchLoading}
+              className="shrink-0 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {isJobSearchLoading ? "Finding jobs…" : "Find matching jobs"}
+            </button>
+          </div>
+
+          <p className="mt-3 text-sm text-gray-500">
+            Heuristic ranking of up to 30 Adzuna snippets. Scores are not eligibility
+            verdicts; use the full advertisement in the decoder to check eligibility.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-500">
+            <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1">
+              Field: {targetField || "Not set"}
+            </span>
+
+            <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1">
+              Location: {preferredLocation || "Australia"}
+            </span>
+          </div>
+
+          {jobSearchError && (
+            <div className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4">
+              <p className="text-sm font-medium text-red-800">
+                Could not load suggested jobs.
+              </p>
+              <p className="mt-1 text-sm text-red-700">{jobSearchError}</p>
+            </div>
+          )}
+
+          {hasSearchedJobs &&
+            !isJobSearchLoading &&
+            !jobSearchError &&
+            suggestedJobs.length === 0 && (
+              <div className="mt-5 rounded-lg border border-gray-200 bg-gray-50 p-5">
+                <p className="text-sm text-gray-600">
+                  No matching jobs were returned for this field and location.
+                  Try a broader target field or nearby location.
+                </p>
+              </div>
+            )}
+
+          {suggestedJobs.length > 0 && (
+            <>
+              <div className="mt-6 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+                <p className="text-sm font-semibold text-gray-800">
+                  {suggestedJobs.length} suggested role
+                  {suggestedJobs.length === 1 ? "" : "s"}
+                </p>
+
+                <p className="text-xs text-gray-400">
+                  {suggestedJobCount > 0
+                    ? `${suggestedJobCount.toLocaleString()} total Adzuna results`
+                    : "Current Adzuna results"}
+                </p>
+              </div>
+
+              <div className="mt-3 grid gap-4 md:grid-cols-2">
+                {suggestedJobs.map((job) => {
+                  const salary = formatSalary(job);
+
+                  return (
+                    <article
+                      key={job.id}
+                      className="flex h-full flex-col rounded-xl border border-gray-200 bg-white p-5 transition hover:border-gray-300 hover:shadow-sm"
+                    >
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {job.category && (
+                            <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+                              {job.category}
+                            </span>
+                          )}
+
+                          {job.contractTime && (
+                            <span className="rounded-full border border-gray-200 px-2.5 py-1 text-xs text-gray-500">
+                              {job.contractTime.replaceAll("_", " ")}
+                            </span>
+                          )}
+
+                          {job.contractType && (
+                            <span className="rounded-full border border-gray-200 px-2.5 py-1 text-xs text-gray-500">
+                              {job.contractType.replaceAll("_", " ")}
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="mt-3 text-sm font-semibold text-blue-800">
+                          Recommendation score: {job.recommendation.score}/100
+                        </p>
+                        <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-gray-600">
+                          {job.recommendation.reasons.map((reason) => <li key={reason}>{reason}</li>)}
+                          {job.recommendation.penalties.map((reason) => <li key={reason} className="text-amber-800">{reason}</li>)}
+                        </ul>
+                        {!job.contractTime && !job.contractType && (
+                          <p className="mt-2 text-xs text-gray-500">Contract information not listed</p>
+                        )}
+                        <h3 className="mt-3 text-base font-semibold leading-6 text-gray-900">
+                          {job.title}
+                        </h3>
+
+                        <p className="mt-1 text-sm font-medium text-gray-600">
+                          {job.company}
+                        </p>
+
+                        <p className="mt-1 text-sm text-gray-500">
+                          {job.location}
+                        </p>
+
+                        {salary && (
+                          <p className="mt-2 text-sm font-semibold text-gray-800">
+                            {salary}
+                          </p>
+                        )}
+
+                        {job.description && (
+                          <p className="mt-3 text-sm leading-6 text-gray-600">
+                            {getDescriptionPreview(job.description)}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="mt-5 flex items-center justify-between gap-3 border-t border-gray-100 pt-4">
+                        <span className="text-xs text-gray-400">
+                          Jobs by Adzuna
+                        </span>
+
+                        <a
+                          href={job.redirectUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        >
+                          View job
+                        </a>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </section>
       </div>
     </main>
   );
