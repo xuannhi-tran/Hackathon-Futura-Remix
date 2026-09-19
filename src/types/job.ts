@@ -68,3 +68,10 @@ export type SavedJob = {
   adText: string;
   verdict: Verdict;
 };
+
+export type TailorAdvice = {
+  summary: string;
+  checks: string[];
+  applicationTips: string[];
+  recruiterQuestions: string[];
+};
