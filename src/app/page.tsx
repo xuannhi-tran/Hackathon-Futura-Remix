@@ -39,6 +39,12 @@ type SuggestedJobsResponse = {
   error?: string;
 };
 
+const signalStyles = {
+  positive: { icon: "\u2713", label: "Match", className: "text-green-800", iconClassName: "bg-green-50 text-green-700" },
+  neutral: { icon: "i", label: "Information", className: "text-gray-600", iconClassName: "bg-gray-100 text-gray-600" },
+  caution: { icon: "!", label: "Caution", className: "text-amber-800", iconClassName: "bg-amber-50 text-amber-700" },
+};
+
 export default function Home() {
   const [adText, setAdText] = useState("");
 
@@ -1025,13 +1031,6 @@ export default function Home() {
                           )}
                         </div>
 
-                        <p className="mt-3 text-sm font-semibold text-blue-800">
-                          Recommendation score: {job.recommendation.score}/100
-                        </p>
-                        <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-gray-600">
-                          {job.recommendation.reasons.map((reason) => <li key={reason}>{reason}</li>)}
-                          {job.recommendation.penalties.map((reason) => <li key={reason} className="text-amber-800">{reason}</li>)}
-                        </ul>
                         {!job.contractTime && !job.contractType && (
                           <p className="mt-2 text-xs text-gray-500">Contract information not listed</p>
                         )}
@@ -1052,6 +1051,26 @@ export default function Home() {
                             {salary}
                           </p>
                         )}
+
+                        <div className="mt-3 border-t border-gray-100 pt-3">
+                          <p className="text-sm text-gray-600">
+                            <span className="text-lg font-semibold text-gray-900">{job.recommendation.score}%</span>{" "}
+                            profile match
+                          </p>
+                          <ul className="mt-2 space-y-1.5" aria-label="Profile match signals">
+                            {job.recommendation.signals.slice(0, 4).map((signal) => {
+                              const style = signalStyles[signal.tone];
+                              return (
+                                <li key={signal.id} className={`flex items-start gap-2 text-xs leading-5 ${style.className}`}>
+                                  <span aria-hidden="true" className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${style.iconClassName}`}>
+                                    {style.icon}
+                                  </span>
+                                  <span><span className="sr-only">{style.label}: </span>{signal.text}</span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
 
                         {job.description && (
                           <p className="mt-3 text-sm leading-6 text-gray-600">

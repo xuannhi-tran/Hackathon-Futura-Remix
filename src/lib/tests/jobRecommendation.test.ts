@@ -9,6 +9,19 @@ const profile: RecommendationProfile = {
 const job = { title: "Junior Software Engineer", location: "Sydney" };
 
 describe("deterministic snippet recommendations", () => {
+  it("returns ordered semantic signals without point arithmetic", () => {
+    const result = recommendJob({ ...job, contractTime: "full_time", description: "Australian citizens only. 24 month contract. 5 years experience." }, profile);
+    expect(result.signals.map(({ id }) => id)).toEqual(["profile", "role", "location", "experience", "duration"]);
+    expect(result.signals.map(({ tone }) => tone)).toEqual(["caution", "positive", "positive", "caution", "caution"]);
+    expect(result.signals[0].text).toContain("Work hours may also conflict");
+    expect(result.signals.every(({ text }) => !/[+-]\d|\d+\/\d+/.test(text))).toBe(true);
+  });
+  it("supplies neutral signals for missing experience and location preference", () => {
+    const result = recommendJob({ title: "Software Engineer" }, { ...profile, preferredLocation: "" });
+    expect(result.signals.find(({ id }) => id === "experience")).toMatchObject({ tone: "neutral", text: "Experience requirement not specified" });
+    expect(result.signals.find(({ id }) => id === "location")).toMatchObject({ tone: "neutral" });
+  });
+
   it("awards the maximum for a matching junior role without asserting eligibility", () => {
     const result = recommendJob(job, profile);
     expect(result.score).toBe(100);
