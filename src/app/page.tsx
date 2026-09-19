@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+
 import { mockExtractJobAd } from "../lib/mockExtraction";
-import { evaluateJob } from "../lib/rules";
-import { ExtractedJobAd, SavedJob, Verdict } from "../types/job";
 import { getDemoFixture } from "../lib/demoFixtures";
+
+import { evaluateJob, evaluateFitSignals } from "../lib/rules";
+
+import { ExtractedJobAd, SavedJob, Verdict, FitSignal } from "../types/job";
 
 type AnalysisSource = "AI" | "LOCAL";
 
@@ -12,6 +15,8 @@ export default function Home() {
   const [adText, setAdText] = useState("");
 
   const [verdict, setVerdict] = useState<Verdict | null>(null);
+
+  const [fitSignals, setFitSignals] = useState<FitSignal[]>([]);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,8 +36,19 @@ export default function Home() {
 
   const [monthsRemaining, setMonthsRemaining] = useState(18);
 
+  // -----------------------
+  // CAREER PROFILE
+  // -----------------------
+
+  const [targetField, setTargetField] = useState("Software Engineering");
+
+  const [preferredLocation, setPreferredLocation] = useState("Sydney");
+
+  const [yearsExperience, setYearsExperience] = useState(0);
+
   function resetAnalysis() {
     setVerdict(null);
+    setFitSignals([]);
     setAnalysisSource(null);
   }
 
@@ -47,6 +63,7 @@ export default function Home() {
 
     setIsLoading(true);
     setVerdict(null);
+    setFitSignals([]);
     setAnalysisSource(null);
 
     const visaProfile = {
@@ -57,9 +74,15 @@ export default function Home() {
       monthsRemaining,
     };
 
-    // ---------------------------------
+    const fitProfile = {
+      targetField,
+      preferredLocation,
+      yearsExperience,
+    };
+
+    // -----------------------
     // OFFLINE MODE
-    // ---------------------------------
+    // -----------------------
 
     if (!navigator.onLine) {
       const fixture = getDemoFixture(adText);
@@ -67,7 +90,10 @@ export default function Home() {
       if (fixture) {
         const result = evaluateJob(fixture, visaProfile);
 
+        const signals = evaluateFitSignals(fixture, fitProfile);
+
         setVerdict(result);
+        setFitSignals(signals);
         setAnalysisSource("LOCAL");
         setIsLoading(false);
 
@@ -78,16 +104,19 @@ export default function Home() {
 
       const result = evaluateJob(extracted, visaProfile);
 
+      const signals = evaluateFitSignals(extracted, fitProfile);
+
       setVerdict(result);
+      setFitSignals(signals);
       setAnalysisSource("LOCAL");
       setIsLoading(false);
 
       return;
     }
 
-    // ---------------------------------
+    // -----------------------
     // ONLINE AI MODE
-    // ---------------------------------
+    // -----------------------
 
     try {
       const response = await fetch("/api/extract", {
@@ -112,7 +141,10 @@ export default function Home() {
 
       const result = evaluateJob(extracted, visaProfile);
 
+      const signals = evaluateFitSignals(extracted, fitProfile);
+
       setVerdict(result);
+      setFitSignals(signals);
       setAnalysisSource("AI");
     } catch (error) {
       console.warn(
@@ -120,24 +152,28 @@ export default function Home() {
         error
       );
 
-      // First try a known cached demo fixture.
       const fixture = getDemoFixture(adText);
 
       if (fixture) {
         const result = evaluateJob(fixture, visaProfile);
 
+        const signals = evaluateFitSignals(fixture, fitProfile);
+
         setVerdict(result);
+        setFitSignals(signals);
         setAnalysisSource("LOCAL");
 
         return;
       }
 
-      // Last fallback: basic deterministic phrase extraction.
       const extracted = mockExtractJobAd(adText);
 
       const result = evaluateJob(extracted, visaProfile);
 
+      const signals = evaluateFitSignals(extracted, fitProfile);
+
       setVerdict(result);
+      setFitSignals(signals);
       setAnalysisSource("LOCAL");
     } finally {
       setIsLoading(false);
@@ -263,7 +299,7 @@ export default function Home() {
         <h1 className="mb-2 text-3xl font-bold">Job Eligibility Decoder</h1>
 
         <p className="mb-6 text-gray-600">
-          Paste a job advertisement to check for eligibility blockers.
+          Paste a job advertisement to check eligibility, conditions and fit.
         </p>
 
         {/* VISA PROFILE */}
@@ -332,6 +368,68 @@ export default function Home() {
                   const value = Number(e.target.value);
 
                   setMonthsRemaining(Number.isNaN(value) ? 0 : value);
+
+                  resetAnalysis();
+                }}
+                className="w-full rounded-lg border border-gray-300 bg-white p-2.5"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* CAREER PREFERENCES */}
+
+        <div className="mb-6 rounded-lg border border-gray-200 bg-white p-5">
+          <h2 className="mb-4 text-lg font-semibold">Career preferences</h2>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Target field
+              </label>
+
+              <input
+                type="text"
+                value={targetField}
+                onChange={(e) => {
+                  setTargetField(e.target.value);
+
+                  resetAnalysis();
+                }}
+                className="w-full rounded-lg border border-gray-300 bg-white p-2.5"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Preferred location
+              </label>
+
+              <input
+                type="text"
+                value={preferredLocation}
+                onChange={(e) => {
+                  setPreferredLocation(e.target.value);
+
+                  resetAnalysis();
+                }}
+                className="w-full rounded-lg border border-gray-300 bg-white p-2.5"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Years of experience
+              </label>
+
+              <input
+                type="number"
+                min="0"
+                value={yearsExperience}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+
+                  setYearsExperience(Number.isNaN(value) ? 0 : value);
 
                   resetAnalysis();
                 }}
@@ -413,6 +511,54 @@ export default function Home() {
                 Add to Portfolio
               </button>
             </div>
+
+            {/* FIT SIGNALS */}
+
+            {fitSignals.length > 0 && (
+              <div className="mt-6 rounded-lg border border-gray-200 bg-white p-6">
+                <h3 className="text-lg font-semibold">Fit signals</h3>
+
+                <p className="mt-1 text-sm text-gray-500">
+                  These signals help prioritise roles but do not change the
+                  eligibility verdict.
+                </p>
+
+                <div className="mt-4 space-y-3">
+                  {fitSignals.map((signal) => (
+                    <div
+                      key={signal.id}
+                      className="rounded-lg border border-gray-200 p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${
+                            signal.status === "MATCH"
+                              ? "bg-green-100 text-green-800"
+                              : signal.status === "STRETCH"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-blue-100 text-blue-800"
+                          }`}
+                        >
+                          {signal.status === "MATCH"
+                            ? "✓"
+                            : signal.status === "STRETCH"
+                            ? "△"
+                            : "i"}
+                        </span>
+
+                        <div>
+                          <p className="font-medium">{signal.label}</p>
+
+                          <p className="mt-1 text-sm text-gray-600">
+                            {signal.reason}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* HIGHLIGHTED JOB AD */}
 

@@ -19,12 +19,33 @@ export type ExtractedJobAd = {
   registration?: EvidenceField;
   yearsExperience?: EvidenceField;
   location?: EvidenceField;
+
+  // Tier 3
+  roleField?: EvidenceField;
 };
 
 export type VisaProfile = {
   subclass: "500" | "485";
   duringStudyTerm: boolean;
   monthsRemaining?: number;
+};
+
+export type FitProfile = {
+  targetField: string;
+  preferredLocation: string;
+  yearsExperience: number;
+};
+
+export type FitSignal = {
+  id: string;
+  status: "MATCH" | "STRETCH" | "INFO";
+  label: string;
+  reason: string;
+  evidence?: {
+    text: string;
+    start: number;
+    end: number;
+  };
 };
 
 export type Verdict = {

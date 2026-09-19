@@ -3,6 +3,8 @@ import {
   EvidenceField,
   VisaProfile,
   Verdict,
+  FitProfile,
+  FitSignal,
 } from "../types/job";
 
 function evidenceFrom(field: EvidenceField) {
@@ -155,4 +157,123 @@ export function evaluateJob(
     status: "APPLY",
     reason: "No eligibility blockers detected.",
   };
+}
+
+// =======================================
+// TIER 3 — FIT SIGNALS
+// These never change the eligibility verdict.
+// =======================================
+
+function extractFirstNumber(field?: EvidenceField): number | undefined {
+  if (!field) return undefined;
+
+  const match = field.text.match(/\d+(?:\.\d+)?/);
+
+  if (!match) return undefined;
+
+  return Number(match[0]);
+}
+
+function normaliseWords(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((word) => word.length > 2);
+}
+
+function fieldsOverlap(targetField: string, roleField: string): boolean {
+  const targetWords = normaliseWords(targetField);
+
+  const roleWords = normaliseWords(roleField);
+
+  return targetWords.some((word) => roleWords.includes(word));
+}
+
+export function evaluateFitSignals(
+  job: ExtractedJobAd,
+  profile: FitProfile
+): FitSignal[] {
+  const signals: FitSignal[] = [];
+
+  // -----------------------
+  // EXPERIENCE FIT
+  // -----------------------
+
+  const requestedYears = extractFirstNumber(job.yearsExperience);
+
+  if (requestedYears !== undefined && job.yearsExperience) {
+    if (profile.yearsExperience >= requestedYears) {
+      signals.push({
+        id: "T3_EXPERIENCE_MATCH",
+        status: "MATCH",
+        label: "Experience fit",
+        reason: `Your ${profile.yearsExperience} years of experience meets the advertised ${requestedYears}-year requirement.`,
+        evidence: evidenceFrom(job.yearsExperience),
+      });
+    } else {
+      signals.push({
+        id: "T3_EXPERIENCE_STRETCH",
+        status: "STRETCH",
+        label: "Experience stretch",
+        reason: `The advertisement asks for approximately ${requestedYears} years of experience, while your profile lists ${profile.yearsExperience}.`,
+        evidence: evidenceFrom(job.yearsExperience),
+      });
+    }
+  }
+
+  // -----------------------
+  // LOCATION FIT
+  // -----------------------
+
+  if (job.location) {
+    const locationMatch =
+      job.location.value
+        .toLowerCase()
+        .includes(profile.preferredLocation.toLowerCase()) ||
+      job.location.text
+        .toLowerCase()
+        .includes(profile.preferredLocation.toLowerCase());
+
+    signals.push({
+      id: locationMatch ? "T3_LOCATION_MATCH" : "T3_LOCATION_DIFFERENT",
+
+      status: locationMatch ? "MATCH" : "INFO",
+
+      label: "Location fit",
+
+      reason: locationMatch
+        ? `The role location matches your preferred location: ${profile.preferredLocation}.`
+        : `The role is listed as ${job.location.text}, while your preferred location is ${profile.preferredLocation}.`,
+
+      evidence: evidenceFrom(job.location),
+    });
+  }
+
+  // -----------------------
+  // FIELD MATCH
+  // -----------------------
+
+  if (job.roleField) {
+    const fieldMatch = fieldsOverlap(
+      profile.targetField,
+      `${job.roleField.value} ${job.roleField.text}`
+    );
+
+    signals.push({
+      id: fieldMatch ? "T3_FIELD_MATCH" : "T3_FIELD_STRETCH",
+
+      status: fieldMatch ? "MATCH" : "STRETCH",
+
+      label: "Field match",
+
+      reason: fieldMatch
+        ? `This role aligns with your target field: ${profile.targetField}.`
+        : `This role appears to be in ${job.roleField.value}, while your target field is ${profile.targetField}.`,
+
+      evidence: evidenceFrom(job.roleField),
+    });
+  }
+
+  return signals;
 }
