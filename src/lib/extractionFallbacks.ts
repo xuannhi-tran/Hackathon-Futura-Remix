@@ -364,7 +364,7 @@ export function fallbackRoleField(adText: string): EvidenceField | undefined {
  * Walks backward from `pos` to find where the current clause starts.
  * Clause boundaries: newline, carriage return, semicolon, period.
  */
-function findClauseStart(adText: string, pos: number): number {
+export function findClauseStart(adText: string, pos: number): number {
   let i = pos;
   while (i > 0) {
     const prev = adText[i - 1];
@@ -379,7 +379,11 @@ function findClauseStart(adText: string, pos: number): number {
  * Includes a terminating period. Stops at newline, carriage return, or semicolon.
  * `minEnd` prevents the end from retreating behind the evidence end.
  */
-function findClauseEnd(adText: string, pos: number, minEnd: number): number {
+export function findClauseEnd(
+  adText: string,
+  pos: number,
+  minEnd: number
+): number {
   let i = Math.max(pos, minEnd);
   while (i < adText.length) {
     const ch = adText[i];
@@ -458,7 +462,8 @@ export function hasFullWorkRightsAlternative(
 
   // 2. Locate the relevant citizenship/residency branch BEFORE the work-right phrase.
   // We search for the last blocker token that ends before wrStart.
-  const blockerTokens = /\b(citizen|citizenship|permanent resident|permanent residency|pr)\b/gi;
+  const blockerTokens =
+    /\b(citizen|citizenship|permanent resident|permanent residency|pr)\b/gi;
   let lastBlockerEnd = -1;
   let match;
   while ((match = blockerTokens.exec(clause)) !== null) {
@@ -490,18 +495,27 @@ export function filterTemporaryVisaAllowed(
   const text = field.text.toLowerCase();
 
   // Reject generic diversity/inclusion wording
-  if (/\b(nationalities|people (?:of|from) all backgrounds|international culture|diversity|inclusion)\b/i.test(text)) {
+  if (
+    /\b(nationalities|people (?:of|from) all backgrounds|international culture|diversity|inclusion)\b/i.test(
+      text
+    )
+  ) {
     return undefined;
   }
 
   // Reject explicitly negative, unavailable, or screening language
-  if (/\b(?:not available|cannot sponsor|no (?:visa )?sponsorship|sponsorship (?:is )?unavailable|visa required|what visa do you currently hold)\b/i.test(text)) {
+  if (
+    /\b(?:not available|cannot sponsor|no (?:visa )?sponsorship|sponsorship (?:is )?unavailable|visa required|what visa do you currently hold)\b/i.test(
+      text
+    )
+  ) {
     return undefined;
   }
 
   // Require positive eligibility/consideration semantics.
   // Mere presence of "visa", "sponsor", or "sponsorship" is insufficient.
-  const positivePattern = /\b(?:temporary visa holders?|appropriate visa that allows|citizen of another country|sponsorship (?:is )?(?:available|offered|provided)|offer sponsor(?:ship)?|we (?:can|will) sponsor)\b/i;
+  const positivePattern =
+    /\b(?:temporary visa holders?|appropriate visa that allows|citizen of another country|sponsorship (?:is )?(?:available|offered|provided)|offer sponsor(?:ship)?|we (?:can|will) sponsor)\b/i;
 
   if (!positivePattern.test(text)) {
     return undefined;

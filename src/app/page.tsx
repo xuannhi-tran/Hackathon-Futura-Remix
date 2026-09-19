@@ -6,6 +6,8 @@ import { mockExtractJobAd } from "../lib/mockExtraction";
 import { getDemoFixture } from "../lib/demoFixtures";
 
 import { evaluateJob, evaluateFitSignals } from "../lib/rules";
+import { findClauseStart, findClauseEnd } from "../lib/extractionFallbacks";
+import { getDisplayEvidenceSpan } from "../lib/evidenceDisplay";
 
 import {
   ExtractedJobAd,
@@ -541,23 +543,20 @@ export default function Home() {
       return <p>No specific evidence was identified in the supplied job ad.</p>;
     }
 
-    const { start, end } = verdict.evidence;
-    if (
-      !Number.isInteger(start) ||
-      !Number.isInteger(end) ||
-      start < 0 ||
-      end <= start ||
-      end > adText.length
-    ) {
+    const displaySpan = getDisplayEvidenceSpan(adText, verdict);
+    if (!displaySpan) {
       return (
         <p>
           The evidence could not be located reliably in the supplied job ad.
         </p>
       );
     }
+
+    const { displayStart, displayEnd } = displaySpan;
+
     // Keep the original offsets and exact source characters; bound only the context.
-    const contextStart = Math.max(0, start - 240);
-    const contextEnd = Math.min(adText.length, end + 240);
+    const contextStart = Math.max(0, displayStart - 240);
+    const contextEnd = Math.min(adText.length, displayEnd + 240);
 
     // Semantic highlight colour based on verdict status
     const markClass =
@@ -570,17 +569,17 @@ export default function Home() {
     return (
       <>
         {contextStart > 0 && "..."}
-        {adText.slice(contextStart, start)}
+        {adText.slice(contextStart, displayStart)}
 
         <mark
           id="ad-evidence"
           tabIndex={-1}
           className={`${markClass} scroll-mt-6`}
         >
-          {adText.slice(start, end)}
+          {adText.slice(displayStart, displayEnd)}
         </mark>
 
-        {adText.slice(end, contextEnd)}
+        {adText.slice(displayEnd, contextEnd)}
         {contextEnd < adText.length && "..."}
       </>
     );
