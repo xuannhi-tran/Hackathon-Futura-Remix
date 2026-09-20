@@ -6,6 +6,7 @@ import {
   FitProfile,
   FitSignal,
 } from "../types/job";
+import { matchesState } from "./location";
 
 function evidenceFrom(field: EvidenceField) {
   return {
@@ -402,27 +403,25 @@ export function evaluateFitSignals(
   // -----------------------
 
   if (job.location) {
-    const locationMatch =
-      job.location.value
-        .toLowerCase()
-        .includes(profile.preferredLocation.toLowerCase()) ||
-      job.location.text
-        .toLowerCase()
-        .includes(profile.preferredLocation.toLowerCase());
+    const preferred = profile.preferredLocation?.trim();
+    const isAnywhere = !preferred;
 
-    signals.push({
-      id: locationMatch ? "T3_LOCATION_MATCH" : "T3_LOCATION_DIFFERENT",
+    if (!isAnywhere) {
+      const locationMatch = matchesState(
+        `${job.location.value} ${job.location.text}`,
+        preferred
+      );
 
-      status: locationMatch ? "MATCH" : "INFO",
-
-      label: "Location fit",
-
-      reason: locationMatch
-        ? `The role location matches your preferred location: ${profile.preferredLocation}.`
-        : `The role is listed as ${job.location.text}, while your preferred location is ${profile.preferredLocation}.`,
-
-      evidence: evidenceFrom(job.location),
-    });
+      signals.push({
+        id: locationMatch ? "T3_LOCATION_MATCH" : "T3_LOCATION_DIFFERENT",
+        status: locationMatch ? "MATCH" : "INFO",
+        label: "Location fit",
+        reason: locationMatch
+          ? `The role location matches your preferred state: ${preferred}.`
+          : `The role is located at ${job.location.text}, outside your preferred state of ${preferred}.`,
+        evidence: evidenceFrom(job.location),
+      });
+    }
   }
 
   // -----------------------

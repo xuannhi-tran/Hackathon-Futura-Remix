@@ -3,6 +3,7 @@ import {
   isEligibleForSubclass500,
   type RecommendationProfile,
 } from "../../../../lib/jobRecommendation";
+import { getStateFullName } from "../../../../lib/location";
 
 type AdzunaJob = {
   id: string;
@@ -206,10 +207,11 @@ export async function GET(request: Request) {
     const what = (
       searchParams.get("targetField") ?? searchParams.get("what")
     )?.trim();
-    const where =
+    const rawWhere =
       (
         searchParams.get("preferredLocation") ?? searchParams.get("where")
       )?.trim() ?? "";
+    const adzunaWhere = rawWhere ? getStateFullName(rawWhere) : "";
     const subclass = searchParams.get("subclass");
     const studyTerm = searchParams.get("duringStudyTerm");
     const years = searchParams.get("yearsExperience");
@@ -243,7 +245,7 @@ export async function GET(request: Request) {
       yearsExperience: Number(years),
       monthsRemaining: months === null ? undefined : Number(months),
       targetField: what,
-      preferredLocation: where,
+      preferredLocation: rawWhere,
     };
 
     // -----------------------------------------------------------------------
@@ -255,7 +257,7 @@ export async function GET(request: Request) {
         appId,
         appKey,
         what,
-        where
+        adzunaWhere
       );
 
       if (result.allFailed) {
@@ -267,26 +269,27 @@ export async function GET(request: Request) {
 
       const jobs = result.jobs.map(normaliseJob);
 
-      // The deterministic title filter is authoritative; targeted queries
-      // are a retrieval aid only, not a replacement for this check.
-      const eligibleJobs = jobs.filter((job) =>
-        isEligibleForSubclass500(job.title)
-      );
-
-      const rankedJobs = eligibleJobs
+      // Rank candidate pool
+      const rankedJobs = jobs
         .map((job) => ({ ...job, recommendation: recommendJob(job, profile) }))
         .sort(
           (a, b) =>
             b.recommendation.score - a.recommendation.score ||
             (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
         )
+        // Ensure strictly eligible junior roles are kept
+        .filter((job) => isEligibleForSubclass500(job.title))
         .slice(0, 10);
 
       return Response.json({
-        query: { what, where: where || null },
+        query: {
+          what,
+          where: rawWhere || null,
+          adzunaWhere: adzunaWhere || null,
+        },
         // Report the deduplicated candidate pool size, not a raw Adzuna count
         // that would misrepresent the number of eligible recommendations.
-        count: eligibleJobs.length,
+        count: jobs.filter((job) => isEligibleForSubclass500(job.title)).length,
         jobs: rankedJobs,
         candidateCount: jobs.length,
       });
@@ -296,7 +299,7 @@ export async function GET(request: Request) {
     // Subclass 485 — original single-query retrieval (unchanged)
     // -----------------------------------------------------------------------
 
-    const url = buildAdzunaUrl(appId, appKey, what, where, 30);
+    const url = buildAdzunaUrl(appId, appKey, what, adzunaWhere, 30);
     const { results: raw, count: adzunaCount } = await fetchAdzunaPageStrict(
       url
     );
@@ -313,7 +316,11 @@ export async function GET(request: Request) {
       .slice(0, 10);
 
     return Response.json({
-      query: { what, where: where || null },
+      query: {
+        what,
+        where: rawWhere || null,
+        adzunaWhere: adzunaWhere || null,
+      },
       count: adzunaCount,
       jobs: rankedJobs,
       scoredCount: jobs.length,

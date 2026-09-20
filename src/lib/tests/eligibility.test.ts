@@ -450,7 +450,7 @@ describe("eligibility decoder", () => {
 
   const fitProfile = {
     targetField: "Software Engineering",
-    preferredLocation: "Sydney",
+    preferredLocation: "NSW",
     yearsExperience: 2,
   };
 
@@ -529,6 +529,25 @@ describe("eligibility decoder", () => {
     expect(signals[0].status).toBe("INFO");
 
     expect(signals[0].id).toBe("T3_LOCATION_DIFFERENT");
+  });
+
+  it("does not produce a misleading location mismatch for Anywhere preference", () => {
+    const signals = evaluateFitSignals(
+      {
+        location: {
+          value: "Melbourne VIC",
+          text: "Melbourne VIC",
+          start: 10,
+          end: 23,
+        },
+      },
+      { ...fitProfile, preferredLocation: "" }
+    );
+
+    const locationSignal = signals.find(
+      (s) => s.id === "T3_LOCATION_DIFFERENT" || s.id === "T3_LOCATION_MATCH"
+    );
+    expect(locationSignal).toBeUndefined();
   });
 
   it("returns MATCH when role field matches target field", () => {

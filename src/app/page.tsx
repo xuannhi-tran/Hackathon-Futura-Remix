@@ -199,7 +199,7 @@ export default function Home() {
 
   const [targetField, setTargetField] = useState("Software Engineering");
 
-  const [preferredLocation, setPreferredLocation] = useState("Sydney");
+  const [preferredLocation, setPreferredLocation] = useState("NSW");
 
   const [yearsExperience, setYearsExperience] = useState(0);
 
@@ -840,10 +840,9 @@ export default function Home() {
                       htmlFor="preferredLocation"
                       className="mb-1 block text-sm font-medium text-gray-700"
                     >
-                      Preferred location
+                      Preferred state/territory
                     </label>
-                    <input
-                      type="text"
+                    <select
                       id="preferredLocation"
                       value={preferredLocation}
                       onChange={(e) => {
@@ -851,8 +850,21 @@ export default function Home() {
                         resetAnalysis();
                         resetJobSuggestions();
                       }}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    />
+                      disabled={isLoading || isJobSearchLoading}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-50 disabled:text-gray-500"
+                    >
+                      <option value="">Anywhere in Australia</option>
+                      <option value="NSW">NSW — New South Wales</option>
+                      <option value="VIC">VIC — Victoria</option>
+                      <option value="QLD">QLD — Queensland</option>
+                      <option value="WA">WA — Western Australia</option>
+                      <option value="SA">SA — South Australia</option>
+                      <option value="TAS">TAS — Tasmania</option>
+                      <option value="ACT">
+                        ACT — Australian Capital Territory
+                      </option>
+                      <option value="NT">NT — Northern Territory</option>
+                    </select>
                   </div>
 
                   <div>
@@ -1228,7 +1240,7 @@ export default function Home() {
               </span>
 
               <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1">
-                Location: {preferredLocation || "Australia"}
+                State: {preferredLocation || "Anywhere in Australia"}
               </span>
             </div>
 

@@ -7,7 +7,7 @@ const profile: RecommendationProfile = {
   duringStudyTerm: true,
   monthsRemaining: 18,
   targetField: "Software Engineering",
-  preferredLocation: "Sydney",
+  preferredLocation: "NSW",
   yearsExperience: 0,
 };
 const job = { title: "Junior Software Engineer", location: "Sydney" };
@@ -108,20 +108,36 @@ describe("deterministic snippet recommendations", () => {
       recommendJob({ title: "Registered nurse" }, profile).breakdown.role
     ).toBe(0);
   });
-  it("prefers exact location, then whole-word regional matches", () => {
-    expect(recommendJob(job, profile).breakdown.location).toBe(20);
+  it("matches state accurately", () => {
+    const profileNSW = { ...profile, preferredLocation: "NSW" };
     expect(
-      recommendJob({ ...job, location: "Sydney, NSW" }, profile).breakdown
+      recommendJob({ ...job, location: "Sydney, NSW" }, profileNSW).breakdown
         .location
-    ).toBe(18);
+    ).toBe(20);
     expect(
-      recommendJob({ ...job, location: "Sydneyville" }, profile).breakdown
+      recommendJob(
+        { ...job, location: "Newcastle, New South Wales" },
+        profileNSW
+      ).breakdown.location
+    ).toBe(20);
+    expect(
+      recommendJob({ ...job, location: "Melbourne, VIC" }, profileNSW).breakdown
         .location
     ).toBe(0);
+
+    const profileVIC = { ...profile, preferredLocation: "VIC" };
     expect(
-      recommendJob({ ...job, location: "Melbourne" }, profile).breakdown
-        .location
-    ).toBe(0);
+      recommendJob({ ...job, location: "Geelong, Victoria" }, profileVIC)
+        .breakdown.location
+    ).toBe(20);
+
+    // empty preference / Anywhere does not receive location mismatch (receives 10 points)
+    expect(
+      recommendJob(
+        { ...job, location: "Melbourne" },
+        { ...profile, preferredLocation: "" }
+      ).breakdown.location
+    ).toBe(10);
   });
   it.each([
     "Full-time",
@@ -301,7 +317,7 @@ describe("suggestions API", () => {
         duringStudyTerm: "true",
         monthsRemaining: "18",
         targetField: "Software Engineering",
-        preferredLocation: "Sydney",
+        preferredLocation: "NSW",
         yearsExperience: "0",
         ...overrides,
       })}`
@@ -568,5 +584,50 @@ describe("suggestions API", () => {
   it("handles upstream failures on 485 path", async () => {
     setup485().mockResolvedValue(new Response("Unavailable", { status: 503 }));
     expect((await GET(request({ subclass: "485" }))).status).toBe(502);
+  });
+
+  // ── Location `where` query tests ─────────────────────────────────────
+
+  it("6. NSW maps to a state-level Adzuna `where` query", async () => {
+    const fetchMock = setup485();
+    const response = await GET(
+      request({ subclass: "485", preferredLocation: "NSW" })
+    );
+    expect(response.status).toBe(200);
+    const url = new URL(fetchMock.mock.calls[0][0]);
+    expect(url.searchParams.get("where")).toBe("New South Wales");
+  });
+
+  it("7. Anywhere omits the `where` parameter", async () => {
+    const fetchMock = setup485();
+    const response = await GET(
+      request({ subclass: "485", preferredLocation: "" })
+    );
+    expect(response.status).toBe(200);
+    const url = new URL(fetchMock.mock.calls[0][0]);
+    expect(url.searchParams.has("where")).toBe(false);
+  });
+
+  it("8. subclass-500 targeted searches all retain the selected state", async () => {
+    const fetchMock = setup500();
+    const response = await GET(
+      request({ subclass: "500", preferredLocation: "QLD" })
+    );
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(4); // 4 queries for subclass 500
+    for (const call of fetchMock.mock.calls) {
+      const url = new URL(call[0]);
+      expect(url.searchParams.get("where")).toBe("Queensland");
+    }
+  });
+
+  it("9. subclass-485 search retains the selected state", async () => {
+    const fetchMock = setup485();
+    const response = await GET(
+      request({ subclass: "485", preferredLocation: "VIC" })
+    );
+    expect(response.status).toBe(200);
+    const url = new URL(fetchMock.mock.calls[0][0]);
+    expect(url.searchParams.get("where")).toBe("Victoria");
   });
 });
