@@ -14,6 +14,8 @@ import {
   filterTemporaryVisaAllowed,
 } from "../../../lib/extractionFallbacks";
 
+import { extractTitle } from "../../../lib/titleExtraction";
+
 type RawEvidenceField = {
   value: string;
   text: string;
@@ -617,6 +619,8 @@ ${adText}
         aiVisaPlanRequirement ?? fallbackVisaPlanRequirement(adText),
 
       roleField: aiRoleField ?? fallbackRoleField(adText),
+
+      title: extractTitle(adText),
     };
 
     return Response.json({

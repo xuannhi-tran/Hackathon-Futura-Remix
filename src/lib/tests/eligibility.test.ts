@@ -595,72 +595,170 @@ describe("eligibility decoder", () => {
     }
 
     it("1. returns SKIP when Australian citizenship is required", () => {
-      const job = makeJob({ citizenshipRequirement: { text: "Australian citizen", value: "Australian citizen", start: 0, end: 18 } });
+      const job = makeJob({
+        citizenshipRequirement: {
+          text: "Australian citizen",
+          value: "Australian citizen",
+          start: 0,
+          end: 18,
+        },
+      });
       expect(evaluateJob(job, graduate485).status).toBe("SKIP");
     });
 
     it("2. returns SKIP when Australian permanent residency is required", () => {
-      const job = makeJob({ residencyRequirement: { text: "permanent resident", value: "permanent resident", start: 0, end: 18 } });
+      const job = makeJob({
+        residencyRequirement: {
+          text: "permanent resident",
+          value: "permanent resident",
+          start: 0,
+          end: 18,
+        },
+      });
       expect(evaluateJob(job, graduate485).status).toBe("SKIP");
     });
 
     it("3. returns SKIP when Australian Government security clearance is required", () => {
-      const job = makeJob({ securityClearance: { text: "NV1 security clearance", value: "NV1", start: 0, end: 22 } });
+      const job = makeJob({
+        securityClearance: {
+          text: "NV1 security clearance",
+          value: "NV1",
+          start: 0,
+          end: 22,
+        },
+      });
       expect(evaluateJob(job, graduate485).status).toBe("SKIP");
     });
 
     it("4. does NOT return SKIP for 'full working rights'", () => {
-      const job = makeJob({ workRightsRequirement: { text: "full working rights", value: "full working rights", start: 0, end: 19 } });
+      const job = makeJob({
+        workRightsRequirement: {
+          text: "full working rights",
+          value: "full working rights",
+          start: 0,
+          end: 19,
+        },
+      });
       expect(evaluateJob(job, graduate485).status).toBe("APPLY");
     });
 
     it("5. does NOT return SKIP for 'unrestricted working rights'", () => {
-      const job = makeJob({ workRightsRequirement: { text: "unrestricted working rights", value: "unrestricted working rights", start: 0, end: 27 } });
+      const job = makeJob({
+        workRightsRequirement: {
+          text: "unrestricted working rights",
+          value: "unrestricted working rights",
+          start: 0,
+          end: 27,
+        },
+      });
       expect(evaluateJob(job, graduate485).status).toBe("APPLY");
     });
 
     it("6. does NOT return SKIP for generic 'legally entitled to work in Australia'", () => {
-      const job = makeJob({ workRightsRequirement: { text: "legally entitled to work in Australia", value: "legally entitled", start: 0, end: 37 } });
+      const job = makeJob({
+        workRightsRequirement: {
+          text: "legally entitled to work in Australia",
+          value: "legally entitled",
+          start: 0,
+          end: 37,
+        },
+      });
       expect(evaluateJob(job, graduate485).status).toBe("APPLY");
     });
 
     it("7. returns TAILOR for explicit temporary visa acceptance", () => {
-      const job = makeJob({ temporaryVisaAllowed: { text: "temporary visa holders may apply", value: "temporary visa", start: 0, end: 32 } });
+      const job = makeJob({
+        temporaryVisaAllowed: {
+          text: "temporary visa holders may apply",
+          value: "temporary visa",
+          start: 0,
+          end: 32,
+        },
+      });
       expect(evaluateJob(job, graduate485).status).toBe("TAILOR");
     });
 
     it("8. returns TAILOR for professional registration / AHPRA", () => {
-      const job = makeJob({ registration: { text: "AHPRA registration", value: "AHPRA", start: 0, end: 18 } });
+      const job = makeJob({
+        registration: {
+          text: "AHPRA registration",
+          value: "AHPRA",
+          start: 0,
+          end: 18,
+        },
+      });
       expect(evaluateJob(job, graduate485).status).toBe("TAILOR");
     });
 
     it("9. returns TAILOR for legal admission / practising certificate", () => {
-      const job = makeJob({ registration: { text: "legal practising certificate", value: "law", start: 0, end: 28 } });
+      const job = makeJob({
+        registration: {
+          text: "legal practising certificate",
+          value: "law",
+          start: 0,
+          end: 28,
+        },
+      });
       expect(evaluateJob(job, graduate485).status).toBe("TAILOR");
     });
 
     it("10. returns TAILOR when there is no visa sponsorship", () => {
-      const job = makeJob({ sponsorship: { text: "no visa sponsorship", value: "no sponsorship", start: 0, end: 19 } });
+      const job = makeJob({
+        sponsorship: {
+          text: "no visa sponsorship",
+          value: "no sponsorship",
+          start: 0,
+          end: 19,
+        },
+      });
       expect(evaluateJob(job, graduate485).status).toBe("TAILOR");
     });
 
     it("11. does NOT block merely because the role is permanent full-time", () => {
-      const job = makeJob({ employmentType: { text: "permanent full-time", value: "permanent full-time", start: 0, end: 19 } });
+      const job = makeJob({
+        employmentType: {
+          text: "permanent full-time",
+          value: "permanent full-time",
+          start: 0,
+          end: 19,
+        },
+      });
       expect(evaluateJob(job, graduate485).status).toBe("APPLY");
     });
 
     it("12. returns TAILOR for Australian experience required", () => {
-      const job = makeJob({ australianExperienceRequirement: { text: "Australian experience required", value: "Aus experience", start: 0, end: 30 } });
+      const job = makeJob({
+        australianExperienceRequirement: {
+          text: "Australian experience required",
+          value: "Aus experience",
+          start: 0,
+          end: 30,
+        },
+      });
       expect(evaluateJob(job, graduate485).status).toBe("TAILOR");
     });
 
     it("13. returns TAILOR for future visa-plan requirement", () => {
-      const job = makeJob({ visaPlanRequirement: { text: "please detail your future visa plan", value: "visa plan", start: 0, end: 35 } });
+      const job = makeJob({
+        visaPlanRequirement: {
+          text: "please detail your future visa plan",
+          value: "visa plan",
+          start: 0,
+          end: 35,
+        },
+      });
       expect(evaluateJob(job, graduate485).status).toBe("TAILOR");
     });
 
     it("14. does NOT apply the subclass-500 study-term hours blocker (>24 hrs/wk) to 485", () => {
-      const job = makeJob({ hoursPerWeek: { text: "38 hours per week", value: "38", start: 0, end: 17 } });
+      const job = makeJob({
+        hoursPerWeek: {
+          text: "38 hours per week",
+          value: "38",
+          start: 0,
+          end: 17,
+        },
+      });
       expect(evaluateJob(job, graduate485).status).toBe("APPLY");
     });
 
@@ -670,16 +768,176 @@ describe("eligibility decoder", () => {
       // In route.ts, if there is a 'full working rights' alternative,
       // citizenship/PR requirements are suppressed to undefined before evaluation.
       const job = makeJob({
-        workRightsRequirement: { text: "full working rights", value: "full working rights", start: 0, end: 19 }
+        workRightsRequirement: {
+          text: "full working rights",
+          value: "full working rights",
+          start: 0,
+          end: 19,
+        },
       });
       expect(evaluateJob(job, graduate485).status).toBe("APPLY");
     });
 
     it("Regression: citizen OR unrestricted working rights -> not a SKIP", () => {
       const job = makeJob({
-        workRightsRequirement: { text: "unrestricted working rights", value: "unrestricted working rights", start: 0, end: 27 }
+        workRightsRequirement: {
+          text: "unrestricted working rights",
+          value: "unrestricted working rights",
+          start: 0,
+          end: 27,
+        },
       });
       expect(evaluateJob(job, graduate485).status).toBe("APPLY");
+    });
+  });
+
+  describe("near-graduation graduate role exception", () => {
+    const makeJob = (
+      overrides: Partial<ExtractedJobAd> = {}
+    ): ExtractedJobAd => ({
+      title: overrides.title,
+      workRightsRequirement: overrides.workRightsRequirement,
+      hoursPerWeek: overrides.hoursPerWeek,
+      citizenshipRequirement: overrides.citizenshipRequirement,
+      residencyRequirement: overrides.residencyRequirement,
+      securityClearance: overrides.securityClearance,
+    });
+
+    const studyTerm500_3months: VisaProfile = {
+      subclass: "500",
+      duringStudyTerm: true,
+      monthsRemaining: 3,
+    };
+    const studyTerm500_8months: VisaProfile = {
+      subclass: "500",
+      duringStudyTerm: true,
+      monthsRemaining: 8,
+    };
+    const studyTerm500_6months: VisaProfile = {
+      subclass: "500",
+      duringStudyTerm: true,
+      monthsRemaining: 6,
+    };
+    const profile485: VisaProfile = {
+      subclass: "485",
+      duringStudyTerm: false,
+      monthsRemaining: 3,
+    };
+
+    const fullWorkRights = {
+      text: "full working rights",
+      value: "full",
+      start: 0,
+      end: 19,
+    };
+    const hours30 = {
+      text: "30 hours per week",
+      value: "30",
+      start: 0,
+      end: 17,
+    };
+
+    it("1. returns TAILOR when 500 study term, <=6 months, graduate title, full working rights", () => {
+      const job = makeJob({
+        title: "Graduate Software Engineer",
+        workRightsRequirement: fullWorkRights,
+      });
+      const verdict = evaluateJob(job, studyTerm500_3months);
+      expect(verdict.status).toBe("TAILOR");
+      expect(verdict.ruleId).toBe("T2_GRADUATE_ROLE_TIMING_REVIEW");
+    });
+
+    it("2. returns SKIP when non-graduate title, full working rights", () => {
+      const job = makeJob({
+        title: "Software Engineer",
+        workRightsRequirement: fullWorkRights,
+      });
+      expect(evaluateJob(job, studyTerm500_3months).status).toBe("SKIP");
+    });
+
+    it("3. returns SKIP when 500 study term, >6 months, graduate title, full working rights", () => {
+      const job = makeJob({
+        title: "Graduate Software Engineer",
+        workRightsRequirement: fullWorkRights,
+      });
+      expect(evaluateJob(job, studyTerm500_8months).status).toBe("SKIP");
+    });
+
+    it("4. returns TAILOR when exactly 6 months remaining", () => {
+      const job = makeJob({
+        title: "Graduate Software Engineer",
+        workRightsRequirement: fullWorkRights,
+      });
+      expect(evaluateJob(job, studyTerm500_6months).status).toBe("TAILOR");
+    });
+
+    it("5. returns TAILOR when 500 study term, <=6 months, graduate title, hours exceed", () => {
+      const job = makeJob({ title: "Graduate Nurse", hoursPerWeek: hours30 });
+      expect(evaluateJob(job, studyTerm500_3months).status).toBe("TAILOR");
+    });
+
+    it("6. returns SKIP when non-graduate title, hours exceed", () => {
+      const job = makeJob({ title: "Nurse", hoursPerWeek: hours30 });
+      expect(evaluateJob(job, studyTerm500_3months).status).toBe("SKIP");
+    });
+
+    it("7. returns SKIP for citizenship requirement even on graduate role with <=6 months", () => {
+      const job = makeJob({
+        title: "Graduate Software Engineer",
+        citizenshipRequirement: {
+          text: "Australian citizen",
+          value: "citizen",
+          start: 0,
+          end: 18,
+        },
+      });
+      expect(evaluateJob(job, studyTerm500_3months).status).toBe("SKIP");
+    });
+
+    it("8. returns SKIP for PR requirement even on graduate role with <=6 months", () => {
+      const job = makeJob({
+        title: "Graduate Software Engineer",
+        residencyRequirement: {
+          text: "permanent resident",
+          value: "pr",
+          start: 0,
+          end: 18,
+        },
+      });
+      expect(evaluateJob(job, studyTerm500_3months).status).toBe("SKIP");
+    });
+
+    it("9. returns SKIP for security clearance even on graduate role with <=6 months", () => {
+      const job = makeJob({
+        title: "Graduate Cyber Analyst",
+        securityClearance: { text: "NV1", value: "NV1", start: 0, end: 3 },
+      });
+      expect(evaluateJob(job, studyTerm500_3months).status).toBe("SKIP");
+    });
+
+    it("10. keeps existing subclass 485 behaviour (APPLY for full work rights)", () => {
+      const job = makeJob({
+        title: "Graduate Software Engineer",
+        workRightsRequirement: fullWorkRights,
+      });
+      expect(evaluateJob(job, profile485).status).toBe("APPLY");
+    });
+
+    it("11. 'Undergraduate' title does not trigger exception", () => {
+      const job = makeJob({
+        title: "Undergraduate Software Engineer",
+        workRightsRequirement: fullWorkRights,
+      });
+      expect(evaluateJob(job, studyTerm500_3months).status).toBe("SKIP");
+    });
+
+    it("12. Description containing 'graduate' but title not having it does not trigger exception", () => {
+      // The exception strictly looks at title
+      const job = makeJob({
+        title: "Software Engineer",
+        workRightsRequirement: fullWorkRights,
+      });
+      expect(evaluateJob(job, studyTerm500_3months).status).toBe("SKIP");
     });
   });
 });

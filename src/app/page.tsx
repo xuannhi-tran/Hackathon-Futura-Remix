@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 import { mockExtractJobAd } from "../lib/mockExtraction";
 import { getDemoFixture } from "../lib/demoFixtures";
+import { extractTitle } from "../lib/titleExtraction";
 
 import { evaluateJob, evaluateFitSignals } from "../lib/rules";
 import { findClauseStart, findClauseEnd } from "../lib/extractionFallbacks";
@@ -487,11 +488,7 @@ export default function Home() {
   function addToPortfolio() {
     if (!verdict) return;
 
-    const firstLine =
-      adText
-        .split("\n")
-        .find((line) => line.trim().length > 0)
-        ?.trim() ?? "Untitled job";
+    const firstLine = extractTitle(adText) ?? "Untitled job";
 
     const title =
       firstLine.length > 60 ? `${firstLine.slice(0, 60)}...` : firstLine;

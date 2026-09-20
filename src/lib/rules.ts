@@ -48,6 +48,11 @@ function isExplicitFullWorkRightsRequirement(field?: EvidenceField): boolean {
   ]);
 }
 
+function isGraduateRole(title?: string): boolean {
+  if (!title) return false;
+  return /\bgraduate\b/i.test(title);
+}
+
 export function evaluateJob(
   job: ExtractedJobAd,
   profile?: VisaProfile
@@ -110,14 +115,29 @@ export function evaluateJob(
     job.workRightsRequirement
   );
 
+  const weeklyHours = extractHours(job.hoursPerWeek);
+
+  const is500StudyTerm = profile?.subclass === "500" && profile.duringStudyTerm;
+
+  const isNearGraduationException =
+    is500StudyTerm &&
+    profile.monthsRemaining !== undefined &&
+    profile.monthsRemaining <= 6 &&
+    isGraduateRole(job.title);
+
   // Student visa 500 + study term:
   // explicit full/unrestricted working rights are
   // incompatible with the selected profile.
-  if (
-    explicitFullWorkRights &&
-    profile?.subclass === "500" &&
-    profile.duringStudyTerm
-  ) {
+  if (explicitFullWorkRights && is500StudyTerm) {
+    if (isNearGraduationException) {
+      return {
+        status: "TAILOR",
+        ruleId: "T2_GRADUATE_ROLE_TIMING_REVIEW",
+        reason: `This appears to be a graduate role and your subclass 500 visa has approximately ${profile.monthsRemaining} months remaining. The advertised work-right requirement may apply at the role's commencement rather than at application time. Confirm the commencement date and required work rights with the employer.`,
+        evidence: evidenceFrom(job.workRightsRequirement!),
+      };
+    }
+
     return {
       status: "SKIP",
       ruleId: "T1_FULL_WORK_RIGHTS_STUDENT_500",
@@ -139,16 +159,19 @@ export function evaluateJob(
   // HOURS — PROFILE AWARE
   // =======================================
 
-  const weeklyHours = extractHours(job.hoursPerWeek);
-
-  if (
-    profile?.subclass === "500" &&
-    profile.duringStudyTerm &&
-    weeklyHours !== undefined
-  ) {
+  if (is500StudyTerm && weeklyHours !== undefined) {
     const fortnightlyHours = weeklyHours * 2;
 
     if (fortnightlyHours > 48) {
+      if (isNearGraduationException) {
+        return {
+          status: "TAILOR",
+          ruleId: "T2_GRADUATE_ROLE_TIMING_REVIEW",
+          reason: `This appears to be a graduate role and your subclass 500 visa has approximately ${profile.monthsRemaining} months remaining. The advertised hours requirement may apply at the role's commencement rather than at application time. Confirm the commencement date and required work rights with the employer.`,
+          evidence: evidenceFrom(job.hoursPerWeek!),
+        };
+      }
+
       return {
         status: "SKIP",
         ruleId: "T1_STUDENT_500_STUDY_TERM_HOURS",

@@ -24,7 +24,10 @@ export type ExtractedJobAd = {
 
   yearsExperience?: EvidenceField;
   location?: EvidenceField;
+  // Tier 3
   roleField?: EvidenceField;
+
+  title?: string;
 };
 
 export type VisaProfile = {

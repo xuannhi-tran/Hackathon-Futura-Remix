@@ -1,4 +1,5 @@
 import { ExtractedJobAd, EvidenceField } from "../types/job";
+import { extractTitle } from "./titleExtraction";
 
 function findEvidence(
   adText: string,
@@ -55,5 +56,7 @@ export function mockExtractJobAd(adText: string): ExtractedJobAd {
       ],
       "Security clearance required"
     ),
+
+    title: extractTitle(adText),
   };
 }
