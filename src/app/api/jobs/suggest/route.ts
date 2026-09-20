@@ -1,4 +1,8 @@
-import { recommendJob, type RecommendationProfile } from "../../../../lib/jobRecommendation";
+import {
+  recommendJob,
+  isEligibleForSubclass500,
+  type RecommendationProfile,
+} from "../../../../lib/jobRecommendation";
 
 type AdzunaJob = {
   id: string;
@@ -141,7 +145,12 @@ export async function GET(request: Request) {
       category: job.category?.label,
     }));
 
-    const rankedJobs = jobs
+    const eligibleJobs =
+      profile.subclass === "500"
+        ? jobs.filter((job) => isEligibleForSubclass500(job.title))
+        : jobs;
+
+    const rankedJobs = eligibleJobs
       .map((job) => ({ ...job, recommendation: recommendJob(job, profile) }))
       .sort((a, b) => b.recommendation.score - a.recommendation.score || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
       .slice(0, 10);

@@ -35,6 +35,16 @@ export type JobRecommendation = {
   breakdown: { role: number; location: number; experience: number; profile: number; penalty: number };
 };
 
+// Subclass 500 holders are not blocked from senior/permanent roles by visa
+// conditions alone, but the product scope for this profile is early-career
+// search — titles must explicitly read as junior/graduate/intern to be shown.
+export const JUNIOR_TITLE_PATTERN =
+  /\b(graduate|junior|jr|entry level|intern|internship)\b/;
+
+export function isEligibleForSubclass500(title: string) {
+  return JUNIOR_TITLE_PATTERN.test(normalise(title));
+}
+
 function normalise(text: string) {
   return text.toLowerCase().replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ")
     .replace(/[^a-z0-9.+]+/g, " ").trim().replace(/\s+/g, " ");
@@ -77,7 +87,7 @@ export function recommendJob(job: RecommendationJob, profile: RecommendationProf
 
   // Seniority is read from the title so 'work with senior staff' is not a senior role.
   const senior = /\b(senior|sr|lead|principal|staff|head|director)\b/.test(title);
-  const junior = /\b(graduate|junior|jr|entry level|intern|internship)\b/.test(title);
+  const junior = JUNIOR_TITLE_PATTERN.test(title);
   const yearMatches = [...text.matchAll(/\b(\d+)(?:\s+(?:to\s+)?\d+)?\s*\+?\s*years?\s+(?:of\s+)?(?:relevant\s+|professional\s+|commercial\s+)?experience\b/g)];
   const requestedYears = yearMatches.length ? Math.max(...yearMatches.map((match) => Number(match[1]))) : undefined;
   let experience: number = weights.experience * partial.unknownExperience;
