@@ -647,10 +647,10 @@ export default function Home() {
         <div className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
             <h1 className="text-xl font-bold tracking-tight text-gray-900">
-              Job Eligibility Decoder
+              JobCompass
             </h1>
             <p className="text-sm text-gray-500">
-              Understand the requirements. Find your next opportunity.
+              Find better-fit roles. Decide where to apply.
             </p>
           </div>
           <p className="mt-1.5 text-xs text-gray-400">
