@@ -1,6 +1,7 @@
 import {
   recommendJob,
   isEligibleForSubclass500,
+  hasHardRecommendationBlocker,
   type RecommendationProfile,
 } from "../../../../lib/jobRecommendation";
 import { getStateFullName } from "../../../../lib/location";
@@ -270,15 +271,19 @@ export async function GET(request: Request) {
       const jobs = result.jobs.map(normaliseJob);
 
       // Rank candidate pool
-      const rankedJobs = jobs
+      const eligibleJobs = jobs.filter(
+        (job) =>
+          !hasHardRecommendationBlocker(job) &&
+          isEligibleForSubclass500(job.title)
+      );
+
+      const rankedJobs = eligibleJobs
         .map((job) => ({ ...job, recommendation: recommendJob(job, profile) }))
         .sort(
           (a, b) =>
             b.recommendation.score - a.recommendation.score ||
             (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
         )
-        // Ensure strictly eligible junior roles are kept
-        .filter((job) => isEligibleForSubclass500(job.title))
         .slice(0, 10);
 
       return Response.json({
@@ -289,7 +294,7 @@ export async function GET(request: Request) {
         },
         // Report the deduplicated candidate pool size, not a raw Adzuna count
         // that would misrepresent the number of eligible recommendations.
-        count: jobs.filter((job) => isEligibleForSubclass500(job.title)).length,
+        count: eligibleJobs.length,
         jobs: rankedJobs,
         candidateCount: jobs.length,
       });
@@ -305,8 +310,11 @@ export async function GET(request: Request) {
     );
 
     const jobs = raw.map(normaliseJob);
+    const eligibleJobs = jobs.filter(
+      (job) => !hasHardRecommendationBlocker(job)
+    );
 
-    const rankedJobs = jobs
+    const rankedJobs = eligibleJobs
       .map((job) => ({ ...job, recommendation: recommendJob(job, profile) }))
       .sort(
         (a, b) =>
@@ -323,7 +331,7 @@ export async function GET(request: Request) {
       },
       count: adzunaCount,
       jobs: rankedJobs,
-      scoredCount: jobs.length,
+      scoredCount: eligibleJobs.length,
     });
   } catch (error) {
     if (error instanceof AdzunaUpstreamError) {

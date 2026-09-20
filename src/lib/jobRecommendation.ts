@@ -1,5 +1,12 @@
 import { ExtractedJobAd, VisaProfile, FitProfile } from "../types/job";
 import { matchesState } from "./location";
+import {
+  fallbackCitizenship,
+  fallbackResidency,
+  fallbackSecurityClearance,
+  fallbackTemporaryVisaAllowed,
+  fallbackWorkRightsRequirement,
+} from "./extractionFallbacks";
 
 export type RecommendationProfile = VisaProfile & FitProfile;
 
@@ -69,6 +76,61 @@ export const JUNIOR_TITLE_PATTERN =
 
 export function isEligibleForSubclass500(title: string) {
   return JUNIOR_TITLE_PATTERN.test(normalise(title));
+}
+
+export function hasHardRecommendationBlocker(job: {
+  title: string;
+  description?: string;
+}): boolean {
+  const text = `${job.title}\n${job.description ?? ""}`;
+
+  // Split into sentences/clauses to ensure alternatives are evaluated in the same logical block
+  const clauses = text.split(/(?<=[.!?\n])\s+/);
+
+  for (const clause of clauses) {
+    const hasCitizenship =
+      fallbackCitizenship(clause) !== undefined ||
+      /\baustralian citizens? only\b/i.test(clause);
+
+    const hasPR =
+      fallbackResidency(clause) !== undefined || /\bPR only\b/i.test(clause);
+
+    const hasClearance =
+      fallbackSecurityClearance(clause) !== undefined ||
+      /\b(?:baseline|security) clearance (?:is )?(?:required|mandatory|essential)\b/i.test(
+        clause
+      ) ||
+      /\bmust (?:have|hold) (?:a )?(?:baseline|security) clearance\b/i.test(
+        clause
+      );
+
+    if (hasCitizenship || hasPR || hasClearance) {
+      // 1. Check for explicit negations in the same clause (e.g. "not required")
+      if (
+        /\b(?:not required|not mandatory|desirable but not|no (?:need|requirement) (?:for|to))\b/i.test(
+          clause
+        )
+      ) {
+        continue;
+      }
+
+      // 2. Check for explicit alternative pathways in the same clause
+      const hasAlternative =
+        fallbackTemporaryVisaAllowed(clause) !== undefined ||
+        fallbackWorkRightsRequirement(clause) !== undefined ||
+        /\b(?:graduate|temporary)\s+visa\b/i.test(clause) ||
+        /\bappropriate visa\b/i.test(clause) ||
+        /\b(?:candidates|applicants)\s+with\s+(?:full\s+)?working\s+rights\b/i.test(
+          clause
+        );
+
+      if (!hasAlternative) {
+        return true; // Found a hard blocker with no negation and no alternative
+      }
+    }
+  }
+
+  return false;
 }
 
 function normalise(text: string) {

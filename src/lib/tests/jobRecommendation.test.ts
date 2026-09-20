@@ -1,6 +1,46 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { recommendJob, type RecommendationProfile } from "../jobRecommendation";
+import {
+  recommendJob,
+  hasHardRecommendationBlocker,
+  type RecommendationProfile,
+} from "../jobRecommendation";
 import { GET } from "../../app/api/jobs/suggest/route";
+
+describe("hard structural blocker exclusion", () => {
+  it.each([
+    "Australian citizens only",
+    "Applicants must be Australian citizens",
+    "Australian citizenship required",
+    "Australian citizenship is mandatory",
+    "Permanent residents only",
+    "Permanent residency required",
+    "PR only",
+    "NV1 clearance required",
+    "Security clearance required",
+    "Baseline clearance mandatory",
+  ])("excludes explicit restrictive semantics: %s", (text) => {
+    expect(
+      hasHardRecommendationBlocker({ title: "Role", description: text })
+    ).toBe(true);
+  });
+
+  it.each([
+    "Australian citizens, permanent residents or Graduate Visa holders may apply.",
+    "Australian citizen, PR or candidates with full working rights may apply.",
+    "Australian citizenship is not required.",
+    "Security clearance is desirable but not required.",
+    "Full working rights required",
+    "No sponsorship available",
+    "Legally entitled to work in Australia",
+  ])(
+    "does NOT hard-filter alternative pathways, negations or soft wording: %s",
+    (text) => {
+      expect(
+        hasHardRecommendationBlocker({ title: "Role", description: text })
+      ).toBe(false);
+    }
+  );
+});
 
 const profile: RecommendationProfile = {
   subclass: "500",
@@ -584,6 +624,54 @@ describe("suggestions API", () => {
   it("handles upstream failures on 485 path", async () => {
     setup485().mockResolvedValue(new Response("Unavailable", { status: 503 }));
     expect((await GET(request({ subclass: "485" }))).status).toBe(502);
+  });
+
+  // ── Hard structural blocker exclusion ─────────────────────────────────
+
+  it("10. 485 retrieval excludes explicit citizenship/PR/clearance blockers", async () => {
+    setup485([
+      makeJob({
+        id: "1",
+        title: "Job 1",
+        description: "Australian citizens only",
+      }), // exclude
+      makeJob({ id: "2", title: "Job 2", description: "PR only" }), // exclude
+      makeJob({ id: "3", title: "Job 3", description: "NV1 required" }), // exclude
+      makeJob({
+        id: "4",
+        title: "Job 4",
+        description: "Legally entitled to work",
+      }), // keep
+    ]);
+    const response = await GET(request({ subclass: "485" }));
+    const json = await response.json();
+    expect(json.jobs).toHaveLength(1);
+    expect(json.jobs[0].id).toBe("4");
+  });
+
+  it("11. 500 targeted retrieval excludes explicit citizenship/PR/clearance blockers", async () => {
+    setup500([
+      [
+        makeJob({
+          id: "1",
+          title: "Junior Dev",
+          description: "Australian citizens only",
+        }),
+      ],
+      [],
+      [
+        makeJob({
+          id: "2",
+          title: "Junior Dev",
+          description: "No sponsorship available",
+        }),
+      ],
+      [],
+    ]);
+    const response = await GET(request({ subclass: "500" }));
+    const json = await response.json();
+    expect(json.jobs).toHaveLength(1);
+    expect(json.jobs[0].id).toBe("2");
   });
 
   // ── Location `where` query tests ─────────────────────────────────────
