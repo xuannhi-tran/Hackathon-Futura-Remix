@@ -1467,17 +1467,52 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Effort leak */}
-              <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                  Application effort
+              {/* Applications at risk */}
+              <div
+                className={`mt-4 rounded-lg border p-4 ${
+                  effortLeak === 0
+                    ? "border-green-200 bg-green-50"
+                    : effortLeak < 50
+                    ? "border-amber-200 bg-amber-50"
+                    : "border-red-200 bg-red-50"
+                }`}
+              >
+                <p
+                  className={`text-xs font-semibold uppercase tracking-wide ${
+                    effortLeak === 0
+                      ? "text-green-600"
+                      : effortLeak < 50
+                      ? "text-amber-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  Applications at risk
                 </p>
-                <p className="mt-1 text-3xl font-bold text-gray-900">
-                  {effortLeak}%
+                <p
+                  className={`mt-1 text-3xl font-bold ${
+                    effortLeak === 0
+                      ? "text-green-800"
+                      : effortLeak < 50
+                      ? "text-amber-800"
+                      : "text-red-800"
+                  }`}
+                >
+                  {skipCount} of {totalJobs}
                 </p>
-                <p className="mt-1 text-sm text-gray-500">
-                  of your saved roles contain requirements that may conflict
-                  with your profile.
+                <p
+                  className={`mt-0.5 text-sm font-medium ${
+                    effortLeak === 0
+                      ? "text-green-700"
+                      : effortLeak < 50
+                      ? "text-amber-700"
+                      : "text-red-700"
+                  }`}
+                >
+                  {effortLeak}% at risk &middot; Lower is better
+                </p>
+                <p className="mt-1.5 text-xs text-gray-500">
+                  Saved roles in this group contain requirements that may
+                  conflict with your current profile.
                 </p>
               </div>
 
