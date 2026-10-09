@@ -84,4 +84,5 @@ Server (`/api/extract`, `/api/tailor-advice`):
 structured visa profile.
 
 Browser: `app_opened` (once per session), `job_saved` (`verdict`), `job_removed`,
-`suggestions_viewed`, plus PostHog's automatic `$pageview`.
+`suggestions_viewed`, plus PostHog's automatic `$pageview`. No other PostHog events are sent
+(`$pageleave`, `$web_vitals` and `$exception` are disabled).

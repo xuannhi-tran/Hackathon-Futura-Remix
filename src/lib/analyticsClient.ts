@@ -92,6 +92,7 @@ function loadPostHog(): Promise<PostHogLike | null> {
         api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || DEFAULT_HOST,
         autocapture: false,
         capture_pageview: true,
+        capture_pageleave: false,
         disable_session_recording: true,
         capture_heatmaps: false,
         capture_dead_clicks: false,

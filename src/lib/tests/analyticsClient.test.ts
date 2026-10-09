@@ -69,6 +69,7 @@ describe("with a key", () => {
       api_host: "https://eu.i.posthog.com",
       autocapture: false,
       capture_pageview: true,
+      capture_pageleave: false,
       disable_session_recording: true,
       capture_heatmaps: false,
       capture_performance: false,
