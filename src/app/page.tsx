@@ -170,7 +170,7 @@ function FitSummary({
                 </p>
               )}
               {!signal && (
-                <p className="mt-0.5 text-xs text-gray-400 leading-5">
+                <p className="mt-0.5 text-xs text-gray-500 leading-5">
                   {row.preference}
                 </p>
               )}
@@ -759,14 +759,14 @@ export default function Home() {
               Find better-fit roles. Decide where to apply.
             </p>
           </div>
-          <p className="mt-1.5 text-xs text-gray-400">
+          <p className="mt-1.5 text-xs text-gray-500">
             Decision support only — not migration advice. Always verify your
             visa conditions and the employer&apos;s requirements.
           </p>
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+      <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 pb-24 pt-6 sm:px-6 lg:px-8">
         {/* ── Profile card ── */}
         <section className="rounded-xl border border-gray-200 bg-white shadow-sm">
           <div className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
@@ -774,7 +774,7 @@ export default function Home() {
               Your profile
             </h2>
             <button
-              className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+              className="min-h-11 rounded-lg border border-gray-200 px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors"
               aria-expanded={editingProfile}
               aria-controls="profile-editor"
               onClick={() => setEditingProfile(!editingProfile)}
@@ -832,7 +832,7 @@ export default function Home() {
             <div className="flex flex-col gap-6 md:flex-row md:gap-0">
               {/* VISA column */}
               <div className="flex-1 md:pr-6">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-400">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
                   Visa details
                 </p>
                 <div className="flex flex-col gap-4">
@@ -858,7 +858,7 @@ export default function Home() {
                         resetAnalysis();
                         resetJobSuggestions();
                       }}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                     >
                       <option value="500">Student visa (500)</option>
                       <option value="485">Graduate visa (485)</option>
@@ -881,7 +881,7 @@ export default function Home() {
                         resetJobSuggestions();
                       }}
                       disabled={visaSubclass !== "500"}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+                      className="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
                     >
                       <option value="yes">Yes</option>
                       <option value="no">No</option>
@@ -906,7 +906,7 @@ export default function Home() {
                         resetAnalysis();
                         resetJobSuggestions();
                       }}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                     />
                   </div>
                 </div>
@@ -917,7 +917,7 @@ export default function Home() {
 
               {/* CAREER column */}
               <div className="flex-1 md:pl-6">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-400">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
                   Career goals
                 </p>
                 <div className="flex flex-col gap-4">
@@ -937,7 +937,7 @@ export default function Home() {
                         resetAnalysis();
                         resetJobSuggestions();
                       }}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                     />
                   </div>
 
@@ -957,7 +957,7 @@ export default function Home() {
                         resetJobSuggestions();
                       }}
                       disabled={isLoading || isJobSearchLoading}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-50 disabled:text-gray-500"
+                      className="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 disabled:bg-gray-50 disabled:text-gray-500"
                     >
                       <option value="">Anywhere in Australia</option>
                       <option value="NSW">NSW — New South Wales</option>
@@ -991,7 +991,7 @@ export default function Home() {
                         resetAnalysis();
                         resetJobSuggestions();
                       }}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                     />
                   </div>
                 </div>
@@ -1024,19 +1024,29 @@ export default function Home() {
                 setAdText(e.target.value);
                 resetAnalysis();
               }}
+              rows={8}
               placeholder="Paste the full job advertisement here…"
-              className="min-h-48 w-full max-w-4xl rounded-lg border border-gray-300 bg-white p-4 text-sm leading-7 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-50 disabled:text-gray-400"
+              className="block min-h-[calc(8*1.75rem+2rem)] w-full resize-y rounded-lg border border-gray-300 bg-white p-4 text-base leading-7 text-gray-900 md:min-h-[calc(12*1.75rem+2rem)] placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 disabled:bg-gray-50 disabled:text-gray-400"
             />
-            <div className="mt-4 flex flex-wrap items-center gap-3">
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               {/* Primary CTA */}
               <button
                 onClick={handleAnalyse}
                 disabled={!adText.trim() || isLoading}
-                className="inline-flex min-h-10 items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                aria-busy={isLoading}
+                className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-base font-semibold text-white hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed transition-colors sm:w-auto ${
+                  isLoading ? "disabled:opacity-90" : "disabled:opacity-40"
+                }`}
               >
-                {isLoading ? "Checking…" : "Analyse job"}
+                {isLoading && (
+                  <span
+                    aria-hidden="true"
+                    className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+                  />
+                )}
+                {isLoading ? "Analysing…" : "Analyse job"}
               </button>
-              <span role="status" className="text-sm text-gray-500">
+              <span role="status" className="text-sm text-gray-600">
                 {isLoading ? "Checking the job ad against your profile…" : ""}
               </span>
             </div>
@@ -1048,14 +1058,14 @@ export default function Home() {
               {serviceNotice && (
                 <p
                   role="status"
-                  className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800"
+                  className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-base font-medium leading-snug text-amber-900"
                 >
                   {serviceNotice}
                 </p>
               )}
 
               {/* Verdict + Evidence two-column grid */}
-              <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)]">
+              <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)]">
                 {/* Verdict card */}
                 <div
                   className={`min-w-0 overflow-hidden rounded-xl border ${vc.card} shadow-sm`}
@@ -1067,24 +1077,30 @@ export default function Home() {
                   />
 
                   <div className="p-5 sm:p-6">
-                    {/* Verdict label + badge */}
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold tracking-wide uppercase ${vc.labelBg}`}
-                        aria-label={`Verdict: ${verdict.status}`}
-                      >
-                        {verdict.status}
+                    {/* Verdict label: the largest element in the card. The
+                        word is always shown, so colour is never the only cue. */}
+                    <p
+                      className={`flex items-center gap-3 text-4xl font-extrabold uppercase leading-none tracking-wide sm:text-5xl ${vc.heading}`}
+                    >
+                      <span className="sr-only">Verdict: </span>
+                      <span aria-hidden="true" className="text-3xl sm:text-4xl">
+                        {verdict.status === "APPLY"
+                          ? "✓"
+                          : verdict.status === "TAILOR"
+                          ? "!"
+                          : "✕"}
                       </span>
-                    </div>
+                      <span>{verdict.status}</span>
+                    </p>
 
-                    {/* Summary sentence */}
-                    <p className="mt-3 text-base font-semibold leading-snug text-gray-900 max-w-prose">
+                    {/* One-line reason directly under the verdict */}
+                    <p className="mt-3 max-w-prose text-lg font-medium leading-snug text-gray-900">
                       {verdictDescription}
                     </p>
 
                     {/* Why this result */}
                     <div className="mt-4">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-600">
                         Why this result
                       </h3>
                       <p className="mt-1.5 max-w-prose break-words text-sm leading-6 text-gray-700">
@@ -1094,7 +1110,7 @@ export default function Home() {
 
                     {/* Next step */}
                     <div className="mt-4">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-600">
                         Next step
                       </h3>
                       <p className="mt-1.5 max-w-prose text-sm leading-6 text-gray-700">
@@ -1107,7 +1123,7 @@ export default function Home() {
                       {verdict.status === "SKIP" && (
                         <a
                           href="#section-suggested"
-                          className="inline-flex min-h-10 items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 transition-colors"
+                          className="inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 transition-colors"
                         >
                           Find similar jobs
                         </a>
@@ -1116,7 +1132,7 @@ export default function Home() {
                       <button
                         onClick={addToPortfolio}
                         disabled={Boolean(saveMessage)}
-                        className={`inline-flex min-h-10 items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors ${
+                        className={`inline-flex min-h-11 items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors ${
                           saveMessage
                             ? "border-green-200 bg-green-50 text-green-800 cursor-default"
                             : verdict.status === "SKIP"
@@ -1146,7 +1162,7 @@ export default function Home() {
                   >
                     Evidence from the job ad
                   </h3>
-                  <p className="mt-0.5 text-xs text-gray-400">
+                  <p className="mt-0.5 text-xs text-gray-500">
                     The highlighted clause drove this result.
                   </p>
                   <div
@@ -1167,7 +1183,7 @@ export default function Home() {
                     <span>Fit with your goals</span>
                     <span
                       aria-hidden="true"
-                      className="text-gray-400 transition-transform group-open:rotate-180 select-none"
+                      className="text-gray-500 transition-transform group-open:rotate-180 select-none"
                     >
                       ▾
                     </span>
@@ -1190,7 +1206,7 @@ export default function Home() {
                     <span>Fit with your goals</span>
                     <span
                       aria-hidden="true"
-                      className="text-gray-400 transition-transform group-open:rotate-180 select-none"
+                      className="text-gray-500 transition-transform group-open:rotate-180 select-none"
                     >
                       ▾
                     </span>
@@ -1213,7 +1229,7 @@ export default function Home() {
                     <h3 className="text-base font-bold text-gray-900">
                       How to approach this role
                     </h3>
-                    <p className="mt-0.5 text-xs text-gray-400">
+                    <p className="mt-0.5 text-xs text-gray-500">
                       AI-generated guidance based on the highlighted
                       requirement.
                     </p>
@@ -1240,7 +1256,7 @@ export default function Home() {
                         {tailorAdvice.checks &&
                           tailorAdvice.checks.length > 0 && (
                             <div>
-                              <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
+                              <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
                                 What to check
                               </p>
                               <ul className="space-y-2">
@@ -1265,7 +1281,7 @@ export default function Home() {
                         {tailorAdvice.applicationTips &&
                           tailorAdvice.applicationTips.length > 0 && (
                             <div>
-                              <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
+                              <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
                                 Application tips
                               </p>
                               <ul className="space-y-2">
@@ -1290,7 +1306,7 @@ export default function Home() {
                         {tailorAdvice.recruiterQuestions &&
                           tailorAdvice.recruiterQuestions.length > 0 && (
                             <div>
-                              <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
+                              <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
                                 Questions you could ask
                               </p>
                               <ul className="space-y-2">
@@ -1325,7 +1341,7 @@ export default function Home() {
           <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
                   Next applications
                 </p>
                 <h2 className="mt-1 text-lg font-bold text-gray-900">
@@ -1340,13 +1356,13 @@ export default function Home() {
               <button
                 onClick={handleFindJobs}
                 disabled={!targetField.trim() || isJobSearchLoading}
-                className="shrink-0 inline-flex items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
+                className="shrink-0 inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
               >
                 {isJobSearchLoading ? "Finding jobs…" : "Find matching jobs"}
               </button>
             </div>
 
-            <p className="mt-3 max-w-prose text-xs text-gray-400">
+            <p className="mt-3 max-w-prose text-xs text-gray-500">
               Profile matches are estimates from Adzuna summaries, not
               eligibility decisions.
             </p>
@@ -1393,7 +1409,7 @@ export default function Home() {
                     {suggestedJobs.length === 1 ? "" : "s"}
                   </p>
 
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-500">
                     {suggestedJobCount > 0
                       ? `${suggestedJobCount.toLocaleString()} total Adzuna results`
                       : "Current Adzuna results"}
@@ -1418,7 +1434,7 @@ export default function Home() {
                             {job.company}
                           </p>
 
-                          <p className="mt-0.5 text-sm text-gray-400">
+                          <p className="mt-0.5 text-sm text-gray-500">
                             {job.location}
                           </p>
 
@@ -1443,7 +1459,7 @@ export default function Home() {
                           </div>
 
                           {!job.contractTime && !job.contractType && (
-                            <p className="mt-1.5 text-xs text-gray-400">
+                            <p className="mt-1.5 text-xs text-gray-500">
                               Contract information not listed
                             </p>
                           )}
@@ -1500,7 +1516,7 @@ export default function Home() {
                         </div>
 
                         <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4">
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-gray-500">
                             Jobs by Adzuna
                           </span>
 
@@ -1537,23 +1553,23 @@ export default function Home() {
               {/* Secondary CTA — outline */}
               <a
                 href="#section-check"
-                className="mt-4 inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                className="mt-4 inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Check a job
               </a>
             </section>
           ) : (
             <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-              <div className="mb-5 flex items-baseline justify-between gap-4">
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
                 <h2 className="text-lg font-bold text-gray-900">
                   Application Portfolio
                 </h2>
-                <span className="flex items-center gap-3 text-sm text-gray-400">
+                <span className="flex items-center gap-3 text-sm text-gray-500">
                   {totalJobs} job{totalJobs === 1 ? "" : "s"} saved
                   <button
                     type="button"
                     onClick={handleClearSavedJobs}
-                    className="rounded-md px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                    className="min-h-11 rounded-md px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors"
                   >
                     Clear saved jobs
                   </button>
@@ -1563,7 +1579,7 @@ export default function Home() {
               {/* Summary counts */}
               <div className="grid gap-3 sm:grid-cols-4">
                 <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Total
                   </p>
                   <p className="mt-1 text-3xl font-bold text-gray-900">
@@ -1664,7 +1680,7 @@ export default function Home() {
                   <h3 className="text-sm font-semibold text-gray-700">
                     Priority order
                   </h3>
-                  <p className="text-xs text-gray-400">Apply → Tailor → Skip</p>
+                  <p className="text-xs text-gray-500">Apply → Tailor → Skip</p>
                 </div>
 
                 <div className="space-y-2">
@@ -1698,7 +1714,7 @@ export default function Home() {
                         {/* Secondary action */}
                         <button
                           onClick={() => removeFromPortfolio(job.id)}
-                          className="rounded-md px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                          className="min-h-11 rounded-md px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors"
                           aria-label="Remove job from portfolio"
                         >
                           Remove
@@ -1710,18 +1726,18 @@ export default function Home() {
               </div>
             </section>
           )}
-          <p className="mt-3 text-xs text-gray-400">
+          <p className="mt-3 text-xs text-gray-500">
             Saved jobs (up to 50) and your profile settings are kept in this
             browser so they survive a refresh. They are not sent to us. Use
             &ldquo;Clear saved jobs&rdquo; to remove them.
           </p>
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-gray-500">
             We collect anonymous usage statistics (such as the verdict and
             response time). Your job ad text is never included in them. Ads are
             processed by Google&apos;s Gemini API to extract the requirements.
             Your browser&apos;s Do Not Track setting is respected.
           </p>
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-gray-500">
             If you leave a comment or email in feedback, it is stored to
             improve the app. Email{" "}
             <a
