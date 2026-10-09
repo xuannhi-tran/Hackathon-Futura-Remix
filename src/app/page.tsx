@@ -4,6 +4,7 @@ import { analyticsHeaders, trackClient } from "../lib/analyticsClient";
 import { useEffect, useRef, useState } from "react";
 
 import FeedbackWidget from "./FeedbackWidget";
+import { CONTACT_EMAIL } from "../lib/siteConfig";
 import {
   MAX_SAVED_JOBS,
   clearSavedJobs,
@@ -1721,9 +1722,15 @@ export default function Home() {
             Your browser&apos;s Do Not Track setting is respected.
           </p>
           <p className="mt-1 text-xs text-gray-400">
-            If you send feedback, your rating, and any comment or email you
-            choose to include, are stored to improve the app. Email us if you
-            would like them deleted.
+            If you leave a comment or email in feedback, it is stored to
+            improve the app. Email{" "}
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="underline hover:text-gray-600"
+            >
+              {CONTACT_EMAIL}
+            </a>{" "}
+            if you would like it deleted.
           </p>
           <div className="mt-3">
             <FeedbackWidget />

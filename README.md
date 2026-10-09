@@ -113,8 +113,10 @@ you want a reply"). `POST /api/feedback`:
 - never logs the comment or email, and sends PostHog only `feedback_submitted`
   with `rating`.
 
-Feedback comments and emails, if provided, are stored to improve the app and can
-be deleted on request.
+If you leave a comment or email in feedback, it is stored to improve the app.
+The footer asks users to email tranvoxuannhi2k6@gmail.com if they would like it
+deleted (the address lives in one constant, `CONTACT_EMAIL` in
+`src/lib/siteConfig.ts`, and is never sent to analytics).
 
 **Reading feedback:** in the Upstash console (Data Browser or CLI) run
 `LRANGE feedback:v1 0 -1`. Each item is JSON: `{ id, at, rating, comment?, email? }`.
