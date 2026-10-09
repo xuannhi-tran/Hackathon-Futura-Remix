@@ -78,6 +78,25 @@ export function evaluateJob(
   }
 
   // =======================================
+  // GRADUATE VISA (485) PATHWAY
+  //
+  // The citizenship/PR clause offers a subclass 485 as its
+  // only visa alternative. Viability depends on the profile.
+  // =======================================
+
+  if (job.graduateVisaPathway) {
+    return {
+      status: "TAILOR",
+      ruleId: "T2_GRADUATE_VISA_PATHWAY",
+      reason:
+        profile?.subclass === "485"
+          ? "The advertisement accepts Graduate Visa (subclass 485) holders as an alternative to citizenship or permanent residency. Check the visa validity dates the advertisement states against your own visa expiry."
+          : "The advertisement accepts Graduate Visa (subclass 485) holders as an alternative to citizenship or permanent residency. The role is only viable if you will hold a 485 by the start date.",
+      evidence: evidenceFrom(job.graduateVisaPathway),
+    };
+  }
+
+  // =======================================
   // TIER 1 — HARD BLOCKERS
   // =======================================
 

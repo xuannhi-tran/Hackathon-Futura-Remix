@@ -22,6 +22,7 @@ import {
   fallbackLocation,
   fallbackRegistration,
   hasFullWorkRightsAlternative,
+  resolveEligibilityClause,
   fallbackWorkRightsRequirement,
   filterTemporaryVisaAllowed,
 } from "../extractionFallbacks";
@@ -674,6 +675,16 @@ describe("hasFullWorkRightsAlternative", () => {
 
     // "right to work" is NOT a full/unrestricted phrase → no suppression.
     expect(hasFullWorkRightsAlternative(adText, field)).toBe(false);
+
+    // It is, however, an accepted alternative: TAILOR via the temporary-visa
+    // path rather than SKIP (see eligibilityClause.test.ts).
+    const resolution = resolveEligibilityClause(adText, field, undefined);
+    const verdict = evaluateJob(resolution, {
+      subclass: "500",
+      duringStudyTerm: true,
+    });
+    expect(verdict.status).toBe("TAILOR");
+    expect(verdict.ruleId).toBe("T2_TEMPORARY_VISA_ALLOWED");
   });
 
   it("returns false for undefined field", () => {

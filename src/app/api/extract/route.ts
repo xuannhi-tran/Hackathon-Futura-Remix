@@ -9,7 +9,8 @@ import {
   fallbackRegistration,
   fallbackVisaPlanRequirement,
   fallbackRoleField,
-  hasFullWorkRightsAlternative,
+  isDocumentChecklistEvidence,
+  resolveEligibilityClause,
   fallbackWorkRightsRequirement,
   filterTemporaryVisaAllowed,
 } from "../../../lib/extractionFallbacks";
@@ -549,28 +550,27 @@ ${adText}
     const aiRoleField = addEvidenceSpan(adText, rawExtraction.roleField);
 
     // ------------------------------------------
-    // OR-clause work-rights suppression.
+    // Eligibility-clause resolution.
     //
-    // When a clause such as:
-    //   "Australian citizen, Permanent Resident OR full working rights"
-    // explicitly offers full/unrestricted working rights as an alternative,
-    // citizenship and permanent residency are NOT exclusive hard blockers.
-    // Suppress them so the work-right field drives the profile-aware verdict.
+    // Reads the clause around the citizenship / residency evidence and
+    // decides which statuses it accepts:
+    //   - "citizen, PR OR full working rights" -> citizenship / PR
+    //     suppressed so the work-right field drives the verdict
+    //   - "citizen, PR OR <any visa with work rights>" -> temporaryVisaAllowed
+    //   - "citizen, PR OR Graduate Visa 485" -> graduateVisaPathway
+    //   - document checklists are dropped
+    // The verdict itself is still decided only in rules.ts.
     // ------------------------------------------
 
-    // Resolve citizenship and residency (AI span first, fallback second).
-    const resolvedCitizenship = aiCitizenship ?? fallbackCitizenship(adText);
-    const resolvedResidency = aiResidency ?? fallbackResidency(adText);
+    const usable = (
+      ai: EvidenceField | undefined,
+      fallback: EvidenceField | undefined
+    ) => (ai && !isDocumentChecklistEvidence(adText, ai) ? ai : fallback);
 
-    // Detect whether the containing clause offers full/unrestricted rights
-    // as an explicit OR-alternative to citizenship / permanent residency.
-    const citizenshipSuppressed = hasFullWorkRightsAlternative(
+    const clause = resolveEligibilityClause(
       adText,
-      resolvedCitizenship
-    );
-    const residencySuppressed = hasFullWorkRightsAlternative(
-      adText,
-      resolvedResidency
+      usable(aiCitizenship, fallbackCitizenship(adText)),
+      usable(aiResidency, fallbackResidency(adText))
     );
 
     // Ensure work-right evidence is present when citizenship/residency are
@@ -584,11 +584,9 @@ ${adText}
     // ------------------------------------------
 
     const extraction = {
-      citizenshipRequirement: citizenshipSuppressed
-        ? undefined
-        : resolvedCitizenship,
+      citizenshipRequirement: clause.citizenshipRequirement,
 
-      residencyRequirement: residencySuppressed ? undefined : resolvedResidency,
+      residencyRequirement: clause.residencyRequirement,
 
       securityClearance:
         aiSecurityClearance ?? fallbackSecurityClearance(adText),
@@ -613,7 +611,11 @@ ${adText}
       ),
 
       temporaryVisaAllowed:
-        aiTemporaryVisaAllowed ?? fallbackTemporaryVisaAllowed(adText),
+        aiTemporaryVisaAllowed ??
+        fallbackTemporaryVisaAllowed(adText) ??
+        clause.temporaryVisaAllowed,
+
+      graduateVisaPathway: clause.graduateVisaPathway,
 
       visaPlanRequirement:
         aiVisaPlanRequirement ?? fallbackVisaPlanRequirement(adText),

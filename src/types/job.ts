@@ -20,6 +20,8 @@ export type ExtractedJobAd = {
 
   // Quan rules integration
   temporaryVisaAllowed?: EvidenceField;
+  // Citizenship/PR clause whose only visa alternative is a subclass 485
+  graduateVisaPathway?: EvidenceField;
   visaPlanRequirement?: EvidenceField;
 
   yearsExperience?: EvidenceField;

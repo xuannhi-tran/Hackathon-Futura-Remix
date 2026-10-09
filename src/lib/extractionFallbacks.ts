@@ -397,49 +397,292 @@ export function findClauseEnd(
   return i;
 }
 
-/**
- * Extracts the logical clause (sentence or line) surrounding the span
- * `evidenceStart..evidenceEnd`. Used by hasFullWorkRightsAlternative.
- *
- * Does NOT cross sentence boundaries — a work-right phrase in a DIFFERENT
- * sentence is not considered part of the same clause.
- */
-function extractContainingClause(
-  adText: string,
-  evidenceStart: number,
-  evidenceEnd: number
-): string {
-  const clauseStart = findClauseStart(adText, evidenceStart);
-  const clauseEnd = findClauseEnd(adText, evidenceEnd, clauseStart);
-  return adText.slice(clauseStart, clauseEnd);
-}
+// --------------------------------------------------
+// ELIGIBILITY CLAUSE ANALYSIS
+//
+// Given the citizenship / residency evidence span, decide which statuses the
+// surrounding clause accepts. Works on structure, not on fixed phrases:
+//
+//   1. Scope   — the clause containing the span (findClauseStart/End), widened
+//                to the whole list when the span sits in a disjunctive bullet
+//                list.
+//   2. Options — the scope is split into option segments at `,` `;` `/`
+//                newlines and `or`. A segment that itself names
+//                citizenship/PR is a status option, and any visa wording
+//                inside it qualifies that status ("NZ citizen with full
+//                working rights"), so it is never read as a separate option.
+//   3. Accept  — every other segment is classified by category (full work
+//                rights, 485, student visa, any visa with work rights).
+//   4. Guard   — segments that negate or mention sponsorship, or that start
+//                with "and" (a further requirement, not an alternative), are
+//                not options.
+// --------------------------------------------------
 
-/** Pattern for explicit full/unrestricted working-rights phrases. */
+const BULLET_LINE_RE = /^[ \t]*(?:[-*•·▪●–—]|\d{1,2}[.)]|[a-z][.)])[ \t]+/;
+
+/** Citizenship / permanent-residency wording. */
+const STATUS_RE =
+  /\b(?:citizens?|citizenship|permanent\s+resid(?:ents?|ency|ence)|PRs?)\b/i;
+
+/** "a citizen of another country ..." is a visa-holder option, not a status. */
+const OTHER_COUNTRY_RE = /\b(?:another|other|foreign|overseas)\b/i;
+
+/** Explicit full / unrestricted working-rights phrases. */
 const FULL_WORK_RIGHTS_RE =
   /\b(?:full(?:\s+Australian)?\s+work(?:ing)?\s+rights|unrestricted\s+work(?:ing)?\s+rights|work(?:ing)?\s+without\s+restriction)\b/i;
 
+const GRADUATE_VISA_RE =
+  /\b485\b|\bgraduate\s+(?:work\s+)?visas?\b|\bpost[- ]study\s+work\s+(?:visa|rights)\b/i;
+
+const STUDENT_VISA_RE =
+  /\bstudent\s+visas?\b|\bsubclass\s*500\b|\b500\s+visa\b|\bvisa\s+500\b/i;
+
+/** Any visa / work-rights wording that is not a named subclass. */
+const GENERIC_VISA_RE = new RegExp(
+  [
+    // "visa holder(s)", "holder of a ... visa"
+    String.raw`\bvisa[- ]holders?\b`,
+    String.raw`\bholders?\s+of\s+(?:an?\s+|any\s+)?(?:\w+\s+){0,3}visa\b`,
+    // "valid / appropriate / suitable ... visa"
+    String.raw`\b(?:valid|appropriate|suitable|relevant|current|eligible|approved)\s+(?:\w+\s+)?visa\b`,
+    // "visa that allows / permits / with ... work|employment"
+    String.raw`\bvisa\s+(?:that\s+|which\s+)?(?:allow|permit|entitl|with)\w*\b[^.;,\n]{0,40}\b(?:work|employ)`,
+    // generic right to work: "the right to work in Australia", "legally entitled to work"
+    String.raw`\bright\s+to\s+work\b`,
+    String.raw`\b(?:entitled|eligible|authori[sz]ed|permitted)\s+to\s+work\b`,
+    // "valid / appropriate ... work rights"
+    String.raw`\b(?:valid|appropriate|suitable|sufficient|relevant|necessary)\s+(?:\w+\s+)?work(?:ing)?\s+rights\b`,
+  ].join("|"),
+  "i"
+);
+
+/** Wording that withdraws an option, or talks about sponsoring rather than accepting. */
+const NEGATION_RE =
+  /\b(?:not|no|never|cannot|can't|unable|unwilling|won't|without|excluding|except|ineligible)\b|n't\b|\bsponsor/i;
+
+/** Application-document checklists, not eligibility. */
+const DOCUMENT_CHECKLIST_RE =
+  /\b(?:birth|citizenship)\s+certificate\b|\bproof\s+of\s+(?:identity|citizenship)\b/i;
+
+export type EligibilityAlternativeKind =
+  "none" | "full_work_rights" | "any_visa" | "graduate_visa";
+
+export type EligibilityClauseAnalysis = {
+  /** Precedence: full_work_rights > any_visa > graduate_visa > none. */
+  kind: EligibilityAlternativeKind;
+  /** Exact substring of the ad for the winning alternative. */
+  evidence?: EvidenceField;
+};
+
+type Segment = { start: number; end: number; text: string };
+
+type Range = { start: number; end: number };
+
+function lineBounds(adText: string, pos: number): Range {
+  const start = adText.lastIndexOf("\n", Math.max(pos - 1, 0)) + 1;
+  const nl = adText.indexOf("\n", pos);
+
+  return {
+    start: start > pos ? 0 : start,
+    end: nl === -1 ? adText.length : nl,
+  };
+}
+
+function isStatusSegment(text: string): boolean {
+  return STATUS_RE.test(text) && !OTHER_COUNTRY_RE.test(text);
+}
+
 /**
- * Returns true when the same logical clause (sentence or line) that contains
- * `field` also explicitly offers full or unrestricted working rights as an
- * OR-alternative pathway, AND an explicit alternative separator (`or` or `/`)
- * appears in the text BETWEEN the evidence branch and the work-rights phrase.
+ * Scope of the eligibility clause around `start..end`.
  *
- * Triggering shapes:
- *   "Australian citizen or have full working rights"
- *   "Australian or NZ Citizen or have unrestricted working rights"
- *   "citizen, Permanent Resident or able to provide evidence of full working rights"
- *   "Australian citizen / full working rights"
- *
- * Does NOT fire on:
- *   "Australian or New Zealand citizen with full working rights"
- *     — the "or" is inside the evidence span; the between text is " with "
- *   "Australian/New Zealand citizen with unrestricted working rights"
- *     — the "/" is inside the evidence span; the between text is " with "
- *   "Australian citizen and full working rights required"
- *     — between text is " and ", which contains no "or" or "/"
- *   "Australian citizens. Full working rights required."
- *     — different sentences; the period terminates the clause before work rights
- *   Generic "right to work" wording — not matched by FULL_WORK_RIGHTS_RE
+ * A span inside a bullet widens to the whole adjacent bullet list (plus a
+ * lead-in line ending in ":") when that list is disjunctive: a bullet ends in
+ * "or", the list says "one of / any of / either", or two or more bullets name a
+ * citizenship/PR status (those cannot all be required together).
+ */
+function findEligibilityScope(
+  adText: string,
+  start: number,
+  end: number
+): Range {
+  const clauseStart = findClauseStart(adText, start);
+  const clauseEnd = Math.max(findClauseEnd(adText, start, clauseStart), end);
+
+  const isBullet = (line: Range) =>
+    BULLET_LINE_RE.test(adText.slice(line.start, line.end));
+
+  const own = lineBounds(adText, start);
+
+  if (!isBullet(own)) {
+    return { start: clauseStart, end: clauseEnd };
+  }
+
+  let first = own;
+  while (first.start > 0) {
+    const prev = lineBounds(adText, first.start - 1);
+    if (!isBullet(prev)) break;
+    first = prev;
+  }
+
+  let last = own;
+  while (last.end < adText.length) {
+    const next = lineBounds(adText, last.end + 1);
+    if (!isBullet(next)) break;
+    last = next;
+  }
+
+  let listStart = first.start;
+  if (first.start > 0) {
+    const lead = lineBounds(adText, first.start - 1);
+    if (/:\s*$/.test(adText.slice(lead.start, lead.end))) {
+      listStart = lead.start;
+    }
+  }
+
+  const lines = adText.slice(listStart, last.end).split("\n");
+  const disjunctive =
+    lines.filter(isStatusSegment).length >= 2 ||
+    lines.some((line) => /\b(?:one of|any of|either)\b/i.test(line)) ||
+    lines.slice(0, -1).some((line) => /\bor[\s.,;]*$/i.test(line));
+
+  if (!disjunctive) {
+    return { start: clauseStart, end: clauseEnd };
+  }
+
+  return {
+    start: Math.min(clauseStart, listStart),
+    end: Math.max(clauseEnd, last.end),
+  };
+}
+
+function splitIntoOptions(adText: string, scope: Range): Segment[] {
+  const text = adText.slice(scope.start, scope.end);
+  const segments: Segment[] = [];
+  const separator = /,|;|\/|\r?\n|\band\/or\b|\bor\b/gi;
+
+  let from = 0;
+
+  const push = (to: number) => {
+    let s = from;
+    let e = to;
+
+    const bullet = BULLET_LINE_RE.exec(text.slice(s, e));
+    if (bullet) s += bullet[0].length;
+
+    while (s < e && /\s/.test(text[s])) s++;
+    while (e > s && /[\s.,;:]/.test(text[e - 1])) e--;
+
+    if (e > s) {
+      segments.push({
+        start: scope.start + s,
+        end: scope.start + e,
+        text: text.slice(s, e),
+      });
+    }
+  };
+
+  for (const match of text.matchAll(separator)) {
+    push(match.index);
+    from = match.index + match[0].length;
+  }
+
+  push(text.length);
+
+  return segments;
+}
+
+function segmentField(
+  adText: string,
+  seg: Segment,
+  value: string
+): EvidenceField {
+  return {
+    value,
+    text: adText.slice(seg.start, seg.end),
+    start: seg.start,
+    end: seg.end,
+  };
+}
+
+/**
+ * Decides which alternative (if any) to citizenship / permanent residency the
+ * clause around `field` offers. One mechanism owns the decision for a clause:
+ * both the OR-clause suppression and the visa-pathway detection read this.
+ */
+export function analyseEligibilityClause(
+  adText: string,
+  field: EvidenceField | undefined
+): EligibilityClauseAnalysis {
+  if (!field) return { kind: "none" };
+
+  const scope = findEligibilityScope(adText, field.start, field.end);
+  const segments = splitIntoOptions(adText, scope);
+
+  let fullRights: Segment | undefined;
+  let anyVisa: Segment | undefined;
+  let graduate: Segment | undefined;
+
+  segments.forEach((seg, i) => {
+    if (isStatusSegment(seg.text)) return;
+    if (/^and\b/i.test(seg.text)) return;
+    if (i > 0 && /\band\s*$/i.test(segments[i - 1].text)) return;
+    if (NEGATION_RE.test(seg.text)) return;
+
+    const isGraduate = GRADUATE_VISA_RE.test(seg.text);
+
+    if (FULL_WORK_RIGHTS_RE.test(seg.text)) {
+      fullRights ??= seg;
+    } else if (
+      STUDENT_VISA_RE.test(seg.text) ||
+      (GENERIC_VISA_RE.test(seg.text) && !isGraduate)
+    ) {
+      anyVisa ??= seg;
+    } else if (isGraduate) {
+      graduate ??= seg;
+    }
+  });
+
+  if (fullRights) {
+    return {
+      kind: "full_work_rights",
+      evidence: segmentField(
+        adText,
+        fullRights,
+        "Full working rights accepted"
+      ),
+    };
+  }
+
+  if (anyVisa) {
+    return {
+      kind: "any_visa",
+      evidence: segmentField(
+        adText,
+        anyVisa,
+        "Visa holders with work rights accepted"
+      ),
+    };
+  }
+
+  if (graduate) {
+    return {
+      kind: "graduate_visa",
+      evidence: segmentField(
+        adText,
+        graduate,
+        "Graduate visa (subclass 485) accepted"
+      ),
+    };
+  }
+
+  return { kind: "none" };
+}
+
+/**
+ * True when the clause around `field` lists full / unrestricted working rights
+ * as its own option next to citizenship / PR ("citizen, PR or full working
+ * rights"). Does NOT fire when the phrase qualifies a status ("NZ citizen with
+ * full working rights") or sits in another sentence or line.
  *
  * IMPORTANT: Does NOT populate temporaryVisaAllowed.
  */
@@ -447,44 +690,76 @@ export function hasFullWorkRightsAlternative(
   adText: string,
   field: EvidenceField | undefined
 ): boolean {
+  return analyseEligibilityClause(adText, field).kind === "full_work_rights";
+}
+
+/**
+ * True when the evidence sits in a document checklist
+ * ("Passport or Birth Certificate or Australian Citizenship Certificate").
+ */
+export function isDocumentChecklistEvidence(
+  adText: string,
+  field: EvidenceField | undefined
+): boolean {
   if (!field) return false;
 
-  // Use field.start to anchor the clause. This avoids depending on field.end,
-  // which might be excessively wide (e.g. if Gemini extracts the entire clause).
-  const clauseStart = findClauseStart(adText, field.start);
-  const clauseEnd = findClauseEnd(adText, field.start, clauseStart);
-  const clause = adText.slice(clauseStart, clauseEnd);
+  const scope = findEligibilityScope(adText, field.start, field.end);
 
-  // 1. Locate the full/unrestricted working-rights phrase within the clause.
-  const wrMatch = FULL_WORK_RIGHTS_RE.exec(clause);
-  if (!wrMatch) return false;
-  const wrStart = wrMatch.index;
+  return (
+    DOCUMENT_CHECKLIST_RE.test(adText.slice(scope.start, scope.end)) ||
+    /^\s*certificate\b/i.test(adText.slice(field.end, field.end + 20))
+  );
+}
 
-  // 2. Locate the relevant citizenship/residency branch BEFORE the work-right phrase.
-  // We search for the last blocker token that ends before wrStart.
-  const blockerTokens =
-    /\b(citizen|citizenship|permanent resident|permanent residency|pr)\b/gi;
-  let lastBlockerEnd = -1;
-  let match;
-  while ((match = blockerTokens.exec(clause)) !== null) {
-    const matchEnd = match.index + match[0].length;
-    if (matchEnd <= wrStart) {
-      lastBlockerEnd = matchEnd;
-    } else {
-      break;
-    }
-  }
+export type EligibilityClauseResolution = {
+  citizenshipRequirement?: EvidenceField;
+  residencyRequirement?: EvidenceField;
+  /** Any visa with work rights (or a student visa) is accepted. */
+  temporaryVisaAllowed?: EvidenceField;
+  /** The only visa accepted next to citizenship / PR is a 485. */
+  graduateVisaPathway?: EvidenceField;
+};
 
-  // If no citizenship/residency token appears before the work rights phrase, we abort.
-  if (lastBlockerEnd === -1) {
-    return false;
-  }
+/**
+ * Reads the clause around the citizenship and residency evidence and returns
+ * the evidence fields the rules engine should see.
+ *
+ *   - full working rights offered  -> citizenship / PR suppressed (the
+ *     work-rights field then drives the profile-aware verdict)
+ *   - any visa with work rights    -> temporaryVisaAllowed
+ *   - only a 485 offered           -> graduateVisaPathway
+ *   - otherwise                    -> citizenship / PR stay hard blockers
+ *
+ * Document checklists are dropped. Verdicts are NOT decided here.
+ */
+export function resolveEligibilityClause(
+  adText: string,
+  citizenship: EvidenceField | undefined,
+  residency: EvidenceField | undefined
+): EligibilityClauseResolution {
+  let anyVisa: EvidenceField | undefined;
+  let graduate: EvidenceField | undefined;
 
-  // 3. Inspect only the text BETWEEN that logical branch end and the work-right phrase.
-  const between = clause.slice(lastBlockerEnd, wrStart);
+  const handle = (
+    field: EvidenceField | undefined
+  ): EvidenceField | undefined => {
+    if (!field || isDocumentChecklistEvidence(adText, field)) return undefined;
 
-  // 4. Suppress only when that between-text contains an actual alternative separator.
-  return /\bor\b|\//i.test(between);
+    const analysis = analyseEligibilityClause(adText, field);
+
+    if (analysis.kind === "full_work_rights") return undefined;
+    if (analysis.kind === "any_visa") anyVisa ??= analysis.evidence;
+    if (analysis.kind === "graduate_visa") graduate ??= analysis.evidence;
+
+    return field;
+  };
+
+  return {
+    citizenshipRequirement: handle(citizenship),
+    residencyRequirement: handle(residency),
+    temporaryVisaAllowed: anyVisa,
+    graduateVisaPathway: anyVisa ? undefined : graduate,
+  };
 }
 
 export function filterTemporaryVisaAllowed(
