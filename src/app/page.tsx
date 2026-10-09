@@ -1,7 +1,17 @@
 "use client";
 
 import { analyticsHeaders, trackClient } from "../lib/analyticsClient";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+import FeedbackWidget from "./FeedbackWidget";
+import {
+  MAX_SAVED_JOBS,
+  clearSavedJobs,
+  loadProfile,
+  loadSavedJobs,
+  saveProfile,
+  saveSavedJobs,
+} from "../lib/localState";
 
 import { mockExtractJobAd } from "../lib/mockExtraction";
 import { getDemoFixture } from "../lib/demoFixtures";
@@ -232,6 +242,69 @@ export default function Home() {
     null
   );
   const [serviceNotice, setServiceNotice] = useState<string | null>(null);
+
+  // -----------------------
+  // PERSISTENCE (this browser only; never sent anywhere)
+  // -----------------------
+
+  const [hydrated, setHydrated] = useState(false);
+
+  /* eslint-disable react-hooks/set-state-in-effect --
+     One-time hydration from localStorage, which does not exist during SSR;
+     reading it in a state initialiser would cause a hydration mismatch. */
+  useEffect(() => {
+    const jobs = loadSavedJobs();
+    if (jobs.length > 0) setSavedJobs(jobs);
+
+    const profile = loadProfile();
+    if (profile) {
+      if (profile.visaSubclass !== undefined)
+        setVisaSubclass(profile.visaSubclass);
+      if (profile.duringStudyTerm !== undefined)
+        setDuringStudyTerm(profile.duringStudyTerm);
+      if (profile.monthsRemaining !== undefined)
+        setMonthsRemaining(profile.monthsRemaining);
+      if (profile.targetField !== undefined)
+        setTargetField(profile.targetField);
+      if (profile.preferredLocation !== undefined)
+        setPreferredLocation(profile.preferredLocation);
+      if (profile.yearsExperience !== undefined)
+        setYearsExperience(profile.yearsExperience);
+    }
+
+    setHydrated(true);
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  useEffect(() => {
+    if (hydrated) saveSavedJobs(savedJobs);
+  }, [savedJobs, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    saveProfile({
+      visaSubclass,
+      duringStudyTerm,
+      monthsRemaining,
+      targetField,
+      preferredLocation,
+      yearsExperience,
+    });
+  }, [
+    hydrated,
+    visaSubclass,
+    duringStudyTerm,
+    monthsRemaining,
+    targetField,
+    preferredLocation,
+    yearsExperience,
+  ]);
+
+  function handleClearSavedJobs() {
+    setSavedJobs([]);
+    clearSavedJobs();
+    setSaveMessage("");
+  }
 
   function resetAnalysis() {
     setSaveMessage("");
@@ -530,8 +603,8 @@ export default function Home() {
       verdict,
     };
 
-    setSavedJobs((current) => [...current, job]);
-    setSaveMessage("Saved to your portfolio for this session.");
+    setSavedJobs((current) => [...current, job].slice(-MAX_SAVED_JOBS));
+    setSaveMessage("Saved to your portfolio.");
     trackClient("job_saved", { verdict: verdict.status });
   }
 
@@ -1474,8 +1547,15 @@ export default function Home() {
                 <h2 className="text-lg font-bold text-gray-900">
                   Application Portfolio
                 </h2>
-                <span className="text-sm text-gray-400">
+                <span className="flex items-center gap-3 text-sm text-gray-400">
                   {totalJobs} job{totalJobs === 1 ? "" : "s"} saved
+                  <button
+                    type="button"
+                    onClick={handleClearSavedJobs}
+                    className="rounded-md px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                  >
+                    Clear saved jobs
+                  </button>
                 </span>
               </div>
 
@@ -1630,8 +1710,9 @@ export default function Home() {
             </section>
           )}
           <p className="mt-3 text-xs text-gray-400">
-            Your portfolio is kept for this session only. Refreshing the page
-            clears saved jobs.
+            Saved jobs (up to 50) and your profile settings are kept in this
+            browser so they survive a refresh. They are not sent to us. Use
+            &ldquo;Clear saved jobs&rdquo; to remove them.
           </p>
           <p className="mt-1 text-xs text-gray-400">
             We collect anonymous usage statistics (such as the verdict and
@@ -1639,6 +1720,14 @@ export default function Home() {
             processed by Google&apos;s Gemini API to extract the requirements.
             Your browser&apos;s Do Not Track setting is respected.
           </p>
+          <p className="mt-1 text-xs text-gray-400">
+            If you send feedback, your rating, and any comment or email you
+            choose to include, are stored to improve the app. Email us if you
+            would like them deleted.
+          </p>
+          <div className="mt-3">
+            <FeedbackWidget />
+          </div>
         </div>
       </div>
     </main>

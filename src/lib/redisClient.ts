@@ -14,6 +14,16 @@ export interface RedisLike {
   ): Promise<unknown>;
   incr(key: string): Promise<number>;
   decr(key: string): Promise<number>;
+  /**
+   * Atomically pushes `value` to the head of a list, trims it to `max` entries
+   * and sets its TTL, so a list key never exists without an expiry.
+   */
+  pushCapped(
+    key: string,
+    value: string,
+    max: number,
+    ttlSeconds: number
+  ): Promise<unknown>;
 }
 
 type Env = Record<string, string | undefined>;
@@ -68,6 +78,13 @@ export function getRedis(): RedisLike | null {
         : redis.set(key, value, { ex: options.ex }),
     incr: (key) => redis.incr(key),
     decr: (key) => redis.decr(key),
+    pushCapped: (key, value, max, ttlSeconds) =>
+      redis
+        .multi()
+        .lpush(key, value)
+        .ltrim(key, 0, max - 1)
+        .expire(key, ttlSeconds)
+        .exec(),
   };
 
   envClient = { fingerprint, client };

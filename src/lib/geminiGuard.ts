@@ -42,7 +42,7 @@ function sha256(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
-function logRedisProblem(error: unknown) {
+export function logRedisProblem(error: unknown) {
   // Name only: never log messages, URLs or tokens.
   console.warn(
     "Redis unavailable, continuing without it:",
@@ -142,9 +142,18 @@ function clientKey(request: Request): string {
   return sha256(`${process.env.RATE_LIMIT_SALT ?? ""}|${ip}`).slice(0, 32);
 }
 
-/** Returns a 429 response when this client is over its limits, otherwise null. */
-export async function enforceClientLimit(
-  request: Request
+type ClientLimitConfig = {
+  /** Redis key prefix; separate prefixes keep the limits independent. */
+  prefix: string;
+  per10MinEnv: string;
+  per10MinDefault: number;
+  perDayEnv: string;
+  perDayDefault: number;
+};
+
+async function enforceLimits(
+  request: Request,
+  config: ClientLimitConfig
 ): Promise<Response | null> {
   if (isEvalBypass(request)) return null;
 
@@ -156,17 +165,17 @@ export async function enforceClientLimit(
 
     const tenMinutes = await hitSlidingWindow(
       redis,
-      `rl:${id}:10m`,
+      `${config.prefix}:${id}:10m`,
       600,
-      intFromEnv("RATE_LIMIT_PER_10_MIN", DEFAULTS.perClient10Min)
+      intFromEnv(config.per10MinEnv, config.per10MinDefault)
     );
     if (!tenMinutes.allowed) return rateLimited(tenMinutes.retryAfterSeconds);
 
     const day = await hitSlidingWindow(
       redis,
-      `rl:${id}:1d`,
+      `${config.prefix}:${id}:1d`,
       DAY_SECONDS,
-      intFromEnv("RATE_LIMIT_PER_DAY", DEFAULTS.perClientDay)
+      intFromEnv(config.perDayEnv, config.perDayDefault)
     );
     if (!day.allowed) return rateLimited(day.retryAfterSeconds);
   } catch (error) {
@@ -174,6 +183,33 @@ export async function enforceClientLimit(
   }
 
   return null;
+}
+
+/** Returns a 429 response when this client is over its limits, otherwise null. */
+export function enforceClientLimit(request: Request): Promise<Response | null> {
+  return enforceLimits(request, {
+    prefix: "rl",
+    per10MinEnv: "RATE_LIMIT_PER_10_MIN",
+    per10MinDefault: DEFAULTS.perClient10Min,
+    perDayEnv: "RATE_LIMIT_PER_DAY",
+    perDayDefault: DEFAULTS.perClientDay,
+  });
+}
+
+/**
+ * Per-client limit for /api/feedback. Its own counters and defaults (5 per
+ * 10 minutes, 20 per day); it never touches the Gemini quota.
+ */
+export function enforceFeedbackLimit(
+  request: Request
+): Promise<Response | null> {
+  return enforceLimits(request, {
+    prefix: "rlfb",
+    per10MinEnv: "FEEDBACK_RATE_LIMIT_PER_10_MIN",
+    per10MinDefault: 5,
+    perDayEnv: "FEEDBACK_RATE_LIMIT_PER_DAY",
+    perDayDefault: 20,
+  });
 }
 
 // --------------------------------------------------

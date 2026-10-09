@@ -79,6 +79,7 @@ Server (`/api/extract`, `/api/tailor-advice`):
 | `analyse_job` | `verdict` (APPLY/TAILOR/SKIP), `ruleId`, `visaSubclass` (500/485), `cacheHit`, `degraded` (model output unusable, fallbacks only), `latencyMs`, `adLengthBucket` (`<1k`, `1-3k`, `3-6k`, `>6k`) |
 | `tailor_advice_requested` | `latencyMs`, `success` |
 | `request_refused` | `reason` (`rate_limited`, `quota_cap`, `upstream_error`), `route` (`extract`, `tailor-advice`) |
+| `feedback_submitted` | `rating` (`up`/`down`) only; the comment and email are never sent to PostHog |
 
 `verdict`, `ruleId` and `visaSubclass` are absent if the client did not send a valid
 structured visa profile.
@@ -86,3 +87,37 @@ structured visa profile.
 Browser: `app_opened` (once per session), `job_saved` (`verdict`), `job_removed`,
 `suggestions_viewed`, plus PostHog's automatic `$pageview`. No other PostHog events are sent
 (`$pageleave`, `$web_vitals` and `$exception` are disabled).
+
+## Saved jobs and profile (this browser only)
+
+Saved jobs (at most the 50 most recent) and the profile form values are kept in
+`localStorage` under `jobcompass:saved:v1` and `jobcompass:profile:v1` so they
+survive a refresh. They are validated on load (malformed data is dropped), are
+never sent to the server or analytics, and the app works normally if storage is
+unavailable. "Clear saved jobs" in the portfolio removes the saved list.
+
+## Feedback
+
+The "Feedback" button opens a form: thumbs up/down (required), an optional
+comment (max 500 characters) and an optional email (max 254 characters, "only if
+you want a reply"). `POST /api/feedback`:
+
+- validates the body strictly (unknown fields are rejected);
+- has its own per-client rate limit, separate from the Gemini limits and quota
+  (`FEEDBACK_RATE_LIMIT_PER_10_MIN`, default 5; `FEEDBACK_RATE_LIMIT_PER_DAY`,
+  default 20); requests with a valid `x-eval-token` skip it;
+- stores each entry in the Redis list `feedback:v1` (newest first, at most 500
+  entries). The list has a 90-day TTL that is refreshed on each submission;
+- if Redis is not configured it returns success and stores nothing; if Redis
+  fails it returns 503 and logs only the error name;
+- never logs the comment or email, and sends PostHog only `feedback_submitted`
+  with `rating`.
+
+Feedback comments and emails, if provided, are stored to improve the app and can
+be deleted on request.
+
+**Reading feedback:** in the Upstash console (Data Browser or CLI) run
+`LRANGE feedback:v1 0 -1`. Each item is JSON: `{ id, at, rating, comment?, email? }`.
+To delete one entry, `LREM feedback:v1 1 '<the exact item>'`; to delete all,
+`DEL feedback:v1`.
+

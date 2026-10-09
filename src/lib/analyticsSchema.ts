@@ -70,6 +70,13 @@ export const EVENT_SCHEMAS = {
       route: { kind: "enum", values: ["extract", "tailor-advice"] },
     },
   },
+  feedback_submitted: {
+    side: "server",
+    properties: {
+      // Only the thumbs rating: comments and emails are never sent.
+      rating: { kind: "enum", values: ["up", "down"] },
+    },
+  },
   // ── browser ─────────────────────────────────────────────────────────────
   app_opened: { side: "client", properties: {} },
   job_saved: { side: "client", properties: { verdict: VERDICT } },
