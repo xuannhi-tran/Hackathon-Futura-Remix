@@ -1,5 +1,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Verdict, VisaProfile, FitProfile } from "../../../types/job";
+import {
+  enforceClientLimit,
+  geminiFailureResponse,
+  reserveGeminiCall,
+} from "../../../lib/geminiGuard";
 
 const adviceSchema = {
   type: Type.OBJECT,
@@ -55,6 +60,15 @@ export async function POST(request: Request) {
       );
     }
 
+    // No cache here; the per-client limit (skipped for the eval token) and the
+    // global Gemini quota both apply.
+    const limited =
+      (await enforceClientLimit(request)) ?? (await reserveGeminiCall());
+
+    if (limited) {
+      return limited;
+    }
+
     const ai = new GoogleGenAI({
       apiKey: process.env.GEMINI_API_KEY,
     });
@@ -104,15 +118,29 @@ JOB ADVERTISEMENT:
 ${adText}
 `.trim();
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash-lite",
-      contents: prompt,
-      config: {
-        temperature: 0.1,
-        responseMimeType: "application/json",
-        responseSchema: adviceSchema,
-      },
-    });
+    let response;
+
+    try {
+      response = await ai.models.generateContent({
+        model: "gemini-3.5-flash-lite",
+        contents: prompt,
+        config: {
+          temperature: 0.1,
+          responseMimeType: "application/json",
+          responseSchema: adviceSchema,
+        },
+      });
+    } catch (error) {
+      const busy = geminiFailureResponse(error);
+
+      if (busy) {
+        console.error("Gemini unavailable for tailor advice:", error);
+
+        return busy;
+      }
+
+      throw error;
+    }
 
     if (!response.text) {
       throw new Error("Empty response from Gemini.");

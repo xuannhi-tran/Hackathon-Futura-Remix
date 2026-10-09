@@ -79,6 +79,11 @@ async function extractViaApp(adText: string): Promise<ExtractedJobAd> {
 
         headers: {
           "Content-Type": "application/json",
+          // Skips the per-client limit and the cache when the server has the
+          // same EVAL_BYPASS_TOKEN. Global Gemini caps still apply.
+          ...(process.env.EVAL_BYPASS_TOKEN
+            ? { "x-eval-token": process.env.EVAL_BYPASS_TOKEN }
+            : {}),
         },
 
         body: JSON.stringify({

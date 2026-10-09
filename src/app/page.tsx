@@ -170,6 +170,12 @@ function FitSummary({
   );
 }
 
+function busyMessage(status: number): string {
+  return status === 429
+    ? "You have made a lot of requests in a short time. Please wait a few minutes and try again."
+    : "The AI service is busy right now. Please try again later.";
+}
+
 export default function Home() {
   const [adText, setAdText] = useState("");
   const [editingProfile, setEditingProfile] = useState(true);
@@ -220,6 +226,11 @@ export default function Home() {
   const [tailorAdvice, setTailorAdvice] = useState<TailorAdvice | null>(null);
   const [isTailorAdviceLoading, setIsTailorAdviceLoading] = useState(false);
   const [tailorAdviceError, setTailorAdviceError] = useState(false);
+  // Friendly messages when the server refuses with 429 (rate limited) or 503 (busy).
+  const [tailorAdviceNotice, setTailorAdviceNotice] = useState<string | null>(
+    null
+  );
+  const [serviceNotice, setServiceNotice] = useState<string | null>(null);
 
   function resetAnalysis() {
     setSaveMessage("");
@@ -227,6 +238,8 @@ export default function Home() {
     setFitSignals([]);
     setTailorAdvice(null);
     setTailorAdviceError(false);
+    setTailorAdviceNotice(null);
+    setServiceNotice(null);
     setIsTailorAdviceLoading(false);
   }
 
@@ -338,6 +351,8 @@ export default function Home() {
     setFitSignals([]);
     setTailorAdvice(null);
     setTailorAdviceError(false);
+    setTailorAdviceNotice(null);
+    setServiceNotice(null);
 
     const visaProfile = {
       subclass: visaSubclass,
@@ -367,6 +382,9 @@ export default function Home() {
         }),
       })
         .then((res) => {
+          if (res.status === 429 || res.status === 503) {
+            setTailorAdviceNotice(busyMessage(res.status));
+          }
           if (!res.ok) throw new Error("Tailor advice failed");
           return res.json();
         })
@@ -433,6 +451,12 @@ export default function Home() {
       });
 
       if (!response.ok) {
+        if (response.status === 429 || response.status === 503) {
+          setServiceNotice(
+            `${busyMessage(response.status)} This result uses basic matching instead of the AI analysis.`
+          );
+        }
+
         throw new Error(`AI extraction failed with status ${response.status}`);
       }
 
@@ -939,6 +963,15 @@ export default function Home() {
           {/* ── Result ── */}
           {verdict && vc && (
             <section aria-label="Your result" className="mt-4 space-y-4">
+              {serviceNotice && (
+                <p
+                  role="status"
+                  className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800"
+                >
+                  {serviceNotice}
+                </p>
+              )}
+
               {/* Verdict + Evidence two-column grid */}
               <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)]">
                 {/* Verdict card */}
@@ -1111,8 +1144,9 @@ export default function Home() {
                       </p>
                     ) : tailorAdviceError || !tailorAdvice ? (
                       <p className="text-sm font-medium text-amber-700">
-                        AI guidance is unavailable right now. Review the
-                        highlighted requirement before applying.
+                        {tailorAdviceNotice ??
+                          "AI guidance is unavailable right now."}{" "}
+                        Review the highlighted requirement before applying.
                       </p>
                     ) : (
                       <div className="space-y-6 text-sm">
