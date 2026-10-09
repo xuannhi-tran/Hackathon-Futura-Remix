@@ -59,7 +59,7 @@ and previews without the key behave exactly as before.
   (in memory if storage is blocked). It is the PostHog `distinct_id` and is sent
   to the API routes in the `x-anon-id` header; the server accepts it only if it
   is a valid UUID, otherwise events use `"unknown"`.
-- No autocapture, session recording, heatmaps, surveys or person profiles. Server
+- No autocapture, session recording, heatmaps, web vitals / performance capture, exception capture, surveys or person profiles. Server
   events disable geo-IP. Do Not Track (and Global Privacy Control) is respected on
   the client and server.
 - Requests with a valid `x-eval-token` are never tracked.

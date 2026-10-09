@@ -95,6 +95,10 @@ function loadPostHog(): Promise<PostHogLike | null> {
         disable_session_recording: true,
         capture_heatmaps: false,
         capture_dead_clicks: false,
+        // false overrides the project's remote config: no $web_vitals or
+        // network-timing events, so only $pageview and our own events are sent.
+        capture_performance: false,
+        capture_exceptions: false,
         disable_surveys: true,
         persistence: "localStorage",
         respect_dnt: true,

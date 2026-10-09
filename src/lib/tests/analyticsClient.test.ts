@@ -71,6 +71,8 @@ describe("with a key", () => {
       capture_pageview: true,
       disable_session_recording: true,
       capture_heatmaps: false,
+      capture_performance: false,
+      capture_exceptions: false,
       persistence: "localStorage",
       respect_dnt: true,
     });
