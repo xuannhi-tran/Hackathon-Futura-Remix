@@ -462,7 +462,7 @@ const NEGATION_RE =
 
 /** Application-document checklists, not eligibility. */
 const DOCUMENT_CHECKLIST_RE =
-  /\b(?:birth|citizenship)\s+certificate\b|\bproof\s+of\s+(?:identity|citizenship)\b/i;
+  /\b(?:birth|citizenship)\s+certificate\b|\bproof\s+of\s+(?:\w+\s+)?(?:identity|citizenship)\b/i;
 
 export type EligibilityAlternativeKind =
   "none" | "full_work_rights" | "any_visa" | "graduate_visa";
@@ -760,6 +760,197 @@ export function resolveEligibilityClause(
     temporaryVisaAllowed: anyVisa,
     graduateVisaPathway: anyVisa ? undefined : graduate,
   };
+}
+
+// --------------------------------------------------
+// MODEL-INDEPENDENT STATUS EXTRACTION
+//
+// The model's citizenship / residency spans are validated against their own
+// text, and a deterministic scan supplies a span when the model returns none,
+// so the verdict does not hinge on what the model happened to extract.
+// --------------------------------------------------
+
+const CITIZEN_WORD_RE = /\bcitizen(?:s|ship)?\b/i;
+const PERMANENT_RESIDENCY_RE = /\bpermanent\s+resid(?:ents?|ency|ence)\b/i;
+/** Case-sensitive on purpose: "PR" the abbreviation, not "pr". */
+const PR_ABBREVIATION_RE = /\bPRs?\b/;
+
+/**
+ * Keeps a residencyRequirement span only if its own text names permanent
+ * residency. "residing in Australia" / "living in NSW" are location wording.
+ */
+export function filterResidencyRequirement(
+  field: EvidenceField | undefined
+): EvidenceField | undefined {
+  if (!field) return undefined;
+
+  return PERMANENT_RESIDENCY_RE.test(field.text) ||
+    PR_ABBREVIATION_RE.test(field.text)
+    ? field
+    : undefined;
+}
+
+/** Keeps a citizenshipRequirement span only if its own text names citizenship. */
+export function filterCitizenshipRequirement(
+  field: EvidenceField | undefined
+): EvidenceField | undefined {
+  if (!field) return undefined;
+
+  return CITIZEN_WORD_RE.test(field.text) ? field : undefined;
+}
+
+/** Cues that a sentence states a requirement or restriction. */
+const REQUIREMENT_CUE_RE =
+  /\b(?:must|need(?:s)?\s+to|should|have\s+to|required?|requirements?|mandatory|essential|eligib\w+|criteria|only|open\s+to|limited\s+to|restricted\s+to|available\s+to)\b/i;
+
+/** A bullet that begins with status-style wording ("Be an ...", "Australian citizen"). */
+const BULLET_STATUS_START_RE =
+  /^(?:be|hold|are|have|an?|the|australian|new\s+zealand|nz|citizens?|permanent|PR)\b/i;
+
+/** "no citizenship required", "regardless of citizenship". */
+const STATUS_NEGATED_RE =
+  /\b(?:no|not|without|regardless|irrespective|never)\b[^.]{0,60}\b(?:citizen\w*|permanent|PR)\b|\b(?:citizen\w*|permanent\s+resid\w+|PR)\b[^.]{0,40}\b(?:is\s+not|not|no)\s+(?:required|needed|necessary|essential|mandatory)\b/i;
+
+/** Status as a future outcome or a benefit, not a prerequisite. */
+const STATUS_NOT_PREREQUISITE_RE =
+  /\b(?:secur\w+|obtain\w*|gain\w*|apply(?:ing)?\s+for|pathway|transition\w*|become|becoming|sponsor\w*|help\w*|assist\w*|support\w*)\b[^.]{0,60}\b(?:citizen\w*|permanent\s+resid\w+|PR)\b|\bpermanent\s+resid\w+\s+(?:applications?|pathways?|support|assistance)\b/i;
+
+/** "be / hold ... citizen|permanent resident": a held-status statement. */
+const STATUS_HELD_RE =
+  /\b(?:be|being|hold|holding|holds|are|is)\b(?:\s+\S+){0,6}?\s+(?:citizens?|citizenship|permanent\s+resid\w+)/i;
+
+type Unit = { start: number; end: number; text: string; bullet: boolean };
+
+/** Splits the ad into bullets and sentences, with exact offsets. */
+function splitIntoUnits(adText: string): Unit[] {
+  const units: Unit[] = [];
+  let lineStart = 0;
+
+  for (const line of adText.split("\n")) {
+    const bulletMatch = BULLET_LINE_RE.exec(line);
+    const bodyFrom = bulletMatch ? bulletMatch[0].length : 0;
+    const pieces: Array<[number, number]> = [];
+
+    let from = bodyFrom;
+    for (const m of line.matchAll(/[.!?]+(?=\s|$)/g)) {
+      if (m.index < from) continue;
+      pieces.push([from, m.index]);
+      from = m.index + m[0].length;
+    }
+    pieces.push([from, line.length]);
+
+    pieces.forEach(([pieceFrom, pieceTo], i) => {
+      let s = pieceFrom;
+      let e = pieceTo;
+      // Skip whitespace and leading markdown emphasis; trim trailing punctuation.
+      while (s < e && /[\s*_]/.test(line[s])) s++;
+      while (e > s && /[\s.,;:*_]/.test(line[e - 1])) e--;
+      if (e > s) {
+        units.push({
+          start: lineStart + s,
+          end: lineStart + e,
+          text: line.slice(s, e),
+          bullet: Boolean(bulletMatch) && i === 0,
+        });
+      }
+    });
+
+    lineStart += line.length + 1;
+  }
+
+  return units;
+}
+
+function isRequirementUnit(unit: Unit): boolean {
+  const { text } = unit;
+
+  const hasStatus =
+    CITIZEN_WORD_RE.test(text) ||
+    PERMANENT_RESIDENCY_RE.test(text) ||
+    (PR_ABBREVIATION_RE.test(text) && /\b(?:citizen|resident|visa)/i.test(text));
+
+  if (!hasStatus) return false;
+  if (OTHER_COUNTRY_RE.test(text) && !/\bAustralia/i.test(text)) return false;
+  if (DOCUMENT_CHECKLIST_RE.test(text)) return false;
+  if (STATUS_NEGATED_RE.test(text) || STATUS_NOT_PREREQUISITE_RE.test(text)) {
+    return false;
+  }
+
+  return (
+    REQUIREMENT_CUE_RE.test(text) ||
+    STATUS_HELD_RE.test(text) ||
+    (unit.bullet && BULLET_STATUS_START_RE.test(text))
+  );
+}
+
+/**
+ * Finds the first sentence / bullet that states a citizenship or permanent
+ * residency prerequisite, without any model input. The returned span is the
+ * whole sentence or bullet, so resolveEligibilityClause can read the
+ * alternatives next to it.
+ */
+export function scanEligibilityStatus(adText: string): {
+  citizenship?: EvidenceField;
+  residency?: EvidenceField;
+} {
+  let citizenship: EvidenceField | undefined;
+  let residency: EvidenceField | undefined;
+
+  for (const unit of splitIntoUnits(adText)) {
+    if (citizenship && residency) break;
+    if (!isRequirementUnit(unit)) continue;
+
+    const span = (value: string): EvidenceField => ({
+      value,
+      text: unit.text,
+      start: unit.start,
+      end: unit.end,
+    });
+
+    if (!citizenship && CITIZEN_WORD_RE.test(unit.text)) {
+      citizenship = span("Australian citizenship required");
+    }
+
+    if (
+      !residency &&
+      (PERMANENT_RESIDENCY_RE.test(unit.text) ||
+        PR_ABBREVIATION_RE.test(unit.text))
+    ) {
+      residency = span("Australian permanent residency required");
+    }
+  }
+
+  return { citizenship, residency };
+}
+
+/**
+ * Model span (validated) -> narrow fallback -> deterministic scan, then clause
+ * analysis. Verdicts are still decided only in rules.ts.
+ */
+export function resolveEligibilityStatus(
+  adText: string,
+  modelCitizenship: EvidenceField | undefined,
+  modelResidency: EvidenceField | undefined
+): EligibilityClauseResolution {
+  const usable = (field: EvidenceField | undefined) =>
+    field && !isDocumentChecklistEvidence(adText, field) ? field : undefined;
+
+  const citizenship =
+    usable(filterCitizenshipRequirement(modelCitizenship)) ??
+    fallbackCitizenship(adText);
+
+  const residency =
+    usable(filterResidencyRequirement(modelResidency)) ??
+    fallbackResidency(adText);
+
+  const scan =
+    citizenship && residency ? {} : scanEligibilityStatus(adText);
+
+  return resolveEligibilityClause(
+    adText,
+    citizenship ?? scan.citizenship,
+    residency ?? scan.residency
+  );
 }
 
 export function filterTemporaryVisaAllowed(

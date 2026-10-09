@@ -1,16 +1,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 import {
-  fallbackCitizenship,
-  fallbackResidency,
   fallbackSecurityClearance,
   fallbackTemporaryVisaAllowed,
   fallbackLocation,
   fallbackRegistration,
   fallbackVisaPlanRequirement,
   fallbackRoleField,
-  isDocumentChecklistEvidence,
-  resolveEligibilityClause,
+  resolveEligibilityStatus,
   fallbackWorkRightsRequirement,
   filterTemporaryVisaAllowed,
 } from "../../../lib/extractionFallbacks";
@@ -562,15 +559,14 @@ ${adText}
     // The verdict itself is still decided only in rules.ts.
     // ------------------------------------------
 
-    const usable = (
-      ai: EvidenceField | undefined,
-      fallback: EvidenceField | undefined
-    ) => (ai && !isDocumentChecklistEvidence(adText, ai) ? ai : fallback);
-
-    const clause = resolveEligibilityClause(
+    // Model spans are validated against their own text (a residency span
+    // must name permanent residency), then fall back to the narrow patterns
+    // and finally to a deterministic sentence/bullet scan, so a missed model
+    // span cannot turn a blocker into APPLY.
+    const clause = resolveEligibilityStatus(
       adText,
-      usable(aiCitizenship, fallbackCitizenship(adText)),
-      usable(aiResidency, fallbackResidency(adText))
+      aiCitizenship,
+      aiResidency
     );
 
     // Ensure work-right evidence is present when citizenship/residency are
