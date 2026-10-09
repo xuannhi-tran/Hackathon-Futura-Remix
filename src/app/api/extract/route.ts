@@ -27,6 +27,9 @@ import {
   extractionSchema,
 } from "../../../lib/extractPrompt";
 
+import { describeVerdict, trackServer } from "../../../lib/analytics";
+import { adLengthBucket } from "../../../lib/analyticsSchema";
+
 import { extractTitle } from "../../../lib/titleExtraction";
 
 type RawEvidenceField = {
@@ -144,9 +147,13 @@ function filterWorkRightsRequirement(
 }
 
 export async function POST(request: Request) {
+  const startedAt = Date.now();
+
   try {
     let body: {
       adText?: unknown;
+      // Structured visa profile; only used to describe the verdict in analytics.
+      visaProfile?: unknown;
     };
 
     try {
@@ -190,6 +197,9 @@ export async function POST(request: Request) {
 
     const bypass = isEvalBypass(request);
 
+    let cacheHit = false;
+    let degraded = false;
+
     // Raw model output only: post-processing below always runs on it, so a
     // change to the fallbacks takes effect even for cached ads.
     let rawExtraction: RawExtraction | undefined = bypass
@@ -197,12 +207,19 @@ export async function POST(request: Request) {
       : ((await readCachedExtraction(adText)) as RawExtraction | null) ??
         undefined;
 
-    if (!rawExtraction) {
+    if (rawExtraction) {
+      cacheHit = true;
+    } else {
       // Only requests that would call Gemini count against the limits.
       const limited =
         (await enforceClientLimit(request)) ?? (await reserveGeminiCall());
 
       if (limited) {
+        trackServer(request, "request_refused", {
+          reason: limited.status === 429 ? "rate_limited" : "quota_cap",
+          route: "extract",
+        });
+
         return limited;
       }
 
@@ -231,6 +248,11 @@ export async function POST(request: Request) {
 
         if (busy) {
           console.error("Gemini unavailable:", error);
+
+          trackServer(request, "request_refused", {
+            reason: "upstream_error",
+            route: "extract",
+          });
 
           return busy;
         }
@@ -265,6 +287,7 @@ export async function POST(request: Request) {
 
         // Continue with deterministic fallbacks. Not cached.
         rawExtraction = {};
+        degraded = true;
       }
     }
 
@@ -380,6 +403,14 @@ export async function POST(request: Request) {
 
       title: extractTitle(adText),
     };
+
+    trackServer(request, "analyse_job", {
+      ...describeVerdict(extraction, body.visaProfile),
+      cacheHit,
+      degraded,
+      latencyMs: Date.now() - startedAt,
+      adLengthBucket: adLengthBucket(adText.length),
+    });
 
     return Response.json({
       extraction,

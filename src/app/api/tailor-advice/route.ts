@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Verdict, VisaProfile, FitProfile } from "../../../types/job";
+import { trackServer } from "../../../lib/analytics";
 import {
   enforceClientLimit,
   geminiFailureResponse,
@@ -37,6 +38,8 @@ const adviceSchema = {
 };
 
 export async function POST(request: Request) {
+  const startedAt = Date.now();
+
   try {
     const body = await request.json();
     const { adText, verdict, visaProfile, fitProfile } = body as {
@@ -66,6 +69,11 @@ export async function POST(request: Request) {
       (await enforceClientLimit(request)) ?? (await reserveGeminiCall());
 
     if (limited) {
+      trackServer(request, "request_refused", {
+        reason: limited.status === 429 ? "rate_limited" : "quota_cap",
+        route: "tailor-advice",
+      });
+
       return limited;
     }
 
@@ -136,6 +144,11 @@ ${adText}
       if (busy) {
         console.error("Gemini unavailable for tailor advice:", error);
 
+        trackServer(request, "request_refused", {
+          reason: "upstream_error",
+          route: "tailor-advice",
+        });
+
         return busy;
       }
 
@@ -148,9 +161,19 @@ ${adText}
 
     const advice = JSON.parse(response.text);
 
+    trackServer(request, "tailor_advice_requested", {
+      latencyMs: Date.now() - startedAt,
+      success: true,
+    });
+
     return Response.json({ advice });
   } catch (error) {
     console.error("Gemini tailor advice error:", error);
+
+    trackServer(request, "tailor_advice_requested", {
+      latencyMs: Date.now() - startedAt,
+      success: false,
+    });
 
     return Response.json(
       { error: "Failed to generate tailor advice." },

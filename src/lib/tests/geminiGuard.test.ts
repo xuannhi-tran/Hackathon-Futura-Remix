@@ -135,12 +135,13 @@ const ADVICE = {
 function extractRequest(
   adText: string,
   headers: Record<string, string> = {},
-  ip = "203.0.113.7"
+  ip = "203.0.113.7",
+  extraBody: Record<string, unknown> = {}
 ) {
   return new Request("http://localhost/api/extract", {
     method: "POST",
     headers: { "x-forwarded-for": `${ip}, 10.0.0.1`, ...headers },
-    body: JSON.stringify({ adText }),
+    body: JSON.stringify({ adText, ...extraBody }),
   });
 }
 
@@ -237,6 +238,33 @@ describe("extract caching", () => {
     const b = (await second.json()).extraction;
     expect(b).toEqual(a);
     expect(b.citizenshipRequirement.text).toBe("Australian citizens");
+  });
+
+  it("the cache key depends only on the ad: different visa profiles share one entry", async () => {
+    const adText = "Applicants must be Australian citizens.";
+
+    const as500 = await extractPOST(
+      extractRequest(adText, {}, "203.0.113.7", {
+        visaProfile: { subclass: "500", duringStudyTerm: true, monthsRemaining: 18 },
+      })
+    );
+    const as485 = await extractPOST(
+      extractRequest(adText, {}, "203.0.113.7", {
+        visaProfile: { subclass: "485", duringStudyTerm: false, monthsRemaining: 24 },
+      })
+    );
+
+    expect(as500.status).toBe(200);
+    expect(as485.status).toBe(200);
+
+    // One Gemini call, one cache entry; the second profile was a hit.
+    expect(gemini.generateContent).toHaveBeenCalledTimes(1);
+    expect(redis.keys().filter((k) => k.startsWith("extract:"))).toEqual([
+      cacheKeyFor(adText),
+    ]);
+    expect((await as485.json()).extraction).toEqual(
+      (await as500.json()).extraction
+    );
   });
 
   it("stores the raw model JSON (not the ad text, not post-processed spans) with a 14-day TTL", async () => {

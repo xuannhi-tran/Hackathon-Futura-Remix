@@ -1,5 +1,6 @@
 "use client";
 
+import { analyticsHeaders, trackClient } from "../lib/analyticsClient";
 import { useRef, useState } from "react";
 
 import { mockExtractJobAd } from "../lib/mockExtraction";
@@ -320,6 +321,7 @@ export default function Home() {
 
       setSuggestedJobs((data.jobs ?? []).slice(0, 10));
       setSuggestedJobCount(data.count ?? data.jobs?.length ?? 0);
+      trackClient("suggestions_viewed");
     } catch (error) {
       if (requestVersion !== jobSearchVersion.current) return;
       console.error("Job suggestion request failed:", error);
@@ -373,7 +375,7 @@ export default function Home() {
       setIsTailorAdviceLoading(true);
       fetch("/api/tailor-advice", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...analyticsHeaders() },
         body: JSON.stringify({
           adText,
           verdict: result,
@@ -443,10 +445,14 @@ export default function Home() {
 
         headers: {
           "Content-Type": "application/json",
+          ...analyticsHeaders(),
         },
 
         body: JSON.stringify({
           adText,
+          // Structured profile only; the server uses it to describe the
+          // verdict in anonymous usage statistics.
+          visaProfile,
         }),
       });
 
@@ -526,10 +532,12 @@ export default function Home() {
 
     setSavedJobs((current) => [...current, job]);
     setSaveMessage("Saved to your portfolio for this session.");
+    trackClient("job_saved", { verdict: verdict.status });
   }
 
   function removeFromPortfolio(id: string) {
     setSavedJobs((current) => current.filter((job) => job.id !== id));
+    trackClient("job_removed");
   }
 
   // -----------------------
@@ -1624,6 +1632,12 @@ export default function Home() {
           <p className="mt-3 text-xs text-gray-400">
             Your portfolio is kept for this session only. Refreshing the page
             clears saved jobs.
+          </p>
+          <p className="mt-1 text-xs text-gray-400">
+            We collect anonymous usage statistics (such as the verdict and
+            response time). Your job ad text is never included in them. Ads are
+            processed by Google&apos;s Gemini API to extract the requirements.
+            Your browser&apos;s Do Not Track setting is respected.
           </p>
         </div>
       </div>
