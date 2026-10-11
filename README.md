@@ -1,125 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JobCompass 🧭
 
-## Getting Started
+**Paste a job ad, find out in seconds whether it's worth your time.**
 
-First, run the development server:
+JobCompass is a pre-application screening tool for international students on Australian temporary visas (Student visa **subclass 500** and Graduate visa **subclass 485**). It reads a job advertisement and returns one of three verdicts:
+
+| Verdict | Meaning |
+|---|---|
+| **SKIP** | The ad contains a hard blocker, such as citizenship-only, permanent residency, security clearance, or "no sponsorship". |
+| **TAILOR** | The role may be open to you, but something needs checking or addressing in your application (e.g. registration required, a visa plan requested, or temporary visa holders explicitly welcomed). |
+| **APPLY** | No blocker language found in the ad. |
+
+Every verdict comes with the **rule that fired** and the **exact text from the ad** that triggered it, so you can check the reasoning yourself.
+
+**Live app:** https://hackathon-futura-remix.vercel.app
+
+> **Not migration or legal advice.** JobCompass only reads the text you paste. It can't see an employer's separate screening questions or unwritten preferences, so always check those before applying.
+
+## How it works
+
+1. **Extract.** The ad text is sent to Google's Gemini API (`gemini-3.5-flash-lite`), which pulls out structured requirements: citizenship, residency, security clearance, sponsorship, work rights, registration, and so on. Each extracted field must quote the ad word for word. If the quoted text can't be found in the ad, the field is discarded ("no span, no claim"). Rule-based fallbacks in `src/lib/extractionFallbacks.ts` handle patterns the model misses or misclassifies.
+2. **Decide.** The verdict is **not** decided by the LLM. A deterministic rules function (`evaluateJob` in `src/lib/rules.ts`) takes the extracted fields plus your visa profile (subclass, whether you're mid-study, months remaining) and returns SKIP, TAILOR or APPLY with a rule ID, a reason and the evidence span. The same input always gives the same verdict, so the logic is explainable and testable.
+3. **Explain.** The result page highlights the evidence in the ad. Optional extras: tailoring advice for the application (`/api/tailor-advice`, also Gemini) and job suggestions (`/api/jobs/suggest`, via Adzuna).
+
+## Features
+
+- Verdict, rule ID and highlighted evidence for any pasted ad
+- Visa profile matching for subclasses 500 and 485
+- Tailoring advice for TAILOR verdicts
+- Job suggestions
+- Saved jobs and profile (stored in your browser only, up to 50 jobs)
+- Feedback form (thumbs up/down, optional comment and email)
+- Anonymous usage analytics (off unless configured)
+
+## Evaluation
+
+Rules were developed against a labelled set of real graduate and entry-level job ads, collected by hand because SEEK blocks automated fetching.
+
+| Set | Location | Size | Notes |
+|---|---|---|---|
+| Dev set | `job_description_txt/dev_set/` | 35 ads | Used while building and tuning the rules |
+| Hold-out | `job_description_txt/hold_out/` | 15 ads (5 SKIP, 5 TAILOR, 5 APPLY) | Kept separate from the dev set to check the rules generalise |
+
+Ground-truth labels are hard-coded in the matching test files. The original hackathon prototype (a Python regex rules engine, `extraction_pipeline.py` + `tier_1_rules.yaml`) scored 19/19 on its first 19-ad set (`test_results.json`). That set was small and mostly SKIP cases, so treat it as a sanity check, not a measure of real-world accuracy.
+
+Run the evaluations against a running app (they call the real `/api/extract`, so they use Gemini quota):
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev                                   # in one terminal
+
+RUN_CORPUS_EVAL=1 npm run test:run            # dev-set evaluation
+RUN_HOLDOUT_EVAL=1 npm run test:run           # hold-out evaluation
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Use `CORPUS_API_URL` or `HOLDOUT_API_URL` to point at a deployed instance. Set `EVAL_BYPASS_TOKEN` on both sides to skip per-client limits and the cache. The normal unit tests run with `npm run test:run`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Getting started
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Requires Node.js and a Gemini API key.
 
-## Learn More
+```bash
+npm install
+echo "GEMINI_API_KEY=your-key-here" > .env.local   # see below for optional variables
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open http://localhost:3000.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Anonymous usage analytics (PostHog)
-
-JobCompass records a few anonymous usage statistics (weekly active users, ads
-analysed, verdict distribution, latency, cache hit rate, error rate). **Job ad
-text, extracted text, profile free text and anything a user typed are never
-included in these statistics.** This is separate from ad processing: the ad
-text you submit is sent to Google's Gemini API to extract the requirements
-(and the raw model output is cached, without the ad text, when Redis is
-configured). The footer note says the same. Analytics is off unless a key is configured, so local development, tests
-and previews without the key behave exactly as before.
+Other scripts: `npm run build`, `npm run start`, `npm run lint`, `npm test` (watch mode).
 
 ### Environment variables
 
-| Name | Purpose |
-|---|---|
-| `NEXT_PUBLIC_POSTHOG_KEY` | PostHog project API key (starts with `phc_`). Unset = analytics fully disabled. |
-| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog ingestion host, e.g. `https://eu.i.posthog.com` (default `https://us.i.posthog.com`). |
+| Name | Required | Purpose |
+|---|---|---|
+| `GEMINI_API_KEY` | Yes | Requirement extraction and tailoring advice. |
+| `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (or `KV_REST_API_URL` + `KV_REST_API_TOKEN`) | No | Redis for caching model output, rate limits and feedback storage. Without it, caching, rate limits and feedback storage are all skipped (fine for local development). |
+| `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` | No | Job suggestions. |
+| `NEXT_PUBLIC_POSTHOG_KEY` | No | PostHog project key. Unset means analytics is fully disabled. |
+| `NEXT_PUBLIC_POSTHOG_HOST` | No | PostHog host (default `https://us.i.posthog.com`). |
+| `RATE_LIMIT_PER_10_MIN`, `RATE_LIMIT_PER_DAY` | No | Per-client limits on analysis requests. |
+| `FEEDBACK_RATE_LIMIT_PER_10_MIN`, `FEEDBACK_RATE_LIMIT_PER_DAY` | No | Per-client limits on feedback (defaults 5 and 20). |
+| `GLOBAL_DAILY_GEMINI_CAP`, `GLOBAL_GEMINI_RPM_CAP` | No | Global caps on Gemini calls. |
+| `RATE_LIMIT_SALT` | No | Salt for hashing client IPs in rate limiting. |
+| `EVAL_BYPASS_TOKEN` | No | Lets evaluation runs skip per-client limits and the cache. |
 
-### How it works
+## Privacy
 
-- Anonymous id: a random UUID (`crypto.randomUUID`) kept in `localStorage`
-  (in memory if storage is blocked). It is the PostHog `distinct_id` and is sent
-  to the API routes in the `x-anon-id` header; the server accepts it only if it
-  is a valid UUID, otherwise events use `"unknown"`.
-- No autocapture, session recording, heatmaps, web vitals / performance capture, exception capture, surveys or person profiles. Server
-  events disable geo-IP. Do Not Track (and Global Privacy Control) is respected on
-  the client and server.
-- Requests with a valid `x-eval-token` are never tracked.
-- Analytics never blocks or fails a request: browser events are fire-and-forget,
-  server events are sent after the response (`after()`), and every call is wrapped
-  in `try/catch`.
-- Everything is defined in `src/lib/analyticsSchema.ts` (whitelist),
-  `src/lib/analytics.ts` (server) and `src/lib/analyticsClient.ts` (browser).
-  Unknown events, unknown properties and values outside the allowed sets are dropped.
+- **Ad text** you submit is sent to Google's Gemini API for extraction. When Redis is configured, the raw model output is cached **without** the ad text.
+- **Analytics** (PostHog) records only anonymous counts: weekly active users, ads analysed, verdict distribution, latency, cache hit rate and error rate. Job ad text, extracted text and anything typed by the user is never included. No autocapture, session recording or person profiles. Do Not Track and Global Privacy Control are respected. The allowed events and properties are whitelisted in `src/lib/analyticsSchema.ts`.
+- **Saved jobs and profile** live in your browser's `localStorage` only and are never sent to the server or to analytics.
+- **Feedback** comments and emails are stored in Redis (`feedback:v1`, newest first, max 500 entries, 90-day TTL) to improve the app. Only the thumbs up/down rating is sent to analytics. To have a submission deleted, email the address in the app footer (set in `CONTACT_EMAIL`, `src/lib/siteConfig.ts`).
 
-### Events and properties
+Reading feedback in the Upstash console: `LRANGE feedback:v1 0 -1`. Each item is `{ id, at, rating, comment?, email? }`. Remove one with `LREM feedback:v1 1 '<exact item>'`, or all with `DEL feedback:v1`.
 
-Server (`/api/extract`, `/api/tailor-advice`):
+## Project structure
 
-| Event | Properties |
-|---|---|
-| `analyse_job` | `verdict` (APPLY/TAILOR/SKIP), `ruleId`, `visaSubclass` (500/485), `cacheHit`, `degraded` (model output unusable, fallbacks only), `latencyMs`, `adLengthBucket` (`<1k`, `1-3k`, `3-6k`, `>6k`) |
-| `tailor_advice_requested` | `latencyMs`, `success` |
-| `request_refused` | `reason` (`rate_limited`, `quota_cap`, `upstream_error`), `route` (`extract`, `tailor-advice`) |
-| `feedback_submitted` | `rating` (`up`/`down`) only; the comment and email are never sent to PostHog |
+```
+src/app/                 UI and API routes (/api/extract, /api/tailor-advice, /api/jobs/suggest, /api/feedback)
+src/lib/rules.ts         Deterministic verdict logic
+src/lib/extract*.ts      Gemini prompt, extraction fallbacks
+src/lib/tests/           Unit tests and dev-set / hold-out evaluations
+job_description_txt/     Hand-collected job ads (dev_set/, hold_out/)
+extraction_pipeline.py   Original hackathon prototype (Python rules engine)
+tier_1_rules.yaml        Rules for the prototype
+test_harness.py          Prototype validation harness
+PROJECT_HANDOFF.md       Notes written during the hackathon
+```
 
-`verdict`, `ruleId` and `visaSubclass` are absent if the client did not send a valid
-structured visa profile.
+## About
 
-Browser: `app_opened` (once per session), `job_saved` (`verdict`), `job_removed`,
-`suggestions_viewed`, plus PostHog's automatic `$pageview`. No other PostHog events are sent
-(`$pageleave`, `$web_vitals` and `$exception` are disabled).
+Built at the **MentorME Futura Remix Hackathon** (NSW round), 18–20 September 2026, by Nhi Tran, Anne Mai and Hong Quan Pham, and developed further afterwards.
 
-## Saved jobs and profile (this browser only)
-
-Saved jobs (at most the 50 most recent) and the profile form values are kept in
-`localStorage` under `jobcompass:saved:v1` and `jobcompass:profile:v1` so they
-survive a refresh. They are validated on load (malformed data is dropped), are
-never sent to the server or analytics, and the app works normally if storage is
-unavailable. "Clear saved jobs" in the portfolio removes the saved list.
-
-## Feedback
-
-The "Feedback" button opens a form: thumbs up/down (required), an optional
-comment (max 500 characters) and an optional email (max 254 characters, "only if
-you want a reply"). `POST /api/feedback`:
-
-- validates the body strictly (unknown fields are rejected);
-- has its own per-client rate limit, separate from the Gemini limits and quota
-  (`FEEDBACK_RATE_LIMIT_PER_10_MIN`, default 5; `FEEDBACK_RATE_LIMIT_PER_DAY`,
-  default 20); requests with a valid `x-eval-token` skip it;
-- stores each entry in the Redis list `feedback:v1` (newest first, at most 500
-  entries). The list has a 90-day TTL that is refreshed on each submission;
-- if Redis is not configured it returns success and stores nothing; if Redis
-  fails it returns 503 and logs only the error name;
-- never logs the comment or email, and sends PostHog only `feedback_submitted`
-  with `rating`.
-
-If you leave a comment or email in feedback, it is stored to improve the app.
-The footer asks users to email tranvoxuannhi2k6@gmail.com if they would like it
-deleted (the address lives in one constant, `CONTACT_EMAIL` in
-`src/lib/siteConfig.ts`, and is never sent to analytics).
-
-**Reading feedback:** in the Upstash console (Data Browser or CLI) run
-`LRANGE feedback:v1 0 -1`. Each item is JSON: `{ id, at, rating, comment?, email? }`.
-To delete one entry, `LREM feedback:v1 1 '<the exact item>'`; to delete all,
-`DEL feedback:v1`.
-
+Built with Next.js, TypeScript, Tailwind, the Gemini API, Upstash Redis, PostHog and Vercel.
