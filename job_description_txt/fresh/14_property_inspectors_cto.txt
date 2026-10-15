@@ -1,0 +1,97 @@
+About the role
+
+This is a senior leadership position for an experienced software professional who will take ownership of an existing business automation project, lead an internal development team, and personally design, develop and implement solutions through to completion and deployment.
+
+You will take control of a major software automation project currently in progress and be responsible for reviewing existing work, establishing a clear roadmap, allocating responsibilities to the development team, and ensuring the entire solution is successfully completed and implemented into the live business environment.
+
+You will manage a team of three software developers/engineers who will report directly to you, and report directly to the Director and CEO.
+
+This is not purely a management position – we are looking for a CTO who remains highly hands-on and is capable of personally designing, coding, troubleshooting, integrating and implementing complex software solutions.
+
+Key responsibilities
+
+Review and understand existing software systems, automation project and work currently in progress
+
+Develop a comprehensive roadmap for completing and improving the existing solution
+
+Design a detailed and granular development pathway for each component of the system
+
+Take ownership of the solution from concept and design through to development, testing, commissioning and handover
+
+Personally design, develop and implement critical components of the solution
+
+Manage and direct the existing team of three software developers/engineers
+
+Allocate tasks, establish priorities and ensure development milestones are achieved
+
+Redesign and improve existing solutions to make field operations and internal workflows more efficient
+
+Manage the complete software development lifecycle, including development, testing, user feedback, refinement, final handover, implementation and live environment
+
+Design and manage integrations between Microsoft Dynamics, Power Platform, web applications and other business systems
+
+Troubleshoot and resolve complex technical issues independently
+
+Maintain accountability for the quality, reliability and successful implementation of all solutions
+
+Take ongoing ownership of the company's software automation environment following completion of the current project
+
+About you
+
+Minimum 10 years of relevant software development and engineering experience, including substantial senior-level experience
+
+Demonstrated senior-level experience with Microsoft Dynamics 365
+
+Demonstrated senior-level experience with Microsoft Power Platform
+
+Demonstrated senior-level experience with Model-Driven Apps
+
+Demonstrated senior-level experience with Microsoft Power Automate
+
+Demonstrated senior-level experience with Microsoft Azure
+
+Demonstrated senior-level experience with .NET / C#
+
+Demonstrated senior-level experience with JavaScript
+
+Demonstrated senior-level experience with PHP
+
+Demonstrated senior-level experience with WordPress
+
+Demonstrated senior-level experience with API development and third-party integrations
+
+Demonstrated experience designing, building and delivering production-grade business systems and automation solutions
+
+Capable of leading a small development team while remaining personally involved in development
+
+Comfortable taking complete ownership of complex projects
+
+Able to understand an existing partially completed solution and determine the most effective pathway to completion
+
+Confident working independently and making technical decisions
+
+Highly organised, accountable and delivery-focused
+
+Able to work under pressure while maintaining strong attention to detail
+
+An effective project manager and team leader
+
+A strong problem solver who can troubleshoot technical issues without relying on others to provide the solution
+
+Able to communicate clearly and professionally in both spoken and written English
+
+Comfortable working directly with the Director/CEO and translating business requirements into practical software solutions
+
+Available to work on-site in Marsfield five days per week
+
+About us
+
+The Property Inspectors Pty Ltd is a building consultancy company currently undertaking significant automation of its operations, including the automation of new orders, workflows, field operations, reporting, administration and internal business processes.
+
+Employer questions
+Your application will include the following questions:
+Which of the following statements best describes your right to work in Australia?
+What's your expected annual base salary?
+How many years' experience do you have as a software developer?
+How much notice are you required to give your current employer?
+Do you have experience using Microsoft Power Automate?

@@ -1,0 +1,822 @@
+{
+  "evaluatedAt": "2026-10-15T08:49:47.890Z",
+  "profile": {
+    "subclass": "500",
+    "duringStudyTerm": true,
+    "monthsRemaining": 18
+  },
+  "apiUrl": "http://localhost:3000/api/extract",
+  "summary": {
+    "total": 20,
+    "correct": 15,
+    "accuracy": 75,
+    "perClass": {
+      "APPLY": {
+        "correct": 7,
+        "total": 9
+      },
+      "SKIP": {
+        "correct": 7,
+        "total": 7
+      },
+      "TAILOR": {
+        "correct": 1,
+        "total": 4
+      }
+    }
+  },
+  "matrix": {
+    "APPLY": {
+      "APPLY": 7,
+      "SKIP": 0,
+      "TAILOR": 2
+    },
+    "SKIP": {
+      "APPLY": 0,
+      "SKIP": 7,
+      "TAILOR": 0
+    },
+    "TAILOR": {
+      "APPLY": 1,
+      "SKIP": 2,
+      "TAILOR": 1
+    }
+  },
+  "misses": [
+    {
+      "filename": "03_tyree_junior_software_engineer.txt",
+      "expected": "APPLY",
+      "predicted": "TAILOR",
+      "matched": false,
+      "ruleId": "T2_WORK_RIGHTS_REVIEW",
+      "reason": "The advertisement requires legal work rights in Australia but does not explicitly require unrestricted rights. Review the requirement against the conditions of your selected visa profile.",
+      "evidence": "Tyree encourages applicants from a diverse range of backgrounds, including First Nations people, people living with disability and people who speak a first language other than English.",
+      "fields": {
+        "title": "Junior Software Engineer",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": {
+          "text": "Tyree encourages applicants from a diverse range of backgrounds, including First Nations people, people living with disability and people who speak a first language other than English.",
+          "value": "Right to work in Australia"
+        },
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": null,
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "06_impact_curriculum_software_engineer.txt",
+      "expected": "APPLY",
+      "predicted": "TAILOR",
+      "matched": false,
+      "ruleId": "T2_PROFESSIONAL_REGISTRATION",
+      "reason": "The role requires professional registration or admission. Check whether you already hold or can obtain the required registration before applying.",
+      "evidence": "Working with Children Check and National Police Check",
+      "fields": {
+        "title": "Build technology that makes a difference in Australian education.",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": {
+          "text": "Full-time preferred, with part-time arrangements considered.",
+          "value": "Full-time (preferred) or Part-time"
+        },
+        "hoursPerWeek": null,
+        "registration": {
+          "text": "Working with Children Check and National Police Check",
+          "value": "Working with Children Check and National Police Check"
+        },
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "11_randstad_temp_admin_assistant_whv.txt",
+      "expected": "TAILOR",
+      "predicted": "SKIP",
+      "matched": false,
+      "ruleId": "T1_FULL_WORK_RIGHTS_STUDENT_500",
+      "reason": "This role requires full or unrestricted working rights. The selected subclass 500 profile is currently in study term and has work-hour restrictions.",
+      "evidence": "Full working rights in Australia required",
+      "fields": {
+        "title": "Location: Parramatta, NSW (Full-time, On-site)",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": {
+          "text": "Full working rights in Australia required",
+          "value": "Full working rights in Australia required"
+        },
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": {
+          "text": "Casual / Temporary",
+          "value": "Casual / Temporary"
+        },
+        "hoursPerWeek": {
+          "text": "full-time hours",
+          "value": "full-time hours"
+        },
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "13_cloud9_window_cleaning_technician_whv.txt",
+      "expected": "TAILOR",
+      "predicted": "SKIP",
+      "matched": false,
+      "ruleId": "T1_FULL_WORK_RIGHTS_STUDENT_500",
+      "reason": "This role requires full or unrestricted working rights. The selected subclass 500 profile is currently in study term and has work-hour restrictions.",
+      "evidence": "full Australian working rights",
+      "fields": {
+        "title": "Job details",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": {
+          "text": "full Australian working rights",
+          "value": "full Australian working rights"
+        },
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": {
+          "text": "Seasonal, Casual, Full-time",
+          "value": "Casual / Full-time"
+        },
+        "hoursPerWeek": {
+          "text": "Full-time",
+          "value": "Full-time"
+        },
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "15_byte_digital_developer_programmer.txt",
+      "expected": "TAILOR",
+      "predicted": "APPLY",
+      "matched": false,
+      "reason": "No eligibility blockers detected for the selected profile.",
+      "fields": {
+        "title": "Position Overview:",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": {
+          "text": "Job Types: Full-time, Permanent",
+          "value": "permanent full-time"
+        },
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    }
+  ],
+  "results": [
+    {
+      "filename": "01_dinggo_junior_software_developer.txt",
+      "expected": "APPLY",
+      "predicted": "APPLY",
+      "matched": true,
+      "reason": "No eligibility blockers detected for the selected profile.",
+      "fields": {
+        "title": "About DingGo",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": null,
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "02_healthcare_backend_engineer_spring_boot.txt",
+      "expected": "APPLY",
+      "predicted": "APPLY",
+      "matched": true,
+      "reason": "No eligibility blockers detected for the selected profile.",
+      "fields": {
+        "title": "We’re a fast-growing startup transforming healthcare workflows with AI. Our platform helps medical practices reduce administrative workload and operate more efficiently by automating time-consuming processes.",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": {
+          "text": "full-time",
+          "value": "full-time"
+        },
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "03_tyree_junior_software_engineer.txt",
+      "expected": "APPLY",
+      "predicted": "TAILOR",
+      "matched": false,
+      "ruleId": "T2_WORK_RIGHTS_REVIEW",
+      "reason": "The advertisement requires legal work rights in Australia but does not explicitly require unrestricted rights. Review the requirement against the conditions of your selected visa profile.",
+      "evidence": "Tyree encourages applicants from a diverse range of backgrounds, including First Nations people, people living with disability and people who speak a first language other than English.",
+      "fields": {
+        "title": "Junior Software Engineer",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": {
+          "text": "Tyree encourages applicants from a diverse range of backgrounds, including First Nations people, people living with disability and people who speak a first language other than English.",
+          "value": "Right to work in Australia"
+        },
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": null,
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "04_linksea_software_developer.txt",
+      "expected": "APPLY",
+      "predicted": "APPLY",
+      "matched": true,
+      "reason": "No eligibility blockers detected for the selected profile.",
+      "fields": {
+        "title": "About Us",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": {
+          "text": "A full-time position",
+          "value": "full-time"
+        },
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "05_embedded_junior_mid_iot.txt",
+      "expected": "APPLY",
+      "predicted": "APPLY",
+      "matched": true,
+      "reason": "No eligibility blockers detected for the selected profile.",
+      "fields": {
+        "title": "Junior / Mid-level Embedded Software Engineer",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": null,
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "06_impact_curriculum_software_engineer.txt",
+      "expected": "APPLY",
+      "predicted": "TAILOR",
+      "matched": false,
+      "ruleId": "T2_PROFESSIONAL_REGISTRATION",
+      "reason": "The role requires professional registration or admission. Check whether you already hold or can obtain the required registration before applying.",
+      "evidence": "Working with Children Check and National Police Check",
+      "fields": {
+        "title": "Build technology that makes a difference in Australian education.",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": {
+          "text": "Full-time preferred, with part-time arrangements considered.",
+          "value": "Full-time (preferred) or Part-time"
+        },
+        "hoursPerWeek": null,
+        "registration": {
+          "text": "Working with Children Check and National Police Check",
+          "value": "Working with Children Check and National Police Check"
+        },
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "07_seek_software_engineering_graduate.txt",
+      "expected": "SKIP",
+      "predicted": "SKIP",
+      "matched": true,
+      "ruleId": "T1_FULL_WORK_RIGHTS_STUDENT_500",
+      "reason": "This role requires full or unrestricted working rights. The selected subclass 500 profile is currently in study term and has work-hour restrictions.",
+      "evidence": "full and unrestricted working rights in Australia",
+      "fields": {
+        "title": "Company Description",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": {
+          "text": "full and unrestricted working rights in Australia",
+          "value": "full and unrestricted working rights in Australia"
+        },
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": {
+          "text": "permanent employee from day one",
+          "value": "permanent"
+        },
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "08_wk_pathways_law.txt",
+      "expected": "SKIP",
+      "predicted": "SKIP",
+      "matched": true,
+      "ruleId": "T1_CITIZENSHIP",
+      "reason": "This role requires Australian citizenship.",
+      "evidence": "Be an Australian citizen or permanent resident",
+      "fields": {
+        "title": "Your legal career starts long before graduation.",
+        "citizenshipRequirement": {
+          "text": "Be an Australian citizen or permanent resident",
+          "value": "Australian citizen or permanent resident"
+        },
+        "residencyRequirement": {
+          "text": "Be an Australian citizen or permanent resident",
+          "value": "Australian citizen or permanent resident"
+        },
+        "securityClearance": null,
+        "workRightsRequirement": {
+          "text": "unrestricted working rights",
+          "value": "unrestricted working rights"
+        },
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": null,
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "09_mallesons_insight_program.txt",
+      "expected": "SKIP",
+      "predicted": "SKIP",
+      "matched": true,
+      "ruleId": "T1_CITIZENSHIP",
+      "reason": "This role requires Australian citizenship.",
+      "evidence": "Australian or New Zealand citizenship",
+      "fields": {
+        "title": "What you'll learn",
+        "citizenshipRequirement": {
+          "text": "Australian or New Zealand citizenship",
+          "value": "Australian or New Zealand citizenship"
+        },
+        "residencyRequirement": {
+          "text": "Australian permanent residency",
+          "value": "Australian permanent residency"
+        },
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": null,
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "10_hall_wilcox_first_nations_pathway.txt",
+      "expected": "SKIP",
+      "predicted": "SKIP",
+      "matched": true,
+      "ruleId": "T1_PERMANENT_RESIDENCY",
+      "reason": "This role requires Australian permanent residency.",
+      "evidence": "permanent resident of Australia",
+      "fields": {
+        "title": "Early Careers | First Nations Pathway Program",
+        "citizenshipRequirement": null,
+        "residencyRequirement": {
+          "text": "permanent resident of Australia",
+          "value": "permanent resident of Australia"
+        },
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": null,
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "11_randstad_temp_admin_assistant_whv.txt",
+      "expected": "TAILOR",
+      "predicted": "SKIP",
+      "matched": false,
+      "ruleId": "T1_FULL_WORK_RIGHTS_STUDENT_500",
+      "reason": "This role requires full or unrestricted working rights. The selected subclass 500 profile is currently in study term and has work-hour restrictions.",
+      "evidence": "Full working rights in Australia required",
+      "fields": {
+        "title": "Location: Parramatta, NSW (Full-time, On-site)",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": {
+          "text": "Full working rights in Australia required",
+          "value": "Full working rights in Australia required"
+        },
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": {
+          "text": "Casual / Temporary",
+          "value": "Casual / Temporary"
+        },
+        "hoursPerWeek": {
+          "text": "full-time hours",
+          "value": "full-time hours"
+        },
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "12_nsw_ambulance_recruitment_officer.txt",
+      "expected": "TAILOR",
+      "predicted": "TAILOR",
+      "matched": true,
+      "ruleId": "T2_TEMPORARY_VISA_ALLOWED",
+      "reason": "The advertisement explicitly indicates that temporary visa holders may be considered. Review the stated conditions against your visa profile.",
+      "evidence": "Employment of temporary visa holders is only considered if no suitable permanent resident or citizen is identified after labour market testing.",
+      "fields": {
+        "title": "Closing Date: 11:59 PM, Sunday 1 November 2026",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": {
+          "text": "Employment of temporary visa holders is only considered if no suitable permanent resident or citizen is identified after labour market testing.",
+          "value": "temporary visa holders may be considered under specific conditions"
+        },
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": {
+          "text": "Temporary Full-time",
+          "value": "Temporary Full-time"
+        },
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "13_cloud9_window_cleaning_technician_whv.txt",
+      "expected": "TAILOR",
+      "predicted": "SKIP",
+      "matched": false,
+      "ruleId": "T1_FULL_WORK_RIGHTS_STUDENT_500",
+      "reason": "This role requires full or unrestricted working rights. The selected subclass 500 profile is currently in study term and has work-hour restrictions.",
+      "evidence": "full Australian working rights",
+      "fields": {
+        "title": "Job details",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": {
+          "text": "full Australian working rights",
+          "value": "full Australian working rights"
+        },
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": {
+          "text": "Seasonal, Casual, Full-time",
+          "value": "Casual / Full-time"
+        },
+        "hoursPerWeek": {
+          "text": "Full-time",
+          "value": "Full-time"
+        },
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "14_property_inspectors_cto.txt",
+      "expected": "APPLY",
+      "predicted": "APPLY",
+      "matched": true,
+      "reason": "No eligibility blockers detected for the selected profile.",
+      "fields": {
+        "title": "About the role",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": null,
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "15_byte_digital_developer_programmer.txt",
+      "expected": "TAILOR",
+      "predicted": "APPLY",
+      "matched": false,
+      "reason": "No eligibility blockers detected for the selected profile.",
+      "fields": {
+        "title": "Position Overview:",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": {
+          "text": "Job Types: Full-time, Permanent",
+          "value": "permanent full-time"
+        },
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "16_mss_security_officer_pv_clearance.txt",
+      "expected": "SKIP",
+      "predicted": "SKIP",
+      "matched": true,
+      "ruleId": "T1_CITIZENSHIP",
+      "reason": "This role requires Australian citizenship.",
+      "evidence": "be an Australian Citizen",
+      "fields": {
+        "title": "About the Company",
+        "citizenshipRequirement": {
+          "text": "be an Australian Citizen",
+          "value": "Australian citizenship required"
+        },
+        "residencyRequirement": null,
+        "securityClearance": {
+          "text": "Positive Vetting Clearance",
+          "value": "Positive Vetting Clearance"
+        },
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": {
+          "text": "Hold a current AGSVA Positive Vetting Clearance or willing to obtain.",
+          "value": "Hold a current AGSVA Positive Vetting Clearance or willing to obtain."
+        },
+        "sponsorship": {
+          "text": "sponsorship available",
+          "value": "sponsorship available"
+        },
+        "employmentType": null,
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "17_agi_group_insurance_analyst.txt",
+      "expected": "SKIP",
+      "predicted": "SKIP",
+      "matched": true,
+      "ruleId": "T1_CITIZENSHIP",
+      "reason": "This role requires Australian citizenship.",
+      "evidence": "Australian citizens",
+      "fields": {
+        "title": "AGI is a highly regarded, growing third-party insurance administrator (TPA) providing administrative services and web-based solutions to the financial services industry. We offer a warm and supportive work environment and rigorous training and development to ensure our people succeed in their roles. Due to continued growth, we are looking for insurance analysts to join our high-performing dynamic team in a full-time office based position.",
+        "citizenshipRequirement": {
+          "text": "Australian citizens",
+          "value": "Australian citizen"
+        },
+        "residencyRequirement": {
+          "text": "permanent residents",
+          "value": "permanent resident"
+        },
+        "securityClearance": null,
+        "workRightsRequirement": {
+          "text": "full working rights",
+          "value": "full working rights"
+        },
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": null,
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "18_sushi_yuzen_roll_makers_hours.txt",
+      "expected": "SKIP",
+      "predicted": "SKIP",
+      "matched": true,
+      "ruleId": "T1_STUDENT_500_STUDY_TERM_HOURS",
+      "reason": "Based on the advertised weekly hours, this role would exceed the 48-hours-per-fortnight threshold used for the selected subclass 500 study-term profile. Review your actual visa conditions before applying.",
+      "evidence": "28-35hrs per week",
+      "fields": {
+        "title": "Full job description",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": null,
+        "hoursPerWeek": {
+          "text": "28-35hrs per week",
+          "value": "28-35hrs per week"
+        },
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "19_firepop_enmore_front_of_house.txt",
+      "expected": "APPLY",
+      "predicted": "APPLY",
+      "matched": true,
+      "reason": "No eligibility blockers detected for the selected profile.",
+      "fields": {
+        "title": "Job details",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": {
+          "text": "Part-time, Casual, Full-time",
+          "value": "Part-time, Casual, Full-time"
+        },
+        "hoursPerWeek": {
+          "text": "five day working week",
+          "value": "five day working week"
+        },
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    },
+    {
+      "filename": "20_infosys_lead_engineering_operations.txt",
+      "expected": "APPLY",
+      "predicted": "APPLY",
+      "matched": true,
+      "reason": "No eligibility blockers detected for the selected profile.",
+      "fields": {
+        "title": "Location: Melbourne, Sydney",
+        "citizenshipRequirement": null,
+        "residencyRequirement": null,
+        "securityClearance": null,
+        "workRightsRequirement": null,
+        "temporaryVisaAllowed": null,
+        "graduateVisaPathway": null,
+        "visaPlanRequirement": null,
+        "sponsorship": null,
+        "employmentType": null,
+        "hoursPerWeek": null,
+        "registration": null,
+        "australianExperienceRequirement": null
+      }
+    }
+  ],
+  "knownLimitations": {
+    "note": "Reported separately; not counted in the score.",
+    "results": [
+      {
+        "filename": "L1_breitling_casual_retail_assistant.txt",
+        "expectedByRules": "APPLY",
+        "expectedByHuman": "SKIP",
+        "predicted": "APPLY",
+        "agreesWithRules": true,
+        "agreesWithHuman": false,
+        "reason": "No eligibility blockers detected for the selected profile.",
+        "fields": {
+          "title": "Breitling Boutique | Sydney CBD, NSW",
+          "citizenshipRequirement": null,
+          "residencyRequirement": null,
+          "securityClearance": null,
+          "workRightsRequirement": null,
+          "temporaryVisaAllowed": null,
+          "graduateVisaPathway": null,
+          "visaPlanRequirement": null,
+          "sponsorship": null,
+          "employmentType": {
+            "text": "Casual Contract",
+            "value": "Casual"
+          },
+          "hoursPerWeek": {
+            "text": "3 Days per Week",
+            "value": "3 days per week"
+          },
+          "registration": null,
+          "australianExperienceRequirement": null
+        }
+      },
+      {
+        "filename": "L2_japanese_restaurant_foh_waterloo.txt",
+        "expectedByRules": "APPLY",
+        "expectedByHuman": "SKIP",
+        "predicted": "APPLY",
+        "agreesWithRules": true,
+        "agreesWithHuman": false,
+        "reason": "No eligibility blockers detected for the selected profile.",
+        "fields": {
+          "title": "Full job description",
+          "citizenshipRequirement": null,
+          "residencyRequirement": null,
+          "securityClearance": null,
+          "workRightsRequirement": null,
+          "temporaryVisaAllowed": null,
+          "graduateVisaPathway": null,
+          "visaPlanRequirement": null,
+          "sponsorship": null,
+          "employmentType": {
+            "text": "Shift work, roster flexible/negotiable",
+            "value": "Part-time or casual shift work"
+          },
+          "hoursPerWeek": {
+            "text": "3 to 4 days per week",
+            "value": "3 to 4 days per week"
+          },
+          "registration": null,
+          "australianExperienceRequirement": null
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "profile": { "subclass": "500", "duringStudyTerm": true, "monthsRemaining": 18 },
+  "scored": {
+    "01_dinggo_junior_software_developer.txt": "APPLY",
+    "02_healthcare_backend_engineer_spring_boot.txt": "APPLY",
+    "03_tyree_junior_software_engineer.txt": "APPLY",
+    "04_linksea_software_developer.txt": "APPLY",
+    "05_embedded_junior_mid_iot.txt": "APPLY",
+    "06_impact_curriculum_software_engineer.txt": "APPLY",
+    "07_seek_software_engineering_graduate.txt": "SKIP",
+    "08_wk_pathways_law.txt": "SKIP",
+    "09_mallesons_insight_program.txt": "SKIP",
+    "10_hall_wilcox_first_nations_pathway.txt": "SKIP",
+    "11_randstad_temp_admin_assistant_whv.txt": "TAILOR",
+    "12_nsw_ambulance_recruitment_officer.txt": "TAILOR",
+    "13_cloud9_window_cleaning_technician_whv.txt": "TAILOR",
+    "14_property_inspectors_cto.txt": "APPLY",
+    "15_byte_digital_developer_programmer.txt": "TAILOR",
+    "16_mss_security_officer_pv_clearance.txt": "SKIP",
+    "17_agi_group_insurance_analyst.txt": "SKIP",
+    "18_sushi_yuzen_roll_makers_hours.txt": "SKIP",
+    "19_firepop_enmore_front_of_house.txt": "APPLY",
+    "20_infosys_lead_engineering_operations.txt": "APPLY"
+  },
+  "known_limitations_not_scored": {
+    "L1_breitling_casual_retail_assistant.txt": { "by_rules": "APPLY", "by_human": "SKIP" },
+    "L2_japanese_restaurant_foh_waterloo.txt": { "by_rules": "APPLY", "by_human": "SKIP" }
+  }
+}

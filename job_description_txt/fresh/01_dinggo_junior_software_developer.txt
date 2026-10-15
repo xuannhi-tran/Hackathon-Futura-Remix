@@ -1,0 +1,40 @@
+About DingGo
+DingGo builds modern technology and services transforming automotive claims and repair workflows across Australia. We are a collaborative, growing product team looking for a Junior Software Developer who brings sound programming foundations, high curiosity, great communication skills, and a strong sense of initiative.
+
+If you want to understand how software, business context, product decisions, and real-world users connect, rather than just writing code in a silo, you’ll thrive here.
+
+The Opportunity
+Join a tight-knit team working closely with senior engineers and technology leadership (including our CTO) to gain hands-on experience and take genuine, manageable ownership of your work. You'll start by learning our core platform (PHP / CakePHP) and business workflows, expanding into modern frontend interfaces (React) and modern tech practices over time. You will also have access to current AI-assisted development tools, supported by a team rhythm focused on using them safely, effectively, and responsibly.
+What You'll Do
+
+* Develop features, write clean code, and maintain our established PHP application while contributing to newer frontend and API interfaces as you grow
+* Work with product managers, senior developers, and operational users to clarify requirements and explain technical concepts clearly
+* Write tests, debug issues, perform focused workflow checks, and participate constructively in code reviews
+* Dig into operational defects, figure out root causes, and keep clear documentation to help your teammates
+* Actively expand your understanding across backend services, relational data, and frontend components at a sustainable, supported pace
+
+What We're Looking For
+
+* Practical software development experience (via employment, freelance work, or a substantial, real-world personal project)
+* Ability to make complicated concepts simple and converse comfortably with both technical and non-technical teammates
+* Evidence of starting useful things without waiting for every step to be mapped out for you (e.g., a maintained side project, process improvement, volunteer work, or past business venture)
+* Ability to pick up new tools, frameworks, or domain logic independently and check your own work carefully
+* Solid understanding of core programming concepts, basic SQL/relational databases, APIs, and Git version control
+
+Why Join Us?
+
+* Learn directly from experienced engineers while taking real ownership of bounded features early on
+* Gain hands-on exposure to modern AI coding tools in an environment that values responsible review and output verification
+* On-site access to a free gym membership and swimming pool, conveniently located right near public transport
+* Regular team lunches, office socials, themed days, and team celebrations
+* Full-time office attendance during your initial onboarding period, transitioning to a flexible hybrid model (minimum 2 days/week in the Rhodes office) once established
+
+
+To Apply
+Please submit your resume and a brief cover letter outlining your relevant experience. Only shortlisted applicants will be contacted.
+Employer questions
+Your application will include the following questions:
+
+* Which of the following statements best describes your right to work in Australia?
+* What's your expected annual base salary?
+* How many years' experience do you have as a software developer?
