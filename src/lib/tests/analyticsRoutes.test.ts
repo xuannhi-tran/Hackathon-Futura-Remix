@@ -142,6 +142,34 @@ describe("analyse_job", () => {
     }
   });
 
+  it("reports headsUpCount as a number and never any heads-up text", async () => {
+    const ad = "Requires 5+ years of experience. Full-time role at Acme.";
+    gemini.generateContent.mockResolvedValue({
+      text: JSON.stringify({
+        yearsExperience: { value: "5", text: "5+ years of experience" },
+        employmentType: { value: "full-time", text: "Full-time" },
+      }),
+    });
+
+    await extractPOST(
+      extractRequest(ad, {
+        visaProfile: PROFILE_500,
+        fitProfile: { yearsExperience: 0 },
+      })
+    );
+    // Same ad, no fit profile: the count is simply omitted.
+    await extractPOST(extractRequest(ad, { visaProfile: PROFILE_500 }));
+
+    const [withFit, withoutFit] = events("analyse_job");
+    expect(withFit.properties.headsUpCount).toBe(2);
+    expect(withoutFit.properties).not.toHaveProperty("headsUpCount");
+
+    const serialised = JSON.stringify(posthog.captured);
+    expect(serialised).not.toContain("years of experience");
+    expect(serialised).not.toContain("exceed");
+    expect(serialised).not.toContain("Acme");
+  });
+
   it("reports cacheHit true on a cached ad", async () => {
     await extractPOST(extractRequest(AD, { visaProfile: PROFILE_500 }));
     await extractPOST(extractRequest(AD, { visaProfile: PROFILE_500 }));

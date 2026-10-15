@@ -351,7 +351,7 @@ export function evaluateJob(
 // They NEVER change the eligibility verdict.
 // =======================================
 
-function extractFirstNumber(field?: EvidenceField): number | undefined {
+export function extractFirstNumber(field?: EvidenceField): number | undefined {
   if (!field) return undefined;
 
   const match = field.text.match(/\d+(?:\.\d+)?/);

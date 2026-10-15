@@ -175,6 +175,36 @@ describe("property whitelist", () => {
     expect(Object.keys(posthog.captured[0].properties).filter((k) => !k.startsWith("$"))).toEqual([]);
   });
 
+  it("whitelists headsUpCount on analyse_job as a number only, and drops heads-up text", () => {
+    trackServer(request(), "analyse_job", {
+      verdict: "APPLY",
+      headsUpCount: 2,
+      headsUps: ["This ad asks for 5+ years of experience"],
+      headsUpMessage: AD_TEXT,
+    });
+    trackServer(request(), "analyse_job", { headsUpCount: AD_TEXT });
+
+    expect(posthog.captured[0].properties).toMatchObject({
+      verdict: "APPLY",
+      headsUpCount: 2,
+    });
+    expect(posthog.captured[0].properties).not.toHaveProperty("headsUps");
+    expect(posthog.captured[0].properties).not.toHaveProperty("headsUpMessage");
+    expect(posthog.captured[1].properties).not.toHaveProperty("headsUpCount");
+    expect(JSON.stringify(posthog.captured)).not.toContain("5+ years");
+    expect(JSON.stringify(posthog.captured)).not.toContain("Acme");
+  });
+
+  it("does not whitelist headsUpCount on other events", () => {
+    trackServer(request(), "tailor_advice_requested", {
+      latencyMs: 1,
+      success: true,
+      headsUpCount: 1,
+    });
+
+    expect(posthog.captured[0].properties).not.toHaveProperty("headsUpCount");
+  });
+
   it("ignores events that are not in the schema", () => {
     // @ts-expect-error deliberately not a valid event name
     trackServer(request(), "typed_something", { verdict: "SKIP" });

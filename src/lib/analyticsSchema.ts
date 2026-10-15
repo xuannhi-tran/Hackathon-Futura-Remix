@@ -50,6 +50,8 @@ export const EVENT_SCHEMAS = {
       cacheHit: { kind: "boolean" },
       degraded: { kind: "boolean" },
       latencyMs: { kind: "number" },
+      // How many heads-ups were shown; never their text.
+      headsUpCount: { kind: "number" },
       adLengthBucket: { kind: "enum", values: AD_LENGTH_BUCKETS },
     },
   },
