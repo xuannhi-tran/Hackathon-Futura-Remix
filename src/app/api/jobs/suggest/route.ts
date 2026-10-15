@@ -4,6 +4,7 @@ import {
   hasHardRecommendationBlocker,
   type RecommendationProfile,
 } from "../../../../lib/jobRecommendation";
+import { isAboveLevel, isEntryLevelProfile } from "../../../../lib/jobLevel";
 import { getStateFullName } from "../../../../lib/location";
 
 type AdzunaJob = {
@@ -44,13 +45,24 @@ type AdzunaResponse = {
 // Shared helpers
 // ---------------------------------------------------------------------------
 
+/** Suggestions shown to the user. */
+const DISPLAY_COUNT = 10;
+
+/** Give up on the one optional extra request after this long. */
+const EXTRA_REQUEST_TIMEOUT_MS = 8000;
+
+// Level words for the 485 search of an entry-level profile. Sent as Adzuna's
+// what_or (any of these words, in addition to the target field in what).
+const ENTRY_LEVEL_WHAT_OR = "graduate junior entry associate trainee";
+
 /** Build a single Adzuna search URL. */
 function buildAdzunaUrl(
   appId: string,
   appKey: string,
   what: string,
   where: string,
-  resultsPerPage: number
+  resultsPerPage: number,
+  options: { page?: number; whatOr?: string } = {}
 ): string {
   const params = new URLSearchParams({
     app_id: appId,
@@ -60,7 +72,27 @@ function buildAdzunaUrl(
     "content-type": "application/json",
   });
   if (where) params.set("where", where);
-  return `https://api.adzuna.com/v1/api/jobs/au/search/1?${params.toString()}`;
+  if (options.whatOr) params.set("what_or", options.whatOr);
+  return `https://api.adzuna.com/v1/api/jobs/au/search/${
+    options.page ?? 1
+  }?${params.toString()}`;
+}
+
+/** Merge job lists, keeping the first occurrence of each id. */
+function mergeById(...lists: AdzunaJob[][]): AdzunaJob[] {
+  const seen = new Set<string>();
+  const merged: AdzunaJob[] = [];
+
+  for (const list of lists) {
+    for (const job of list) {
+      if (!seen.has(job.id)) {
+        seen.add(job.id);
+        merged.push(job);
+      }
+    }
+  }
+
+  return merged;
 }
 
 /** Distinguishes Adzuna upstream failures (502) from internal errors (500). */
@@ -123,15 +155,21 @@ const SUBCLASS_500_QUALIFIERS = [
   "entry level",
 ] as const;
 
+const SUBCLASS_500_PAGE_SIZE = 10;
+
 type QueryOutcome = { ok: true; jobs: AdzunaJob[] } | { ok: false };
 
 /** Run a single targeted Adzuna search and return a typed outcome. */
-async function runTargetedQuery(url: string): Promise<QueryOutcome> {
+async function runTargetedQuery(
+  url: string,
+  timeoutMs?: number
+): Promise<QueryOutcome> {
   try {
     const response = await fetch(url, {
       method: "GET",
       headers: { Accept: "application/json" },
       cache: "no-store",
+      ...(timeoutMs ? { signal: AbortSignal.timeout(timeoutMs) } : {}),
     });
     if (!response.ok) {
       const body = await response.text();
@@ -160,11 +198,25 @@ async function fetchSubclass500Candidates(
   appKey: string,
   targetField: string,
   where: string
-): Promise<{ allFailed: true } | { allFailed: false; jobs: AdzunaJob[] }> {
+): Promise<
+  | { allFailed: true }
+  | {
+      allFailed: false;
+      jobs: AdzunaJob[];
+      /** A qualifier whose page came back full, so a page 2 may exist. */
+      fullPageQualifier?: string;
+    }
+> {
   const outcomes = await Promise.all(
     SUBCLASS_500_QUALIFIERS.map((qualifier) =>
       runTargetedQuery(
-        buildAdzunaUrl(appId, appKey, `${targetField} ${qualifier}`, where, 10)
+        buildAdzunaUrl(
+          appId,
+          appKey,
+          `${targetField} ${qualifier}`,
+          where,
+          SUBCLASS_500_PAGE_SIZE
+        )
       )
     )
   );
@@ -173,18 +225,18 @@ async function fetchSubclass500Candidates(
     return { allFailed: true };
   }
 
-  const seen = new Set<string>();
-  const merged: AdzunaJob[] = [];
-  for (const outcome of outcomes) {
-    if (!outcome.ok) continue;
-    for (const job of outcome.jobs) {
-      if (!seen.has(job.id)) {
-        seen.add(job.id);
-        merged.push(job);
-      }
-    }
-  }
-  return { allFailed: false, jobs: merged };
+  const fullPageIndex = outcomes.findIndex(
+    (outcome) => outcome.ok && outcome.jobs.length >= SUBCLASS_500_PAGE_SIZE
+  );
+
+  return {
+    allFailed: false,
+    jobs: mergeById(
+      ...outcomes.map((outcome) => (outcome.ok ? outcome.jobs : []))
+    ),
+    fullPageQualifier:
+      fullPageIndex === -1 ? undefined : SUBCLASS_500_QUALIFIERS[fullPageIndex],
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -268,14 +320,40 @@ export async function GET(request: Request) {
         );
       }
 
-      const jobs = result.jobs.map(normaliseJob);
+      const isSuggestable = (job: ReturnType<typeof normaliseJob>) =>
+        !hasHardRecommendationBlocker(job) &&
+        isEligibleForSubclass500(job.title) &&
+        !isAboveLevel(job.title, job.description, profile.yearsExperience);
+
+      let candidates = result.jobs;
+
+      // Too few left after filtering: one more page of a query that came back
+      // full, rather than padding with roles above the user's level. At most
+      // one extra request; if it fails the first results are used as they are.
+      if (
+        result.fullPageQualifier &&
+        candidates.map(normaliseJob).filter(isSuggestable).length <
+          DISPLAY_COUNT
+      ) {
+        const extra = await runTargetedQuery(
+          buildAdzunaUrl(
+            appId,
+            appKey,
+            `${what} ${result.fullPageQualifier}`,
+            adzunaWhere,
+            SUBCLASS_500_PAGE_SIZE,
+            { page: 2 }
+          ),
+          EXTRA_REQUEST_TIMEOUT_MS
+        );
+
+        if (extra.ok) candidates = mergeById(candidates, extra.jobs);
+      }
+
+      const jobs = candidates.map(normaliseJob);
 
       // Rank candidate pool
-      const eligibleJobs = jobs.filter(
-        (job) =>
-          !hasHardRecommendationBlocker(job) &&
-          isEligibleForSubclass500(job.title)
-      );
+      const eligibleJobs = jobs.filter(isSuggestable);
 
       const rankedJobs = eligibleJobs
         .map((job) => ({ ...job, recommendation: recommendJob(job, profile) }))
@@ -284,7 +362,7 @@ export async function GET(request: Request) {
             b.recommendation.score - a.recommendation.score ||
             (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
         )
-        .slice(0, 10);
+        .slice(0, DISPLAY_COUNT);
 
       return Response.json({
         query: {
@@ -301,18 +379,66 @@ export async function GET(request: Request) {
     }
 
     // -----------------------------------------------------------------------
-    // Subclass 485 — original single-query retrieval (unchanged)
+    // Subclass 485 — single query, widened at most once
     // -----------------------------------------------------------------------
 
-    const url = buildAdzunaUrl(appId, appKey, what, adzunaWhere, 30);
+    const SEARCH_PAGE_SIZE = 30;
+    const entryLevel = isEntryLevelProfile(profile.yearsExperience);
+
+    // Entry-level profiles ask Adzuna for level words up front, so managers and
+    // consultants do not crowd out the first page.
+    const url = buildAdzunaUrl(
+      appId,
+      appKey,
+      what,
+      adzunaWhere,
+      SEARCH_PAGE_SIZE,
+      entryLevel ? { whatOr: ENTRY_LEVEL_WHAT_OR } : {}
+    );
     const { results: raw, count: adzunaCount } = await fetchAdzunaPageStrict(
       url
     );
 
-    const jobs = raw.map(normaliseJob);
-    const eligibleJobs = jobs.filter(
-      (job) => !hasHardRecommendationBlocker(job)
-    );
+    const isSuggestable = (job: ReturnType<typeof normaliseJob>) =>
+      !hasHardRecommendationBlocker(job) &&
+      !isAboveLevel(job.title, job.description, profile.yearsExperience);
+
+    let candidates = raw;
+
+    if (
+      candidates.map(normaliseJob).filter(isSuggestable).length < DISPLAY_COUNT
+    ) {
+      // One extra request. A full first page means a page 2 exists; a short
+      // page of the level-biased search is exhausted, so fall back to the plain
+      // field search instead.
+      const extraUrl =
+        raw.length >= SEARCH_PAGE_SIZE
+          ? buildAdzunaUrl(
+              appId,
+              appKey,
+              what,
+              adzunaWhere,
+              SEARCH_PAGE_SIZE,
+              entryLevel
+                ? { page: 2, whatOr: ENTRY_LEVEL_WHAT_OR }
+                : { page: 2 }
+            )
+          : entryLevel
+          ? buildAdzunaUrl(appId, appKey, what, adzunaWhere, SEARCH_PAGE_SIZE)
+          : null;
+
+      if (extraUrl) {
+        const extra = await runTargetedQuery(
+          extraUrl,
+          EXTRA_REQUEST_TIMEOUT_MS
+        );
+
+        if (extra.ok) candidates = mergeById(candidates, extra.jobs);
+      }
+    }
+
+    const jobs = candidates.map(normaliseJob);
+    const eligibleJobs = jobs.filter(isSuggestable);
 
     const rankedJobs = eligibleJobs
       .map((job) => ({ ...job, recommendation: recommendJob(job, profile) }))
@@ -321,7 +447,7 @@ export async function GET(request: Request) {
           b.recommendation.score - a.recommendation.score ||
           (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
       )
-      .slice(0, 10);
+      .slice(0, DISPLAY_COUNT);
 
     return Response.json({
       query: {
