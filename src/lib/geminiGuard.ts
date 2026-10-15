@@ -50,6 +50,30 @@ export function logRedisProblem(error: unknown) {
   );
 }
 
+/** Per-attempt deadline for a Gemini call; there are no retries. */
+export const GEMINI_TIMEOUT_MS = 20_000;
+
+/** Client options for every Gemini call: a hard timeout, SDK retries stay off. */
+export const GEMINI_HTTP_OPTIONS = { timeout: GEMINI_TIMEOUT_MS } as const;
+
+/** Budget for each group of Redis calls; past it the request carries on without Redis. */
+export const REDIS_TIMEOUT_MS = 1_500;
+
+class RedisTimeoutError extends Error {
+  name = "RedisTimeoutError";
+}
+
+/** Rejects if `work` takes longer than REDIS_TIMEOUT_MS. Callers already fail open on a rejection. */
+function withRedisTimeout<T>(work: Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new RedisTimeoutError()), REDIS_TIMEOUT_MS);
+  });
+
+  return Promise.race([work, deadline]).finally(() => clearTimeout(timer));
+}
+
 // --------------------------------------------------
 // Responses
 // --------------------------------------------------
@@ -66,12 +90,13 @@ function rateLimited(retryAfterSeconds: number): Response {
 }
 
 function busy(
-  code: "gemini_cap_reached" | "gemini_unavailable",
-  retryAfterSeconds: number
+  code: "gemini_cap_reached" | "gemini_unavailable" | "gemini_timeout",
+  retryAfterSeconds: number,
+  message = "The AI service is busy right now. Please try again later."
 ): Response {
   return Response.json(
     {
-      error: "The AI service is busy right now. Please try again later.",
+      error: message,
       code,
       retryAfterSeconds,
     },
@@ -160,7 +185,7 @@ async function enforceLimits(
   const redis = getRedis();
   if (!redis) return null;
 
-  try {
+  const check = async (): Promise<Response | null> => {
     const id = clientKey(request);
 
     const tenMinutes = await hitSlidingWindow(
@@ -178,6 +203,12 @@ async function enforceLimits(
       intFromEnv(config.perDayEnv, config.perDayDefault)
     );
     if (!day.allowed) return rateLimited(day.retryAfterSeconds);
+
+    return null;
+  };
+
+  try {
+    return await withRedisTimeout(check());
   } catch (error) {
     logRedisProblem(error);
   }
@@ -225,7 +256,7 @@ export async function reserveGeminiCall(): Promise<Response | null> {
   const redis = getRedis();
   if (!redis) return null;
 
-  try {
+  const reserve = async (): Promise<Response | null> => {
     const now = new Date();
     const dayKey = `gemini:day:${now.toISOString().slice(0, 10)}`;
     const secondsToMidnight = Math.max(
@@ -261,6 +292,12 @@ export async function reserveGeminiCall(): Promise<Response | null> {
       await redis.decr(dayKey);
       return busy("gemini_cap_reached", minute.retryAfterSeconds);
     }
+
+    return null;
+  };
+
+  try {
+    return await withRedisTimeout(reserve());
   } catch (error) {
     logRedisProblem(error);
   }
@@ -268,13 +305,43 @@ export async function reserveGeminiCall(): Promise<Response | null> {
   return null;
 }
 
-/** Maps a Gemini 429 / 5xx failure to a 503 response; null for anything else. */
-export function geminiFailureResponse(error: unknown): Response | null {
+/** True for the abort the SDK raises when GEMINI_TIMEOUT_MS passes. */
+export function isGeminiTimeout(error: unknown): boolean {
+  const candidate = error as { name?: unknown; cause?: unknown } | null;
+
+  return (
+    candidate?.name === "AbortError" ||
+    candidate?.name === "TimeoutError" ||
+    (candidate?.cause != null && isGeminiTimeout(candidate.cause))
+  );
+}
+
+export type GeminiFailure = {
+  reason: "upstream_timeout" | "upstream_error";
+  response: Response;
+};
+
+/** Maps a Gemini timeout, 429 or 5xx to a 503 response; null for anything else. */
+export function classifyGeminiFailure(error: unknown): GeminiFailure | null {
+  if (isGeminiTimeout(error)) {
+    return {
+      reason: "upstream_timeout",
+      response: busy(
+        "gemini_timeout",
+        10,
+        "The analysis took too long, please try again."
+      ),
+    };
+  }
+
   const candidate = error as { status?: unknown; code?: unknown } | null;
 
   for (const value of [candidate?.status, candidate?.code]) {
     if (typeof value === "number" && (value === 429 || value >= 500)) {
-      return busy("gemini_unavailable", 60);
+      return {
+        reason: "upstream_error",
+        response: busy("gemini_unavailable", 60),
+      };
     }
   }
 
@@ -305,7 +372,7 @@ export async function readCachedExtraction(
   if (!redis) return null;
 
   try {
-    const value = await redis.get(cacheKeyFor(adText));
+    const value = await withRedisTimeout(redis.get(cacheKeyFor(adText)));
 
     return value && typeof value === "object" && !Array.isArray(value)
       ? (value as Record<string, unknown>)
@@ -324,9 +391,11 @@ export async function writeCachedExtraction(
   if (!redis) return;
 
   try {
-    await redis.set(cacheKeyFor(adText), rawExtraction, {
-      ex: CACHE_TTL_SECONDS,
-    });
+    await withRedisTimeout(
+      redis.set(cacheKeyFor(adText), rawExtraction, {
+        ex: CACHE_TTL_SECONDS,
+      })
+    );
   } catch (error) {
     logRedisProblem(error);
   }

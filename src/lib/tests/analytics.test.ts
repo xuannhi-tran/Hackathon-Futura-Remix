@@ -175,6 +175,29 @@ describe("property whitelist", () => {
     expect(Object.keys(posthog.captured[0].properties).filter((k) => !k.startsWith("$"))).toEqual([]);
   });
 
+  it("accepts the upstream_timeout reason with route and latencyMs, and drops free text in latencyMs", () => {
+    trackServer(request(), "request_refused", {
+      reason: "upstream_timeout",
+      route: "extract",
+      latencyMs: 20012.4,
+      adText: AD_TEXT,
+    });
+    trackServer(request(), "request_refused", {
+      reason: "upstream_error",
+      route: "tailor-advice",
+      latencyMs: AD_TEXT,
+    });
+
+    expect(posthog.captured[0].properties).toMatchObject({
+      reason: "upstream_timeout",
+      route: "extract",
+      latencyMs: 20012,
+    });
+    expect(posthog.captured[0].properties).not.toHaveProperty("adText");
+    expect(posthog.captured[1].properties).not.toHaveProperty("latencyMs");
+    expect(JSON.stringify(posthog.captured)).not.toContain("Acme");
+  });
+
   it("ignores events that are not in the schema", () => {
     // @ts-expect-error deliberately not a valid event name
     trackServer(request(), "typed_something", { verdict: "SKIP" });
