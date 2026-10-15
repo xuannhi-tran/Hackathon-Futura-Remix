@@ -23,8 +23,20 @@ import { findClauseStart, findClauseEnd } from "../lib/extractionFallbacks";
 import { getDisplayEvidenceSpan } from "../lib/evidenceDisplay";
 import { evaluateHeadsUps, type HeadsUp } from "../lib/headsUp";
 import { buildProfileSummary } from "../lib/profileSummary";
+import {
+  PROFILE_REQUIRED_HINT,
+  confirmedProfile,
+  draftFromSavedProfile,
+  missingRequiredProfileFields,
+  setFieldsOf,
+  withVisaSubclass,
+  type ConfirmedProfile,
+  type ProfileDraft,
+  type VisaSubclass,
+} from "../lib/profileRequirements";
 
 import FitDetails from "./FitDetails";
+import ProfileRequiredHint from "./ProfileRequiredHint";
 import HeadsUpList from "./HeadsUpList";
 
 import {
@@ -62,6 +74,9 @@ type SuggestedJobsResponse = {
   jobs: SuggestedJob[];
   error?: string;
 };
+
+// Select value for "no state chosen yet" (distinct from "" = Anywhere).
+const UNSET_OPTION = "__unset";
 
 const signalStyles = {
   positive: {
@@ -206,6 +221,8 @@ export default function Home() {
 
   // The profile the current result assumed (a snapshot, not live form state).
   const [assumption, setAssumption] = useState("");
+  const [analysedProfile, setAnalysedProfile] =
+    useState<ConfirmedProfile | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -215,11 +232,14 @@ export default function Home() {
   // USER VISA PROFILE
   // -----------------------
 
-  const [visaSubclass, setVisaSubclass] = useState<"500" | "485">("500");
+  // The four required fields start unset (null) for a visitor with no saved
+  // profile, so the first analysis needs a deliberate choice.
+  const [visaSubclass, setVisaSubclass] = useState<VisaSubclass | null>(null);
 
-  const [duringStudyTerm, setDuringStudyTerm] = useState(true);
+  const [duringStudyTerm, setDuringStudyTerm] = useState<boolean | null>(null);
 
-  const [monthsRemaining, setMonthsRemaining] = useState(18);
+  // Required for subclass 500 (unset until entered); optional for 485.
+  const [monthsRemaining, setMonthsRemaining] = useState<number | null>(null);
 
   // -----------------------
   // CAREER PROFILE
@@ -227,9 +247,22 @@ export default function Home() {
 
   const [targetField, setTargetField] = useState("Software Engineering");
 
-  const [preferredLocation, setPreferredLocation] = useState("NSW");
+  // "" is a real choice (Anywhere in Australia); null means not chosen yet.
+  const [preferredLocation, setPreferredLocation] = useState<string | null>(
+    null
+  );
 
-  const [yearsExperience, setYearsExperience] = useState(0);
+  const [yearsExperience, setYearsExperience] = useState<number | null>(null);
+
+  const profileDraft: ProfileDraft = {
+    visaSubclass,
+    duringStudyTerm,
+    monthsRemaining,
+    yearsExperience,
+    preferredLocation,
+  };
+  const missingFields = missingRequiredProfileFields(profileDraft);
+  const profileComplete = missingFields.length === 0;
 
   // -----------------------
   // JOB SUGGESTIONS
@@ -267,20 +300,20 @@ export default function Home() {
     const jobs = loadSavedJobs();
     if (jobs.length > 0) setSavedJobs(jobs);
 
+    // A saved profile restores the fields it holds; any required field it
+    // lacks (older or partial data) stays unset.
     const profile = loadProfile();
     if (profile) {
-      if (profile.visaSubclass !== undefined)
-        setVisaSubclass(profile.visaSubclass);
-      if (profile.duringStudyTerm !== undefined)
-        setDuringStudyTerm(profile.duringStudyTerm);
-      if (profile.monthsRemaining !== undefined)
-        setMonthsRemaining(profile.monthsRemaining);
+      const restored = draftFromSavedProfile(profile);
+
+      setVisaSubclass(restored.visaSubclass);
+      setDuringStudyTerm(restored.duringStudyTerm);
+      setMonthsRemaining(restored.monthsRemaining);
+      setYearsExperience(restored.yearsExperience);
+      setPreferredLocation(restored.preferredLocation);
+
       if (profile.targetField !== undefined)
         setTargetField(profile.targetField);
-      if (profile.preferredLocation !== undefined)
-        setPreferredLocation(profile.preferredLocation);
-      if (profile.yearsExperience !== undefined)
-        setYearsExperience(profile.yearsExperience);
     }
 
     setHydrated(true);
@@ -293,13 +326,16 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated) return;
+    // Unset required fields are left out, never written as a default.
     saveProfile({
-      visaSubclass,
-      duringStudyTerm,
-      monthsRemaining,
+      ...setFieldsOf({
+        visaSubclass,
+        duringStudyTerm,
+        monthsRemaining,
+        yearsExperience,
+        preferredLocation,
+      }),
       targetField,
-      preferredLocation,
-      yearsExperience,
     });
   }, [
     hydrated,
@@ -323,6 +359,7 @@ export default function Home() {
     setFitSignals([]);
     setHeadsUps([]);
     setAssumption("");
+    setAnalysedProfile(null);
     setTailorAdvice(null);
     setTailorAdviceError(false);
     setTailorAdviceNotice(null);
@@ -330,12 +367,13 @@ export default function Home() {
     setIsTailorAdviceLoading(false);
   }
 
-  // Opens the profile form (it is hidden while collapsed) and moves focus to it.
-  function focusProfile() {
+  // Opens the profile form (it is hidden while collapsed) and moves focus to a
+  // field (the first one by default). Field ids match the profile field names.
+  function focusProfile(fieldId = "visaSubclass") {
     setEditingProfile(true);
 
     requestAnimationFrame(() => {
-      const field = document.getElementById("visaSubclass");
+      const field = document.getElementById(fieldId);
 
       document
         .getElementById("profile-editor")
@@ -390,7 +428,9 @@ export default function Home() {
   }
 
   async function handleFindJobs() {
-    if (!targetField.trim()) {
+    const confirmed = confirmedProfile(profileDraft);
+
+    if (!targetField.trim() || !confirmed) {
       return;
     }
 
@@ -403,12 +443,16 @@ export default function Home() {
     try {
       const params = new URLSearchParams({
         targetField: targetField.trim(),
-        preferredLocation: preferredLocation.trim(),
-        subclass: visaSubclass,
-        duringStudyTerm: String(duringStudyTerm),
-        monthsRemaining: String(monthsRemaining),
-        yearsExperience: String(yearsExperience),
+        preferredLocation: confirmed.preferredLocation.trim(),
+        subclass: confirmed.visaSubclass,
+        duringStudyTerm: String(confirmed.duringStudyTerm),
+        yearsExperience: String(confirmed.yearsExperience),
       });
+
+      // Optional for 485 and left out when not entered.
+      if (confirmed.monthsRemaining !== undefined) {
+        params.set("monthsRemaining", String(confirmed.monthsRemaining));
+      }
 
       const response = await fetch(`/api/jobs/suggest?${params.toString()}`);
 
@@ -448,28 +492,39 @@ export default function Home() {
       return;
     }
 
+    // Gate: every required profile field must be set before an analysis runs.
+    const checked = confirmedProfile(profileDraft);
+
+    if (!checked) {
+      focusProfile(missingFields[0]);
+      return;
+    }
+
+    const confirmed: ConfirmedProfile = checked;
+
     setIsLoading(true);
     setVerdict(null);
     setFitSignals([]);
     setHeadsUps([]);
     setAssumption("");
+    setAnalysedProfile(null);
     setTailorAdvice(null);
     setTailorAdviceError(false);
     setTailorAdviceNotice(null);
     setServiceNotice(null);
 
     const visaProfile = {
-      subclass: visaSubclass,
+      subclass: confirmed.visaSubclass,
 
-      duringStudyTerm: visaSubclass === "500" ? duringStudyTerm : false,
+      duringStudyTerm: confirmed.duringStudyTerm,
 
-      monthsRemaining,
+      monthsRemaining: confirmed.monthsRemaining,
     };
 
     const fitProfile = {
       targetField,
-      preferredLocation,
-      yearsExperience,
+      preferredLocation: confirmed.preferredLocation,
+      yearsExperience: confirmed.yearsExperience,
     };
 
     function triggerTailorAdvice(result: Verdict) {
@@ -511,16 +566,14 @@ export default function Home() {
       setVerdict(result);
       setFitSignals(evaluateFitSignals(extracted, fitProfile));
       setHeadsUps(
-        evaluateHeadsUps(extracted, { ...visaProfile, yearsExperience })
-      );
-      setAssumption(
-        buildProfileSummary({
-          visaSubclass,
-          duringStudyTerm: visaProfile.duringStudyTerm,
-          yearsExperience,
-          preferredLocation,
+        evaluateHeadsUps(extracted, {
+          ...visaProfile,
+          yearsExperience: confirmed.yearsExperience,
         })
       );
+      setAnalysedProfile(confirmed);
+      // Built from the confirmed profile only, so no field here can be unset.
+      setAssumption(buildProfileSummary(confirmed));
       triggerTailorAdvice(result);
     }
 
@@ -563,7 +616,7 @@ export default function Home() {
           // verdict in anonymous usage statistics.
           visaProfile,
           // A single number, so the server can count heads-ups; never text.
-          fitProfile: { yearsExperience },
+          fitProfile: { yearsExperience: confirmed.yearsExperience },
         }),
       });
 
@@ -806,22 +859,34 @@ export default function Home() {
                 <span>
                   {visaSubclass === "500"
                     ? "Student visa 500"
-                    : "Graduate visa 485"}
+                    : visaSubclass === "485"
+                    ? "Graduate visa 485"
+                    : "Visa not set"}
                 </span>
                 <span aria-hidden="true" className="text-gray-300">
                   |
                 </span>
                 <span>
                   {visaSubclass === "500"
-                    ? duringStudyTerm
+                    ? duringStudyTerm === null
+                      ? "Study term not set"
+                      : duringStudyTerm
                       ? "Studying now"
                       : "Outside study term"
-                    : "Study term not applicable"}
+                    : visaSubclass === "485"
+                    ? "Study term not applicable"
+                    : "Study term not set"}
                 </span>
                 <span aria-hidden="true" className="text-gray-300">
                   |
                 </span>
-                <span>{monthsRemaining} months remaining</span>
+                <span>
+                  {monthsRemaining === null
+                    ? visaSubclass === "485"
+                      ? "Months left optional"
+                      : "Months left not set"
+                    : `${monthsRemaining} months remaining`}
+                </span>
                 <span aria-hidden="true" className="text-gray-300">
                   |
                 </span>
@@ -829,11 +894,19 @@ export default function Home() {
                 <span aria-hidden="true" className="text-gray-300">
                   |
                 </span>
-                <span>{preferredLocation || "Anywhere in Australia"}</span>
+                <span>
+                  {preferredLocation === null
+                    ? "State not set"
+                    : preferredLocation || "Anywhere in Australia"}
+                </span>
                 <span aria-hidden="true" className="text-gray-300">
                   |
                 </span>
-                <span>{yearsExperience} yrs experience</span>
+                <span>
+                  {yearsExperience === null
+                    ? "Experience not set"
+                    : `${yearsExperience} yrs experience`}
+                </span>
               </div>
             </div>
           )}
@@ -862,21 +935,27 @@ export default function Home() {
                     </label>
                     <select
                       id="visaSubclass"
-                      value={visaSubclass}
+                      value={visaSubclass ?? ""}
+                      required
+                      aria-required="true"
                       onChange={(e) => {
-                        const value = e.target.value as "500" | "485";
+                        const value = e.target.value as VisaSubclass;
 
-                        setVisaSubclass(value);
+                        // No stale study-term or months answer survives a switch.
+                        const next = withVisaSubclass(profileDraft, value);
 
-                        if (value === "485") {
-                          setDuringStudyTerm(false);
-                        }
+                        setVisaSubclass(next.visaSubclass);
+                        setDuringStudyTerm(next.duringStudyTerm);
+                        setMonthsRemaining(next.monthsRemaining);
 
                         resetAnalysis();
                         resetJobSuggestions();
                       }}
                       className="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                     >
+                      <option value="" disabled>
+                        Select…
+                      </option>
                       <option value="500">Student visa (500)</option>
                       <option value="485">Graduate visa (485)</option>
                     </select>
@@ -891,7 +970,14 @@ export default function Home() {
                     </label>
                     <select
                       id="duringStudyTerm"
-                      value={duringStudyTerm ? "yes" : "no"}
+                      value={
+                        duringStudyTerm === null
+                          ? ""
+                          : duringStudyTerm
+                          ? "yes"
+                          : "no"
+                      }
+                      aria-required={visaSubclass === "500"}
                       onChange={(e) => {
                         setDuringStudyTerm(e.target.value === "yes");
                         resetAnalysis();
@@ -900,6 +986,9 @@ export default function Home() {
                       disabled={visaSubclass !== "500"}
                       className="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
                     >
+                      <option value="" disabled>
+                        {visaSubclass === "485" ? "Not applicable" : "Select…"}
+                      </option>
                       <option value="yes">Yes</option>
                       <option value="no">No</option>
                     </select>
@@ -911,15 +1000,23 @@ export default function Home() {
                       className="mb-1 block text-sm font-medium text-gray-700"
                     >
                       Months remaining on visa
+                      {visaSubclass === "485" ? " (optional)" : ""}
                     </label>
                     <input
                       type="number"
                       min="0"
                       id="monthsRemaining"
-                      value={monthsRemaining}
+                      value={monthsRemaining ?? ""}
+                      required={visaSubclass === "500"}
+                      aria-required={visaSubclass === "500"}
+                      placeholder="e.g. 12"
                       onChange={(e) => {
                         const value = Number(e.target.value);
-                        setMonthsRemaining(Number.isNaN(value) ? 0 : value);
+                        setMonthsRemaining(
+                          e.target.value.trim() === "" || Number.isNaN(value)
+                            ? null
+                            : value
+                        );
                         resetAnalysis();
                         resetJobSuggestions();
                       }}
@@ -967,7 +1064,9 @@ export default function Home() {
                     </label>
                     <select
                       id="preferredLocation"
-                      value={preferredLocation}
+                      value={preferredLocation ?? UNSET_OPTION}
+                      required
+                      aria-required="true"
                       onChange={(e) => {
                         setPreferredLocation(e.target.value);
                         resetAnalysis();
@@ -976,6 +1075,9 @@ export default function Home() {
                       disabled={isLoading || isJobSearchLoading}
                       className="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 disabled:bg-gray-50 disabled:text-gray-500"
                     >
+                      <option value={UNSET_OPTION} disabled>
+                        Select…
+                      </option>
                       <option value="">Anywhere in Australia</option>
                       <option value="NSW">NSW — New South Wales</option>
                       <option value="VIC">VIC — Victoria</option>
@@ -1001,10 +1103,17 @@ export default function Home() {
                       type="number"
                       min="0"
                       id="yearsExperience"
-                      value={yearsExperience}
+                      value={yearsExperience ?? ""}
+                      required
+                      aria-required="true"
+                      placeholder="e.g. 0"
                       onChange={(e) => {
                         const value = Number(e.target.value);
-                        setYearsExperience(Number.isNaN(value) ? 0 : value);
+                        setYearsExperience(
+                          e.target.value.trim() === "" || Number.isNaN(value)
+                            ? null
+                            : value
+                        );
                         resetAnalysis();
                         resetJobSuggestions();
                       }}
@@ -1051,9 +1160,13 @@ export default function Home() {
                 onClick={handleAnalyse}
                 disabled={!adText.trim() || isLoading}
                 aria-busy={isLoading}
+                aria-disabled={!profileComplete || undefined}
+                aria-describedby={
+                  hydrated && !profileComplete ? "profile-required-hint" : undefined
+                }
                 className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-base font-semibold text-white hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed transition-colors sm:w-auto ${
                   isLoading ? "disabled:opacity-90" : "disabled:opacity-40"
-                }`}
+                } ${!profileComplete && !isLoading ? "opacity-60" : ""}`}
               >
                 {isLoading && (
                   <span
@@ -1067,6 +1180,13 @@ export default function Home() {
                 {isLoading ? "Checking the job ad against your profile…" : ""}
               </span>
             </div>
+
+            {hydrated && (
+              <ProfileRequiredHint
+                missing={missingFields}
+                onSetUp={() => focusProfile(missingFields[0])}
+              />
+            )}
           </section>
 
           {/* ── Result ── */}
@@ -1120,7 +1240,7 @@ export default function Home() {
                         <span>{assumption}</span>
                         <button
                           type="button"
-                          onClick={focusProfile}
+                          onClick={() => focusProfile()}
                           className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-blue-700 underline underline-offset-2 hover:text-blue-900"
                         >
                           Change
@@ -1209,14 +1329,16 @@ export default function Home() {
               </div>
 
               {/* Fit with your goals */}
-              <FitDetails>
-                <FitSummary
-                  signals={fitSignals}
-                  targetField={targetField}
-                  preferredLocation={preferredLocation}
-                  yearsExperience={yearsExperience}
-                />
-              </FitDetails>
+              {analysedProfile && (
+                <FitDetails>
+                  <FitSummary
+                    signals={fitSignals}
+                    targetField={targetField}
+                    preferredLocation={analysedProfile.preferredLocation}
+                    yearsExperience={analysedProfile.yearsExperience}
+                  />
+                </FitDetails>
+              )}
 
               {/* Tailor advice */}
               {verdict.status === "TAILOR" && (
@@ -1351,7 +1473,9 @@ export default function Home() {
               {/* Primary CTA */}
               <button
                 onClick={handleFindJobs}
-                disabled={!targetField.trim() || isJobSearchLoading}
+                disabled={
+                  !targetField.trim() || !profileComplete || isJobSearchLoading
+                }
                 className="shrink-0 inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
               >
                 {isJobSearchLoading ? "Finding jobs…" : "Find matching jobs"}
@@ -1362,13 +1486,21 @@ export default function Home() {
               Profile matches are estimates from Adzuna summaries, not
               eligibility decisions.
             </p>
+            {hydrated && !profileComplete && (
+              <p className="mt-2 max-w-prose text-sm font-medium text-amber-900">
+                {PROFILE_REQUIRED_HINT}
+              </p>
+            )}
             <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-600">
               <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1">
                 Field: {targetField || "Not set"}
               </span>
 
               <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1">
-                State: {preferredLocation || "Anywhere in Australia"}
+                State:{" "}
+                {preferredLocation === null
+                  ? "Not set"
+                  : preferredLocation || "Anywhere in Australia"}
               </span>
             </div>
 

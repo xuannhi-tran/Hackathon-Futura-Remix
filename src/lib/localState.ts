@@ -209,8 +209,9 @@ export function loadProfile(
   return parseProfile(readJson(PROFILE_KEY, storage));
 }
 
+/** Writes the fields given; a field the user has not set yet is simply absent. */
 export function saveProfile(
-  profile: StoredProfile,
+  profile: Partial<StoredProfile>,
   storage?: StorageLike | null
 ): void {
   writeJson(PROFILE_KEY, profile, storage);
