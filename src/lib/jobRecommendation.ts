@@ -143,6 +143,22 @@ function normalise(text: string) {
     .replace(/\s+/g, " ");
 }
 
+/**
+ * The largest "N years experience" figure stated in free text ("5+ years of
+ * experience", "minimum 3 years' experience"), or undefined if there is none.
+ */
+export function requestedYearsFromText(text: string): number | undefined {
+  const yearMatches = [
+    ...normalise(text).matchAll(
+      /\b(\d+)(?:\s+(?:to\s+)?\d+)?\s*\+?\s*years?\s+(?:of\s+)?(?:relevant\s+|professional\s+|commercial\s+)?experience\b/g
+    ),
+  ];
+
+  return yearMatches.length
+    ? Math.max(...yearMatches.map((match) => Number(match[1])))
+    : undefined;
+}
+
 function words(text: string) {
   return normalise(text)
     .split(" ")
@@ -224,14 +240,7 @@ export function recommendJob(
     title
   );
   const junior = JUNIOR_TITLE_PATTERN.test(title);
-  const yearMatches = [
-    ...text.matchAll(
-      /\b(\d+)(?:\s+(?:to\s+)?\d+)?\s*\+?\s*years?\s+(?:of\s+)?(?:relevant\s+|professional\s+|commercial\s+)?experience\b/g
-    ),
-  ];
-  const requestedYears = yearMatches.length
-    ? Math.max(...yearMatches.map((match) => Number(match[1])))
-    : undefined;
+  const requestedYears = requestedYearsFromText(text);
   let experience: number = weights.experience * partial.unknownExperience;
   let experienceReason = "experience level is unspecified";
   if (requestedYears !== undefined) {

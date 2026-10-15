@@ -513,7 +513,7 @@ describe("suggestions API", () => {
 
   // ── F. Subclass 485 — single query, no junior-title restriction ───────────
 
-  it("F: subclass 485 uses a single Adzuna query and does not filter by title", async () => {
+  it("F: subclass 485 searches once with level words and drops roles above an entry-level profile", async () => {
     const fetchMock = setup485([
       makeJob({ id: "s1", title: "Senior Software Engineer" }),
       makeJob({ id: "j1", title: "Junior Software Engineer" }),
@@ -523,16 +523,37 @@ describe("suggestions API", () => {
     const data = await response.json();
     expect(response.status).toBe(200);
 
-    // Exactly one network call (not three)
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(
-      new URL(fetchMock.mock.calls[0][0]).searchParams.get("results_per_page")
-    ).toBe("30");
+    const first = new URL(fetchMock.mock.calls[0][0]);
+    expect(first.searchParams.get("results_per_page")).toBe("30");
+    expect(first.searchParams.get("what")).toBe("Software Engineering");
+    expect(first.searchParams.get("what_or")).toBe(
+      "graduate junior entry associate trainee"
+    );
 
-    // Senior role not filtered out for 485
     const ids = data.jobs.map((j: { id: string }) => j.id);
-    expect(ids).toContain("s1");
+    expect(ids).not.toContain("s1");
     expect(ids).toContain("j1");
+  });
+
+  it("F2: subclass 485 with 4+ years keeps senior roles and makes one plain query", async () => {
+    const fetchMock = setup485([
+      makeJob({ id: "s1", title: "Senior Software Engineer" }),
+      makeJob({ id: "m1", title: "Engineering Manager" }),
+    ]);
+
+    const data = await (
+      await GET(request({ subclass: "485", yearsExperience: "5" }))
+    ).json();
+
+    // Short page and not entry level: nothing to widen.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(new URL(fetchMock.mock.calls[0][0]).searchParams.has("what_or")).toBe(
+      false
+    );
+    expect(data.jobs.map((j: { id: string }) => j.id).sort()).toEqual([
+      "m1",
+      "s1",
+    ]);
   });
 
   // ── Profile passed into scoring ───────────────────────────────────────────
@@ -610,7 +631,11 @@ describe("suggestions API", () => {
     vi.stubEnv("ADZUNA_APP_KEY", "test-key");
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(new Response("Unavailable", { status: 503 }))
+      vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve(new Response("Unavailable", { status: 503 }))
+        )
     );
 
     const response = await GET(request());
@@ -622,7 +647,9 @@ describe("suggestions API", () => {
   // ── Upstream 502 — 485 strict path ───────────────────────────────────────
 
   it("handles upstream failures on 485 path", async () => {
-    setup485().mockResolvedValue(new Response("Unavailable", { status: 503 }));
+    setup485().mockImplementation(() =>
+      Promise.resolve(new Response("Unavailable", { status: 503 }))
+    );
     expect((await GET(request({ subclass: "485" }))).status).toBe(502);
   });
 
@@ -717,5 +744,269 @@ describe("suggestions API", () => {
     expect(response.status).toBe(200);
     const url = new URL(fetchMock.mock.calls[0][0]);
     expect(url.searchParams.get("where")).toBe("Victoria");
+  });
+
+  // -- Seniority filter on both paths ---------------------------------------
+
+  it("500 path applies the level filter (0 years)", async () => {
+    setup500([
+      [
+        makeJob({ id: "ok", title: "Graduate Software Engineer" }),
+        makeJob({
+          id: "yrs",
+          title: "Junior Developer",
+          description: "Requires 5+ years of experience",
+        }),
+        makeJob({ id: "mgr", title: "Graduate Program Manager" }),
+        makeJob({ id: "snr", title: "Junior Senior Developer" }),
+      ],
+      [],
+      [],
+      [],
+    ]);
+
+    const data = await (await GET(request())).json();
+    const ids = data.jobs.map((j: { id: string }) => j.id);
+
+    expect(ids).toContain("ok");
+    expect(ids).not.toContain("yrs");
+    // An early-career word in the title protects it from the title rules.
+    expect(ids).toContain("mgr");
+    expect(ids).toContain("snr");
+  });
+
+  it("485 path applies the level filter (0 years)", async () => {
+    setup485([
+      makeJob({ id: "a", title: "Engineering Manager" }),
+      makeJob({ id: "b", title: "Management Consultant" }),
+      makeJob({ id: "c", title: "Senior Data Analyst" }),
+      makeJob({ id: "d", title: "Graduate Consultant" }),
+      makeJob({ id: "e", title: "Data Analyst" }),
+      makeJob({ id: "f", title: "Data Analyst", description: "5+ years of experience" }),
+    ]);
+
+    const data = await (await GET(request({ subclass: "485" }))).json();
+
+    expect(data.jobs.map((j: { id: string }) => j.id).sort()).toEqual([
+      "d",
+      "e",
+    ]);
+  });
+
+  it("485 path keeps consultants and drops managers at 2-3 years", async () => {
+    setup485([
+      makeJob({ id: "c", title: "Management Consultant" }),
+      makeJob({ id: "m", title: "Engineering Manager" }),
+      makeJob({ id: "s", title: "Senior Analyst" }),
+    ]);
+
+    const data = await (
+      await GET(request({ subclass: "485", yearsExperience: "3" }))
+    ).json();
+
+    expect(data.jobs.map((j: { id: string }) => j.id)).toEqual(["c"]);
+  });
+
+  it("returns the normal empty response (200, empty list) when everything is filtered out", async () => {
+    setup485([
+      makeJob({ id: "a", title: "Engineering Manager" }),
+      makeJob({ id: "b", title: "Principal Consultant" }),
+    ]);
+    const response485 = await GET(request({ subclass: "485" }));
+    expect(response485.status).toBe(200);
+    expect((await response485.json()).jobs).toEqual([]);
+
+    setup500([
+      [
+        makeJob({
+          id: "x",
+          title: "Graduate Role",
+          description: "10 years of experience",
+        }),
+      ],
+      [],
+      [],
+      [],
+    ]);
+    const response500 = await GET(request());
+    expect(response500.status).toBe(200);
+    expect((await response500.json()).jobs).toEqual([]);
+  });
+
+  // -- Bounded extra request -------------------------------------------------
+
+  const filler = (
+    prefix: string,
+    n: number,
+    over: Partial<{ title: string; description: string }> = {}
+  ) =>
+    Array.from({ length: n }, (_, i) =>
+      makeJob({
+        id: prefix + "-" + i,
+        title: "Graduate Software Engineer",
+        ...over,
+      })
+    );
+
+  it("500: enough suitable results means no extra request (4 calls)", async () => {
+    const fetchMock = setup500([
+      filler("g", 10),
+      filler("i", 10),
+      filler("j", 10),
+      filler("e", 10),
+    ]);
+
+    const data = await (await GET(request())).json();
+
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(data.jobs).toHaveLength(10);
+  });
+
+  it("500: too few left after filtering fetches exactly one more page of a full query", async () => {
+    const blocked = { description: "Australian citizens only" };
+    let call = 0;
+    vi.stubEnv("ADZUNA_APP_ID", "test-id");
+    vi.stubEnv("ADZUNA_APP_KEY", "test-key");
+    const fetchMock = vi.fn().mockImplementation(() => {
+      call++;
+      const results =
+        call === 1
+          ? filler("blocked", 10, blocked)
+          : call === 5
+          ? filler("more", 10)
+          : [];
+      return Promise.resolve(Response.json({ results }));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const data = await (await GET(request())).json();
+
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+    const extra = new URL(fetchMock.mock.calls[4][0]);
+    expect(extra.pathname).toMatch(/\/search\/2$/);
+    expect(extra.searchParams.get("what")).toBe("Software Engineering graduate");
+    expect(extra.searchParams.get("results_per_page")).toBe("10");
+    expect(data.jobs).toHaveLength(10);
+    expect(
+      data.jobs.every((j: { id: string }) => j.id.startsWith("more-"))
+    ).toBe(true);
+  });
+
+  it("500: no query came back full, so there is nothing to widen (4 calls)", async () => {
+    const fetchMock = setup500([filler("g", 3), [], [], []]);
+
+    await GET(request());
+
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("500: a failing extra request is ignored", async () => {
+    const blocked = { description: "Australian citizens only" };
+    let call = 0;
+    vi.stubEnv("ADZUNA_APP_ID", "test-id");
+    vi.stubEnv("ADZUNA_APP_KEY", "test-key");
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(() => {
+        call++;
+        if (call === 5) {
+          return Promise.resolve(new Response("Down", { status: 503 }));
+        }
+        return Promise.resolve(
+          Response.json({
+            results:
+              call === 1
+                ? [...filler("ok", 2), ...filler("blocked", 8, blocked)]
+                : [],
+          })
+        );
+      })
+    );
+
+    const response = await GET(request());
+
+    expect(response.status).toBe(200);
+    expect((await response.json()).jobs).toHaveLength(2);
+    expect(call).toBe(5);
+    errors.mockRestore();
+  });
+
+  it("485 entry level: a full biased page that filters down fetches page 2 of the same search (2 calls)", async () => {
+    vi.stubEnv("ADZUNA_APP_ID", "test-id");
+    vi.stubEnv("ADZUNA_APP_KEY", "test-key");
+    let call = 0;
+    const fetchMock = vi.fn().mockImplementation(() => {
+      call++;
+      return Promise.resolve(
+        Response.json({
+          count: 90,
+          results:
+            call === 1
+              ? Array.from({ length: 30 }, (_, i) =>
+                  makeJob({ id: "m-" + i, title: "Marketing Manager" })
+                )
+              : filler("p2", 12),
+        })
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const data = await (await GET(request({ subclass: "485" }))).json();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const second = new URL(fetchMock.mock.calls[1][0]);
+    expect(second.pathname).toMatch(/\/search\/2$/);
+    expect(second.searchParams.get("what_or")).toBe(
+      "graduate junior entry associate trainee"
+    );
+    expect(data.jobs).toHaveLength(10);
+  });
+
+  it("485 entry level: a short biased page falls back to the plain search once (2 calls, no what_or)", async () => {
+    const fetchMock = setup485([
+      makeJob({ id: "j1", title: "Junior Data Analyst" }),
+    ]);
+
+    await GET(request({ subclass: "485" }));
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const second = new URL(fetchMock.mock.calls[1][0]);
+    expect(second.pathname).toMatch(/\/search\/1$/);
+    expect(second.searchParams.has("what_or")).toBe(false);
+  });
+
+  it("485: enough suitable results means a single request", async () => {
+    const fetchMock = setup485(filler("g", 30));
+
+    const data = await (await GET(request({ subclass: "485" }))).json();
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(data.jobs).toHaveLength(10);
+  });
+
+  // -- Mock hygiene: no "Body is unusable" noise -------------------------------
+
+  it("the route reads each Adzuna response body once (no Body-is-unusable log)", async () => {
+    vi.stubEnv("ADZUNA_APP_ID", "test-id");
+    vi.stubEnv("ADZUNA_APP_KEY", "test-key");
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve(new Response("Unavailable", { status: 503 }))
+        )
+    );
+
+    expect((await GET(request())).status).toBe(502);
+
+    const logged = errors.mock.calls
+      .map((call) => call.map(String).join(" "))
+      .join("\n");
+    expect(logged).toContain("Adzuna targeted query error");
+    expect(logged).not.toMatch(/Body is unusable|targeted query threw/);
+    errors.mockRestore();
   });
 });
