@@ -13,8 +13,9 @@ import {
 } from "../../../lib/extractionFallbacks";
 
 import {
+  GEMINI_HTTP_OPTIONS,
+  classifyGeminiFailure,
   enforceClientLimit,
-  geminiFailureResponse,
   isEvalBypass,
   readCachedExtraction,
   reserveGeminiCall,
@@ -150,6 +151,9 @@ function filterWorkRightsRequirement(
   return field;
 }
 
+// Gemini is capped at 20s and each group of Redis calls at 1.5s.
+export const maxDuration = 30;
+
 export async function POST(request: Request) {
   const startedAt = Date.now();
 
@@ -231,6 +235,7 @@ export async function POST(request: Request) {
 
       const ai = new GoogleGenAI({
         apiKey: process.env.GEMINI_API_KEY,
+        httpOptions: GEMINI_HTTP_OPTIONS,
       });
 
       let response;
@@ -250,17 +255,18 @@ export async function POST(request: Request) {
           },
         });
       } catch (error) {
-        const busy = geminiFailureResponse(error);
+        const failure = classifyGeminiFailure(error);
 
-        if (busy) {
+        if (failure) {
           console.error("Gemini unavailable:", error);
 
           trackServer(request, "request_refused", {
-            reason: "upstream_error",
+            reason: failure.reason,
             route: "extract",
+            latencyMs: Date.now() - startedAt,
           });
 
-          return busy;
+          return failure.response;
         }
 
         throw error;

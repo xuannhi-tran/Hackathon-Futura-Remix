@@ -67,9 +67,16 @@ export const EVENT_SCHEMAS = {
     properties: {
       reason: {
         kind: "enum",
-        values: ["rate_limited", "quota_cap", "upstream_error"],
+        values: [
+          "rate_limited",
+          "quota_cap",
+          "upstream_error",
+          "upstream_timeout",
+        ],
       },
       route: { kind: "enum", values: ["extract", "tailor-advice"] },
+      // Set for upstream failures: how long the request ran before giving up.
+      latencyMs: { kind: "number" },
     },
   },
   feedback_submitted: {
