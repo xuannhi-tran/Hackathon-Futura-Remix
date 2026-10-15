@@ -7,6 +7,7 @@ import {
   fallbackRegistration,
   fallbackVisaPlanRequirement,
   fallbackRoleField,
+  fallbackHoursPerWeek,
   resolveEligibilityStatus,
   fallbackWorkRightsRequirement,
   filterTemporaryVisaAllowed,
@@ -380,7 +381,10 @@ export async function POST(request: Request) {
 
       employmentType: addEvidenceSpan(adText, rawExtraction.employmentType),
 
-      hoursPerWeek: addEvidenceSpan(adText, rawExtraction.hoursPerWeek),
+      // The model's span wins; the fallback only fills a miss.
+      hoursPerWeek:
+        addEvidenceSpan(adText, rawExtraction.hoursPerWeek) ??
+        fallbackHoursPerWeek(adText),
 
       registration: aiRegistration ?? fallbackRegistration(adText),
 
