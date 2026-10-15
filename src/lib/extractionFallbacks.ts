@@ -1025,3 +1025,94 @@ export function fallbackWorkRightsRequirement(
     "Full working rights required"
   );
 }
+
+// --------------------------------------------------
+// HOURS PER WEEK
+// --------------------------------------------------
+
+const HOURS_NUMBER = String.raw`\d{1,2}(?:\.\d+)?`;
+
+// "minimum (of) 30 hours per week", "at least 30 hours a week", "30+ hrs/week",
+// "20-30 hours weekly", "38 hours per week". Weekly units only: fortnightly or
+// monthly figures are not converted.
+const WORKING_HOURS_PATTERN = new RegExp(
+  String.raw`(?<![\d.$])(?:(?:minimum|min\.?)(?:\s+of)?\s+|at\s+least\s+)?` +
+    String.raw`${HOURS_NUMBER}(?:\s*[-–]\s*${HOURS_NUMBER})?\+?\s*(?:hours?|hrs?)` +
+    String.raw`(?:\s*(?:per|a|each)\s+(?:week|wk)\b|\s*\/\s*(?:week|wk)\b|\s+weekly\b)`,
+  "gi"
+);
+
+// A cap or a ceiling is not a commitment ("up to 20 hours per week").
+const HOURS_CEILING_BEFORE =
+  /\b(?:up\s+to|maximum(?:\s+of)?|max\.?(?:\s+of)?|a\s+maximum\s+of|no\s+more\s+than|not\s+(?:more\s+than|exceed(?:ing)?)|capped\s+at|limited\s+to|at\s+most|less\s+than|fewer\s+than|under)\s*$/i;
+
+// Hours that are about something other than the working week, or pay.
+const HOURS_OTHER_CONTEXT =
+  /\b(?:training|trainee|study|studies|studying|leave|overtime|salary|remuneration|wage|wages|pay|paid|rate|lectures?|classes|class|placement|volunteer|orientation|mentoring|professional\s+development)\b|\$|\bper\s+hour\b/i;
+
+function clauseAround(adText: string, start: number, end: number): string {
+  let from = start;
+
+  while (from > 0) {
+    const ch = adText[from - 1];
+
+    if (ch === "\n" || ch === ";") break;
+    if (/[.!?]/.test(ch) && /\s/.test(adText[from] ?? "")) break;
+
+    from--;
+  }
+
+  let to = end;
+
+  while (to < adText.length) {
+    const ch = adText[to];
+
+    if (ch === "\n" || ch === ";") break;
+    if (/[.!?]/.test(ch) && (to + 1 >= adText.length || /\s/.test(adText[to + 1]))) break;
+
+    to++;
+  }
+
+  return adText.slice(from, to);
+}
+
+/**
+ * A clear weekly working-hours commitment, e.g. "minimum 30 hours per week",
+ * "38 hours per week", "20-30 hours weekly". The span starts at the qualifier
+ * or at the number, so the first number in it is the stated minimum (the value
+ * rules.ts reads).
+ *
+ * Conservative: returns nothing for ceilings ("up to", "maximum", "no more
+ * than"), hours of training / study / leave / overtime, pay contexts, and
+ * fortnightly or monthly figures. It also returns nothing when the ad gives
+ * different weekly-hours figures in different places, counting the ones it
+ * would itself ignore: if "up to 38 hours" and "24 hours" both appear, it is
+ * not clear which one is the commitment.
+ */
+export function fallbackHoursPerWeek(
+  adText: string
+): EvidenceField | undefined {
+  const candidates: EvidenceField[] = [];
+  const figures = new Set<number>();
+
+  for (const match of adText.matchAll(WORKING_HOURS_PATTERN)) {
+    const start = match.index;
+    const end = start + match[0].length;
+
+    figures.add(Number(match[0].match(/\d+(?:\.\d+)?/)![0]));
+
+    if (HOURS_CEILING_BEFORE.test(adText.slice(Math.max(0, start - 30), start))) {
+      continue;
+    }
+
+    if (HOURS_OTHER_CONTEXT.test(clauseAround(adText, start, end))) {
+      continue;
+    }
+
+    candidates.push({ value: match[0].trim(), text: match[0], start, end });
+  }
+
+  if (candidates.length === 0 || figures.size > 1) return undefined;
+
+  return candidates[0];
+}
