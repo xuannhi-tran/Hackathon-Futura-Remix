@@ -2,8 +2,9 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Verdict, VisaProfile, FitProfile } from "../../../types/job";
 import { trackServer } from "../../../lib/analytics";
 import {
+  GEMINI_HTTP_OPTIONS,
+  classifyGeminiFailure,
   enforceClientLimit,
-  geminiFailureResponse,
   reserveGeminiCall,
 } from "../../../lib/geminiGuard";
 
@@ -36,6 +37,9 @@ const adviceSchema = {
   },
   required: ["summary", "checks", "applicationTips", "recruiterQuestions"],
 };
+
+// Gemini is capped at 20s and each group of Redis calls at 1.5s.
+export const maxDuration = 30;
 
 export async function POST(request: Request) {
   const startedAt = Date.now();
@@ -79,6 +83,7 @@ export async function POST(request: Request) {
 
     const ai = new GoogleGenAI({
       apiKey: process.env.GEMINI_API_KEY,
+      httpOptions: GEMINI_HTTP_OPTIONS,
     });
 
     const prompt = `
@@ -139,17 +144,18 @@ ${adText}
         },
       });
     } catch (error) {
-      const busy = geminiFailureResponse(error);
+      const failure = classifyGeminiFailure(error);
 
-      if (busy) {
+      if (failure) {
         console.error("Gemini unavailable for tailor advice:", error);
 
         trackServer(request, "request_refused", {
-          reason: "upstream_error",
+          reason: failure.reason,
           route: "tailor-advice",
+          latencyMs: Date.now() - startedAt,
         });
 
-        return busy;
+        return failure.response;
       }
 
       throw error;
