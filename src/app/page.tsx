@@ -21,6 +21,11 @@ import { extractTitle } from "../lib/titleExtraction";
 import { evaluateJob, evaluateFitSignals } from "../lib/rules";
 import { findClauseStart, findClauseEnd } from "../lib/extractionFallbacks";
 import { getDisplayEvidenceSpan } from "../lib/evidenceDisplay";
+import { evaluateHeadsUps, type HeadsUp } from "../lib/headsUp";
+import { buildProfileSummary } from "../lib/profileSummary";
+
+import FitDetails from "./FitDetails";
+import HeadsUpList from "./HeadsUpList";
 
 import {
   ExtractedJobAd,
@@ -197,6 +202,11 @@ export default function Home() {
 
   const [fitSignals, setFitSignals] = useState<FitSignal[]>([]);
 
+  const [headsUps, setHeadsUps] = useState<HeadsUp[]>([]);
+
+  // The profile the current result assumed (a snapshot, not live form state).
+  const [assumption, setAssumption] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
 
   const [savedJobs, setSavedJobs] = useState<SavedJob[]>([]);
@@ -311,11 +321,27 @@ export default function Home() {
     setSaveMessage("");
     setVerdict(null);
     setFitSignals([]);
+    setHeadsUps([]);
+    setAssumption("");
     setTailorAdvice(null);
     setTailorAdviceError(false);
     setTailorAdviceNotice(null);
     setServiceNotice(null);
     setIsTailorAdviceLoading(false);
+  }
+
+  // Opens the profile form (it is hidden while collapsed) and moves focus to it.
+  function focusProfile() {
+    setEditingProfile(true);
+
+    requestAnimationFrame(() => {
+      const field = document.getElementById("visaSubclass");
+
+      document
+        .getElementById("profile-editor")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      field?.focus({ preventScroll: true });
+    });
   }
 
   const jobSearchVersion = useRef(0);
@@ -425,6 +451,8 @@ export default function Home() {
     setIsLoading(true);
     setVerdict(null);
     setFitSignals([]);
+    setHeadsUps([]);
+    setAssumption("");
     setTailorAdvice(null);
     setTailorAdviceError(false);
     setTailorAdviceNotice(null);
@@ -475,6 +503,27 @@ export default function Home() {
         .finally(() => setIsTailorAdviceLoading(false));
     }
 
+    // The verdict and fit signals come from the existing engine, unchanged.
+    // Heads-ups and the "Assuming" line are extra context shown beside them.
+    function showResult(extracted: ExtractedJobAd) {
+      const result = evaluateJob(extracted, visaProfile);
+
+      setVerdict(result);
+      setFitSignals(evaluateFitSignals(extracted, fitProfile));
+      setHeadsUps(
+        evaluateHeadsUps(extracted, { ...visaProfile, yearsExperience })
+      );
+      setAssumption(
+        buildProfileSummary({
+          visaSubclass,
+          duringStudyTerm: visaProfile.duringStudyTerm,
+          yearsExperience,
+          preferredLocation,
+        })
+      );
+      triggerTailorAdvice(result);
+    }
+
     // -----------------------
     // OFFLINE MODE
     // -----------------------
@@ -483,27 +532,13 @@ export default function Home() {
       const fixture = getDemoFixture(adText);
 
       if (fixture) {
-        const result = evaluateJob(fixture, visaProfile);
-
-        const signals = evaluateFitSignals(fixture, fitProfile);
-
-        setVerdict(result);
-        setFitSignals(signals);
-        triggerTailorAdvice(result);
+        showResult(fixture);
         setIsLoading(false);
 
         return;
       }
 
-      const extracted = mockExtractJobAd(adText);
-
-      const result = evaluateJob(extracted, visaProfile);
-
-      const signals = evaluateFitSignals(extracted, fitProfile);
-
-      setVerdict(result);
-      setFitSignals(signals);
-      triggerTailorAdvice(result);
+      showResult(mockExtractJobAd(adText));
       setIsLoading(false);
 
       return;
@@ -527,6 +562,8 @@ export default function Home() {
           // Structured profile only; the server uses it to describe the
           // verdict in anonymous usage statistics.
           visaProfile,
+          // A single number, so the server can count heads-ups; never text.
+          fitProfile: { yearsExperience },
         }),
       });
 
@@ -544,13 +581,7 @@ export default function Home() {
 
       const extracted: ExtractedJobAd = data.extraction;
 
-      const result = evaluateJob(extracted, visaProfile);
-
-      const signals = evaluateFitSignals(extracted, fitProfile);
-
-      setVerdict(result);
-      setFitSignals(signals);
-      triggerTailorAdvice(result);
+      showResult(extracted);
     } catch (error) {
       console.warn(
         "AI extraction unavailable. Using cached/local fallback.",
@@ -560,26 +591,12 @@ export default function Home() {
       const fixture = getDemoFixture(adText);
 
       if (fixture) {
-        const result = evaluateJob(fixture, visaProfile);
-
-        const signals = evaluateFitSignals(fixture, fitProfile);
-
-        setVerdict(result);
-        setFitSignals(signals);
-        triggerTailorAdvice(result);
+        showResult(fixture);
 
         return;
       }
 
-      const extracted = mockExtractJobAd(adText);
-
-      const result = evaluateJob(extracted, visaProfile);
-
-      const signals = evaluateFitSignals(extracted, fitProfile);
-
-      setVerdict(result);
-      setFitSignals(signals);
-      triggerTailorAdvice(result);
+      showResult(mockExtractJobAd(adText));
     } finally {
       setIsLoading(false);
     }
@@ -734,7 +751,7 @@ export default function Home() {
   // Verdict description text
   const verdictDescription =
     verdict?.status === "APPLY"
-      ? "This role does not show any obvious eligibility blockers for your current profile."
+      ? "No visa blockers were found in the ad text. Employer screening questions and non-visa requirements are not covered."
       : verdict?.status === "TAILOR"
       ? "This role may still be worth applying for, but a condition needs your attention."
       : "This role contains a requirement that appears to conflict with your current profile.";
@@ -1098,6 +1115,19 @@ export default function Home() {
                       {verdictDescription}
                     </p>
 
+                    {assumption && (
+                      <p className="mt-2 flex flex-wrap items-center gap-x-2 text-sm text-gray-600">
+                        <span>{assumption}</span>
+                        <button
+                          type="button"
+                          onClick={focusProfile}
+                          className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-blue-700 underline underline-offset-2 hover:text-blue-900"
+                        >
+                          Change
+                        </button>
+                      </p>
+                    )}
+
                     {/* Why this result */}
                     <div className="mt-4">
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-600">
@@ -1117,6 +1147,8 @@ export default function Home() {
                         {verdictNextStep}
                       </p>
                     </div>
+
+                    <HeadsUpList headsUps={headsUps} />
 
                     {/* Actions */}
                     <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -1177,50 +1209,14 @@ export default function Home() {
               </div>
 
               {/* Fit with your goals */}
-              {verdict.status === "SKIP" ? (
-                <details className="group rounded-xl border border-gray-200 bg-white shadow-sm">
-                  <summary className="flex cursor-pointer items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-gray-700 sm:px-6">
-                    <span>Fit with your goals</span>
-                    <span
-                      aria-hidden="true"
-                      className="text-gray-500 transition-transform group-open:rotate-180 select-none"
-                    >
-                      ▾
-                    </span>
-                  </summary>
-                  <div className="border-t border-gray-100 px-5 py-4 sm:px-6">
-                    <FitSummary
-                      signals={fitSignals}
-                      targetField={targetField}
-                      preferredLocation={preferredLocation}
-                      yearsExperience={yearsExperience}
-                    />
-                  </div>
-                </details>
-              ) : (
-                <details
-                  className="group rounded-xl border border-gray-200 bg-white shadow-sm"
-                  open
-                >
-                  <summary className="flex cursor-pointer items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-gray-700 sm:px-6">
-                    <span>Fit with your goals</span>
-                    <span
-                      aria-hidden="true"
-                      className="text-gray-500 transition-transform group-open:rotate-180 select-none"
-                    >
-                      ▾
-                    </span>
-                  </summary>
-                  <div className="border-t border-gray-100 px-5 py-4 sm:px-6">
-                    <FitSummary
-                      signals={fitSignals}
-                      targetField={targetField}
-                      preferredLocation={preferredLocation}
-                      yearsExperience={yearsExperience}
-                    />
-                  </div>
-                </details>
-              )}
+              <FitDetails>
+                <FitSummary
+                  signals={fitSignals}
+                  targetField={targetField}
+                  preferredLocation={preferredLocation}
+                  yearsExperience={yearsExperience}
+                />
+              </FitDetails>
 
               {/* Tailor advice */}
               {verdict.status === "TAILOR" && (

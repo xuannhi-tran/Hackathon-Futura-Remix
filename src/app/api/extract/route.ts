@@ -28,7 +28,11 @@ import {
   extractionSchema,
 } from "../../../lib/extractPrompt";
 
-import { describeVerdict, trackServer } from "../../../lib/analytics";
+import {
+  describeHeadsUps,
+  describeVerdict,
+  trackServer,
+} from "../../../lib/analytics";
 import { adLengthBucket } from "../../../lib/analyticsSchema";
 
 import { extractTitle } from "../../../lib/titleExtraction";
@@ -158,6 +162,8 @@ export async function POST(request: Request) {
       adText?: unknown;
       // Structured visa profile; only used to describe the verdict in analytics.
       visaProfile?: unknown;
+      // { yearsExperience } only; used to count heads-ups for analytics.
+      fitProfile?: unknown;
     };
 
     try {
@@ -412,6 +418,7 @@ export async function POST(request: Request) {
 
     trackServer(request, "analyse_job", {
       ...describeVerdict(extraction, body.visaProfile),
+      ...describeHeadsUps(extraction, body.visaProfile, body.fitProfile),
       cacheHit,
       degraded,
       latencyMs: Date.now() - startedAt,

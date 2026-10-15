@@ -24,6 +24,7 @@ import {
   type ServerEvent,
 } from "./analyticsSchema";
 import { isEvalBypass } from "./geminiGuard";
+import { evaluateHeadsUps } from "./headsUp";
 import { evaluateJob } from "./rules";
 
 import type { ExtractedJobAd, VisaProfile } from "../types/job";
@@ -99,6 +100,45 @@ export function trackServer(
     }
   } catch {
     // Analytics must never affect a request.
+  }
+}
+
+/**
+ * Number of heads-ups the client would show, from the extraction and the two
+ * structured profiles it sent. A count only: no heads-up text is ever sent.
+ * Returns {} if either profile is missing or malformed.
+ */
+export function describeHeadsUps(
+  extraction: ExtractedJobAd,
+  rawVisaProfile: unknown,
+  rawFitProfile: unknown
+): { headsUpCount?: number } {
+  try {
+    const visa = rawVisaProfile as Partial<VisaProfile> | null | undefined;
+    const fit = rawFitProfile as { yearsExperience?: unknown } | null | undefined;
+
+    if (
+      (visa?.subclass !== "500" && visa?.subclass !== "485") ||
+      typeof fit?.yearsExperience !== "number" ||
+      !Number.isFinite(fit.yearsExperience)
+    ) {
+      return {};
+    }
+
+    return {
+      headsUpCount: evaluateHeadsUps(extraction, {
+        subclass: visa.subclass,
+        duringStudyTerm: visa.duringStudyTerm === true,
+        monthsRemaining:
+          typeof visa.monthsRemaining === "number" &&
+          Number.isFinite(visa.monthsRemaining)
+            ? visa.monthsRemaining
+            : undefined,
+        yearsExperience: fit.yearsExperience,
+      }).length,
+    };
+  } catch {
+    return {};
   }
 }
 
