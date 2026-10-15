@@ -1,0 +1,88 @@
+Junior / Mid-level Embedded Software Engineer
+
+Sydney | Hybrid | IoT
+$90-130k + super
+ 
+The Mission
+Build the software behind a new generation of connected consumer products, from early proof of concept through to global mass production.
+You’ll work across embedded systems, device connectivity, user interfaces and cloud-connected features, helping turn product ideas into reliable, intuitive and commercially successful hardware.
+This is an opportunity to join a highly experienced engineering team early in your career, get exposure to the full product development lifecycle and learn from engineers who have built complex products at scale.
+
+The Challenge
+This isn’t a narrow firmware role. You’ll join a multidisciplinary product squad alongside electronics, mechanical, industrial design, quality and product development specialists, contributing to software across the complete device experience.
+Depending on the product, that could include:
+Developing embedded software in C and C++
+Building software for microcontrollers and connected devices
+Contributing to React Native interfaces running on physical products
+Integrating device, mobile and cloud components
+Contributing to reusable software architectures across multiple product families
+Reading schematics and debugging across hardware and software boundaries
+Prototyping quickly during concept development
+Helping mature code from early prototypes through to production-quality software
+Supporting manufacturing, validation and occasional factory engagement
+Collaborating with local teams, overseas engineering partners and remote software groups
+The engineering lifecycle runs for roughly two to three years, taking products from an initial hypothesis through proof of concept, commercial approval, pilot builds and mass production.
+
+The Bar
+You don’t need to arrive as the finished article. We’re much more interested in strong fundamentals, evidence that you can apply them to real engineering problems and an appetite to keep learning.
+
+What you'll need
+A degree in Computer Science, Electrical Engineering, Mechatronics, Software Engineering or another relevant engineering discipline
+Some transferable, hands-on experience through an internship, university project, postgraduate work or early commercial experience involving firmware, embedded systems, electronics or connected hardware
+Strong programming fundamentals and practical problem-solving ability
+Some experience working with C and/or C++, whether commercially, academically or through personal projects
+A genuine interest in understanding how software and hardware interact
+The ability to move between different problems and technical areas as a product evolves
+An eagerness to learn, ask questions and get comfortable with unfamiliar technology
+Enough autonomy to investigate problems and make progress without needing every step mapped out
+A progressive mindset – you’re interested in better ways of doing things and willing to challenge your own thinking
+Clear communication and an ability to work alongside people from different engineering disciplines
+Bonus points for
+None of these are prerequisites, but exposure to any of the following would be useful:
+Embedded systems, microcontrollers, firmware or IoT devices
+Electronics, including reading schematics or debugging hardware/software interactions
+React, React Native or JavaScript
+Python
+Mobile development
+Cloud platforms or connected-device architectures
+Personal engineering projects where you’ve built, programmed or connected a physical product
+Experience taking something beyond the classroom and making it actually work in the real world
+We’re deliberately keeping the industry background broad. Consumer electronics experience is great, but experience from robotics, medical devices, industrial IoT, university projects, internships or other hardware-led environments can translate just as well.
+
+The Hire
+You’re likely an early-career engineer who enjoys software but wants to work closer to the hardware.
+You might be coming straight from university or postgraduate study, have completed a strong internship or placement, or have spent your first few years working in software, embedded systems, electronics or another adjacent engineering environment.
+You’ll probably enjoy this role if you:
+Prefer building tangible products over working exclusively on digital platforms
+Like figuring out how things work rather than staying within one narrow technical lane
+Are comfortable switching context as products and priorities evolve
+Ask good questions when you don’t know the answer
+Enjoy learning from experienced engineers while still taking ownership of your own work
+Care about the full user experience, not just your individual codebase
+Want broad technical exposure while remaining hands-on
+Are excited by the idea of seeing something you helped build eventually sitting in someone’s home
+This team values raw problem-solving ability, curiosity and potential over a perfect keyword match.
+
+The "Why me?"
+You’ll join an unusually experienced software group with significant principal-level capability across embedded systems, connected devices, user interfaces and cloud technologies.
+For someone early in their career, that means genuine access to engineers who have built products at scale and an environment where you can develop across multiple layers of the stack rather than being boxed into one small area.
+There are also several long-term career paths available:
+Develop into a deeply hands-on embedded or software engineer
+Progress toward senior and eventually principal engineering
+Build capability across embedded, IoT, UI and cloud systems
+Move toward technical leadership, architecture or engineering management as your career develops
+The "Why this?"
+Work exclusively on new product development
+See your software move from concept to globally manufactured hardware
+Learn directly from a highly experienced engineering team
+Get exposure to the complete product development lifecycle early in your career
+Work across embedded software, IoT, connected interfaces and physical systems
+Contribute to products that combine software, electronics and mechanical engineering
+Build reusable platforms rather than repeatedly starting from scratch
+Join a growing, low-turnover engineering function
+Access annual incentives and a long-term equity-style reward
+Gain occasional exposure to international manufacturing operations
+This is an opportunity to build software people can physically interact with, learn from people who have done it at scale, and get the kind of technical breadth that can be difficult to find early in your career.
+
+
+Still reading? Get applying and let's talk.

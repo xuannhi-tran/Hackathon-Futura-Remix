@@ -1,0 +1,100 @@
+About Us
+
+Established in 2006 and headquartered in Sydney, Linksea Furniture supplies furniture to Australian retail and trade customers. Our business is supported by a network of more than 500 retail dealers, national B2B sales and delivery capability, and established manufacturing and distribution relationships. We are building on this foundation by developing wholesale accounts, strengthening our Australian digital channels and exploring opportunities for product and brand development in international markets.
+
+About the Role
+
+We are seeking a Software Developer to strengthen our internal software development capability and support the company’s operational improvement and digital growth.
+
+You will work directly with management and colleagues across sales, purchasing, finance, warehousing and customer service. You will review how these departments currently work, identify information gaps and repetitive manual processes, and translate their needs into practical software requirements and development priorities. 
+
+You will develop, test and maintain applications that centralise product information, improve coordination between departments and support our expanding online sales channels. The role requires someone who can work independently, communicate clearly with non-technical colleagues and take development tasks from initial analysis through to implementation and ongoing maintenance.
+
+Key Responsibilities
+
+Consult with management and staff across departments to analyse existing processes, identify operational needs and determine where software development can improve efficiency and information accuracy.
+
+Translate departmental requirements into functional specifications and agreed development priorities.
+
+Write, modify and maintain application code to support the company’s furniture sales, product management and daily operations.
+
+Develop and improve internal product information systems so staff can access accurate product details, specifications and supporting documents from a consistent source.
+
+Develop application functions that help staff manage pricing, inventory, orders and delivery information more efficiently.
+
+Enhance the company’s website and online sales functionality to support customer purchases and order processing.
+
+Develop integrations between online platforms and internal systems to improve information sharing and reduce duplicate data entry.
+
+Develop integrations and supporting application functions to enhance the company’s existing business platforms and improve operational workflows.
+
+Create software tools and automated workflows that reduce repetitive administrative work and improve coordination between departments.
+
+Develop data-processing and reporting functions that give staff and management access to useful operational information.
+
+Test new and updated software functions, investigate faults, debug program code and implement corrections.
+
+Support the deployment of software updates and provide ongoing maintenance to keep applications reliable and responsive to business needs.
+
+Contribute to planned improvements to the company’s business systems, including data migration and integration with new applications.
+
+Maintain technical documentation and provide staff with guidance on using newly developed or updated software functions.
+
+Review user feedback and recommend practical improvements as business processes and requirements evolve.
+
+Skills and Experience
+
+A bachelor’s degree or higher qualification in Information Technology, Computer Science, Software Engineering or a closely related discipline.
+
+At least one year of relevant professional experience in software development or programming, with two or more years preferred.
+
+Practical experience developing and maintaining software applications that meet business or user requirements.
+
+A sound understanding of programming, databases and integration between software systems.
+
+Experience testing software, investigating faults and implementing improvements.
+
+The ability to analyse business processes and translate requirements from different departments into practical software solutions.
+
+The ability to work independently, organise development priorities and follow tasks through to implementation and ongoing support.
+
+Good communication skills, including the ability to explain software requirements and proposed solutions to non-technical colleagues.
+
+Strong attention to detail and the ability to maintain clear technical documentation.
+
+Highly Regarded Experience
+
+Developing internal business applications, customer management tools or other operational systems.
+
+Working with e-commerce platforms and integrations involving product, customer or order information.
+
+Automating administrative processes, data transfers or business reporting.
+
+Supporting software deployment, troubleshooting and ongoing maintenance of live applications.
+
+Working with stakeholders across different business functions to understand their needs and deliver usable software.
+
+Ability to read and understand Chinese-language software interfaces and related documentation would be highly regarded, to support system integration, workflow improvements and the development of additional application functions.
+
+What We Offer
+
+A salary of $85,000–$90,000 per annum plus superannuation, depending on skills and experience.
+
+A full-time position contributing to the company’s ongoing digital development.
+
+The opportunity to help shape the company’s internal software capabilities and deliver practical improvements across the business.
+
+Practical projects involving internal applications, business-process automation and online sales.
+
+Direct collaboration with management and the staff who use the applications you develop.
+
+We are looking for a reliable and practical developer who takes ownership of their work, understands business needs and is interested in making a long-term contribution to our company.
+
+Employer questions
+Your application will include the following questions:
+Which of the following statements best describes your right to work in Australia?
+What's your expected annual base salary?
+How many years' experience do you have as a software developer?
+How much notice are you required to give your current employer?
+Do you have Software Deployment experience?
+How many years of Business Analysis experience do you have?

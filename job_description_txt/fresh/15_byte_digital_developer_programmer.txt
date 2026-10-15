@@ -1,0 +1,38 @@
+About Us:
+Byte Digital Consulting is a Melbourne-based software development company specializing in the design and delivery of innovative mobile apps, scalable web platforms, and robust microservices for clients across Australia.
+Position Overview:
+We are seeking a skilled Developer Programmer to join our team. The successful candidate will be responsible for designing, coding, testing, and maintaining software programs to meet client requirements.
+Key Duties and Responsibilities:
+
+* Analyse user requirements to design, develop, and modify software applications.
+* Write, test, and debug clean, scalable code in in .NET and typescript.
+* Maintain and enhance existing programs by identifying areas for improvement.
+* Assist in the integration of new systems and ensure compatibility with existing applications.
+* Prepare and maintain technical documentation, including specifications and user manuals.
+
+Skills and Experience Required:
+
+* Minimum of 5 years of full-time professional experience as a Developer Programmer.
+* Proficient in modern programming languages and frameworks.
+* Experience working with APIs, databases, and cloud services (AWS, Azure) is highly desirable.
+* Strong analytical and problem-solving skills.
+* Ability to work collaboratively within a team and communicate effectively with stakeholders.
+
+Additional Requirements:
+
+* Full-time position.
+* Role based in Melbourne, Victoria.
+
+Application Process:
+If you meet the above requirements and are passionate about software development, we encourage you to apply. Please submit your resume and a brief cover letter outlining your experience.Agencies please excuse.
+Job Types: Full-time, Permanent
+Work Location: In person
+Employer questions
+Your application will include the following questions:
+
+* Which of the following statements best describes your right to work in Australia?
+* What's your expected annual base salary?
+* How many years' experience do you have as a full stack developer?
+* How much notice are you required to give your current employer?
+* Do you have Systems Integration experience?
+* Do you have Cross Functional Team Collaboration experience?

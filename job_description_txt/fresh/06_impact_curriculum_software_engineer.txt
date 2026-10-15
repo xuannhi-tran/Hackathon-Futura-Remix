@@ -1,0 +1,41 @@
+Build technology that makes a difference in Australian education.
+Impact Curriculum is a purpose-driven, not-for-profit organisation committed to improving educational outcomes by supporting teachers with high-quality, evidence-informed curriculum resources and professional learning.
+We're looking for a capable, collaborative Software Engineer who enjoys building great digital products, solving problems and making technology work better for the people who use it.
+About the role
+Working as part of our Technology Team, you'll help design, build and improve the digital platforms that support our work with teachers and schools across Australia.
+This is a hands-on engineering role with the opportunity to contribute ideas, influence solutions and work across the full software development lifecycle.
+What you'll be doing
+   * Developing, testing and maintaining reliable, scalable software applications and services.
+   * Building and improving APIs, integrations and application components.
+   * Working with product and other colleagues to turn requirements into practical technical solutions.
+   * Troubleshooting technical issues and improving system performance and reliability.
+   * Contributing to code reviews, automated testing, CI/CD and engineering standards.
+   * Identifying opportunities to improve our platforms, development practices and user experience.
+What you'll bring
+We're looking for someone with:
+   * Demonstrated experience in software engineering and delivering production applications.
+   * Strong programming capability and experience with contemporary development frameworks.
+   * Experience with APIs, databases, integrations and cloud-based environments.
+   * Sound knowledge of testing, version control and CI/CD.
+   * Strong problem-solving and debugging skills.
+   * An understanding of secure, maintainable software development.
+   * The ability to work independently while collaborating effectively with others.
+Most importantly, you'll be curious, practical and committed to building quality technology that makes a difference.
+Why join Impact Curriculum?
+   * Purpose: Your work will contribute to better educational outcomes for Australian teachers and students.
+   * Flexibility: Work remotely from anywhere in Australia. Full-time preferred, with part-time arrangements considered.
+   * Impact: See the direct contribution your work makes to products used in education.
+   * Collaboration: Work with a passionate, multidisciplinary team that values ideas, initiative and continuous improvement.
+   * Opportunity: Contribute to the development and evolution of meaningful digital products.
+How to apply
+Applications close: Wednesday 21 October 2026.
+Applications will be reviewed progressively, and shortlisted candidates may be contacted before the closing date.
+Impact Curriculum is committed to child safety and inclusive employment practices. Appointment is subject to relevant pre-employment checks, including a Working with Children Check and National Police Check.
+Employer questions
+Your application will include the following questions:
+   * Which of the following development practices do you have practical experience with?
+   * Which of the following programming languages, frameworks, or tools do you have practical experience with?
+   * What is your current working rights status in Australia?
+   * What is your preferred work arrangement for this role?
+   * Do you hold (or are you eligible to obtain) a valid Working with Children Check and a satisfactory National Police Check?
+   * Give us an example of a challenging technical or production problem you diagnosed and resolved. How did you approach it and what was the outcome?
